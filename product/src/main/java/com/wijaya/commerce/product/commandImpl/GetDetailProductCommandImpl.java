@@ -61,7 +61,7 @@ public class GetDetailProductCommandImpl implements GetDetailProductCommand {
   }
 
   private List<GetDetailProductCommandResponse.ProductImage> mapImages(List<ProductDbModel.ProductImage> images) {
-    if (images == null)
+    if (images == null && images.size() == 0)
       return null;
     return images.stream()
         .map(img -> GetDetailProductCommandResponse.ProductImage.builder()
