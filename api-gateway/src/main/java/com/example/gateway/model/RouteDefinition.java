@@ -1,4 +1,4 @@
-package com.example.gateway.routing;
+package com.example.gateway.model;
 
 public record RouteDefinition(
     String id,

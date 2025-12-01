@@ -37,27 +37,19 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> {
 
           if (securityProps.getPublicPaths() != null) {
-            securityProps.getPublicPaths()
-                .forEach(path -> auth.requestMatchers(path).permitAll());
+            securityProps.getPublicPaths().forEach(path -> auth.requestMatchers(path).permitAll());
           }
 
           if (securityProps.getAuthenticatedPaths() != null) {
-            securityProps.getAuthenticatedPaths()
-                .forEach(path -> auth.requestMatchers(path).authenticated());
+            securityProps.getAuthenticatedPaths().forEach(path -> auth.requestMatchers(path).authenticated());
           }
 
           auth.anyRequest().permitAll();
         })
         // Rate limit first
-        .addFilterBefore(
-            new RateLimitFilter(rateLimitProps),
-            UsernamePasswordAuthenticationFilter.class
-        )
+        .addFilterBefore(new RateLimitFilter(rateLimitProps), UsernamePasswordAuthenticationFilter.class)
         // JWT after (still before UsernamePasswordAuthenticationFilter)
-        .addFilterBefore(
-            new JwtAuthFilter(jwtService, securityProps),
-            UsernamePasswordAuthenticationFilter.class
-        )
+        .addFilterBefore(new JwtAuthFilter(jwtService, securityProps), UsernamePasswordAuthenticationFilter.class)
         .httpBasic(Customizer.withDefaults());
 
     return http.build();

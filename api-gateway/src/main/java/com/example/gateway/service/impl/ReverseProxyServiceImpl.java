@@ -1,13 +1,11 @@
-package com.example.gateway.web;
+package com.example.gateway.service.impl;
 
-import com.example.gateway.routing.RouteDefinition;
-import com.example.gateway.routing.RouteRegistry;
+import com.example.gateway.model.ResolvedRoute;
+import com.example.gateway.service.ReverseProxyService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -15,29 +13,29 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-@RestController
+@Service
 @RequiredArgsConstructor
-public class ProxyController {
+public class ReverseProxyServiceImpl implements ReverseProxyService {
 
-  private final RouteRegistry routeRegistry;
   private final RestTemplate restTemplate;
 
-  @RequestMapping({"/api/members/**", "/api/products/**", "/api/cart/**"})
-  public ResponseEntity<byte[]> proxy(HttpServletRequest request, @RequestBody(required = false) byte[] body) {
+  @Override
+  public ResponseEntity<byte[]> forward(HttpServletRequest request,
+                                        byte[] body,
+                                        ResolvedRoute resolvedRoute) {
 
     String requestUri = request.getRequestURI();
     String queryString = request.getQueryString();
 
-    RouteDefinition route = routeRegistry.findRoute(requestUri);
+    var def = resolvedRoute.definition();
 
-    if (route == null) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(("No route for path: " + requestUri).getBytes());
-    }
+    // downstream path = targetPathPrefix + remainingPath
+    String downstreamPath = def.targetPathPrefix() + resolvedRoute.remainingPath();
 
-    // Strip path prefix
-    String downstreamPath = requestUri.substring(route.pathPrefix().length());
-    String targetUrl = route.targetBaseUrl() + route.targetPathPrefix() + downstreamPath;
+    // Optional: normalize double slashes if needed
+    // downstreamPath = downstreamPath.replaceAll("//+", "/");
 
+    String targetUrl = def.targetBaseUrl() + downstreamPath;
     if (queryString != null && !queryString.isBlank()) {
       targetUrl += "?" + queryString;
     }
@@ -46,20 +44,26 @@ public class ProxyController {
     HttpHeaders headers = extractHeaders(request);
 
     // inject userId for authenticated routes
-    if (route.requiresAuth()) {
+    if (def.requiresAuth()) {
       Object userId = request.getAttribute("userId");
-      if (userId != null)
+      if (userId != null) {
         headers.set("X-User-Id", userId.toString());
+      }
     }
 
     HttpEntity<byte[]> entity = new HttpEntity<>(body, headers);
 
-    ResponseEntity<byte[]> responseEntity = restTemplate.exchange(URI.create(targetUrl), method, entity, byte[].class);
+    ResponseEntity<byte[]> downstreamResponse =
+        restTemplate.exchange(URI.create(targetUrl), method, entity, byte[].class);
 
     HttpHeaders responseHeaders = new HttpHeaders();
-    responseHeaders.putAll(responseEntity.getHeaders());
+    responseHeaders.putAll(downstreamResponse.getHeaders());
 
-    return new ResponseEntity<>(responseEntity.getBody(), responseHeaders, responseEntity.getStatusCode());
+    return new ResponseEntity<>(
+        downstreamResponse.getBody(),
+        responseHeaders,
+        downstreamResponse.getStatusCode()
+    );
   }
 
   private HttpHeaders extractHeaders(HttpServletRequest request) {

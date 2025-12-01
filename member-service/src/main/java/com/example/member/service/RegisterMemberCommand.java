@@ -2,6 +2,7 @@ package com.example.member.service;
 
 import com.example.common.command.Command;
 import com.example.member.domain.Member;
+import com.example.member.exception.DuplicateEmailException;
 import com.example.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,7 +19,7 @@ public class RegisterMemberCommand implements Command<Member> {
   @Override
   public Member execute() {
     repo.findByEmail(email).ifPresent(m -> {
-      throw new IllegalStateException("Email already registered");
+      throw new DuplicateEmailException(email);
     });
 
     Member m = Member.builder()

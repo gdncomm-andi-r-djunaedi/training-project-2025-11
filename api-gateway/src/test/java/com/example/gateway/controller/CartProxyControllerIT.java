@@ -1,4 +1,4 @@
-package com.example.gateway.web;
+package com.example.gateway.controller;
 
 import com.example.common.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
