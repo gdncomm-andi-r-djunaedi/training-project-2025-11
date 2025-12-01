@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: customer
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/customer_db
+    username: appuser
+    password: apppassword
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8081
+
+logging:
+  level:
+    root: INFO
+
+springdoc:
+  swagger-ui:
+    path: /customer/swagger
+    disable-swagger-default-url: true
+    use-root-path: false
+  api-docs:
+    path: /product-docs
