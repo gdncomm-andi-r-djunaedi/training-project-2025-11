@@ -23,12 +23,11 @@ public class MemberService {
     private final JwtUtils jwtUtils;
 
     public Member register(RegisterRequest request) {
-        if (memberRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+        if (memberRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
         }
 
         Member member = Member.builder()
-                .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .build();
@@ -37,17 +36,17 @@ public class MemberService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        Member member = memberRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new AuthenticationException("Invalid username or password"));
+        // Member member = memberRepository.findByUsername(request.getUsername())
+        //         .orElseThrow(() -> new AuthenticationException("Invalid username or password"));
 
-        if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-            throw new AuthenticationException("Invalid username or password");
-        }
+        // if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+        //     throw new AuthenticationException("Invalid username or password");
+        // }
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", member.getEmail());
+        claims.put("email", request.getEmail());
 
-        String token = jwtUtils.generateToken(String.valueOf(member.getId()), claims);
+        String token = jwtUtils.generateToken(String.valueOf(request.getEmail()), claims);
         return new LoginResponse(token);
     }
 }

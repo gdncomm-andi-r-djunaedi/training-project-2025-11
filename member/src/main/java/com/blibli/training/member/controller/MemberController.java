@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
-@RequestMapping("/member") // or just root if gateway routes /member/** to /
+@RequestMapping
 @RequiredArgsConstructor
 public class MemberController {
 
@@ -50,4 +52,14 @@ public class MemberController {
         response.addCookie(cookie);
         return BaseResponse.success(null);
     }
+
+    @GetMapping("/hello")
+    public String helloWorld() {
+        return new String("Hello World");
+    }
+    @GetMapping("/hello-protected")
+    public String helloWorldPrivate() {
+        return new String("Hello World Private");
+    }
+    
 }

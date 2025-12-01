@@ -1,5 +1,6 @@
 package com.blibli.training.framework.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BaseResponse<T> {
     private boolean success;
     private int code;
@@ -24,11 +26,11 @@ public class BaseResponse<T> {
                 .build();
     }
 
-    public static <T> BaseResponse<T> error(int code, String message) {
+    public static <T> BaseResponse<T> error(int code, Exception e) {
         return BaseResponse.<T>builder()
                 .success(false)
                 .code(code)
-                .message(message)
+                .message(e.getMessage())
                 .build();
     }
 }
