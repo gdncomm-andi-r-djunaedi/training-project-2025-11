@@ -22,9 +22,8 @@ gateway:
       requiresAuth: true
 
   jwt:
-    # move the secret here (change for real env)
     secret: change-this-secret-change-this-secret-1234
-    ttlSeconds: 3600   # optional, for later use if you want
+    ttlSeconds: 3600
 
   security:
     public-paths:
@@ -37,6 +36,33 @@ gateway:
     authenticated-paths:
       - /api/cart/**
       - /api/members/logout
+
+  cors:
+    mappings:
+      - pathPattern: "/api/**"
+        allowedOrigins:
+          - "http://localhost:3000"
+        allowedMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+        allowedHeaders:
+          - "*"
+        exposedHeaders:
+          - "X-Total-Count"
+        allowCredentials: true
+        maxAge: 3600
+
+  rate-limit:
+    rules:
+      - pathPattern: "/api/members/login"
+        requests: 10
+        windowSeconds: 60
+      - pathPattern: "/api/cart/**"
+        requests: 50
+        windowSeconds: 60
 
 springdoc:
   swagger-ui:

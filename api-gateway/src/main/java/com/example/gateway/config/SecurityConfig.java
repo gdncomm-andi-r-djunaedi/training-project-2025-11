@@ -1,9 +1,11 @@
 package com.example.gateway.config;
 
 import com.example.common.security.JwtService;
+import com.example.gateway.properties.GatewayRateLimitProperties;
 import com.example.gateway.properties.GatewaySecurityProperties;
 import com.example.gateway.properties.JwtProperties;
 import com.example.gateway.security.JwtAuthFilter;
+import com.example.gateway.security.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,7 @@ public class SecurityConfig {
 
   private final GatewaySecurityProperties securityProps;
   private final JwtProperties jwtProps;
+  private final GatewayRateLimitProperties rateLimitProps;
 
   @Bean
   public JwtService jwtService() {
@@ -33,21 +36,24 @@ public class SecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> {
 
-          // Public paths
           if (securityProps.getPublicPaths() != null) {
             securityProps.getPublicPaths()
                 .forEach(path -> auth.requestMatchers(path).permitAll());
           }
 
-          // Authenticated paths
           if (securityProps.getAuthenticatedPaths() != null) {
             securityProps.getAuthenticatedPaths()
                 .forEach(path -> auth.requestMatchers(path).authenticated());
           }
 
-          // Everything else (for now)
           auth.anyRequest().permitAll();
         })
+        // Rate limit first
+        .addFilterBefore(
+            new RateLimitFilter(rateLimitProps),
+            UsernamePasswordAuthenticationFilter.class
+        )
+        // JWT after (still before UsernamePasswordAuthenticationFilter)
         .addFilterBefore(
             new JwtAuthFilter(jwtService, securityProps),
             UsernamePasswordAuthenticationFilter.class
