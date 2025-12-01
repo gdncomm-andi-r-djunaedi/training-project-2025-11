@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+gateway:
+  jwt:
+    secret: change-this-secret-change-this-secret-1234
+
+    security:
+      public-paths:
+        - /swagger-ui/**
+        - /v3/api-docs/**
+        - /api/members/register
+        - /api/members/login
+        - /api/products/**
+
+      authenticated-paths:
+        - /api/cart/**
+        - /api/members/logout
+
+  routes:
+    - id: member
+      pathPrefix: /api/members
+      targetBaseUrl: http://localhost:8081
+      targetPathPrefix: /api/members
+      requiresAuth: false
+
+    - id: product
+      pathPrefix: /api/products
+      targetBaseUrl: http://localhost:8082
+      targetPathPrefix: /api/products
+      requiresAuth: false
+
+    - id: cart
+      pathPrefix: /api/cart
+      targetBaseUrl: http://localhost:8083
+      targetPathPrefix: /api/cart
+      requiresAuth: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
