@@ -1,7 +1,6 @@
-package com.training.marketplace.member.service;
+package com.training.marketplace.member.utils;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoder;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -9,18 +8,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-@Service
+@Component
 @Slf4j
-public class JwtService {
+public class JwtUtils {
     @Value("${app.jwt.secret}")
     private String jwtSecret;
     @Value("${app.jwt.expiration}")
@@ -64,8 +61,6 @@ public class JwtService {
         return false;
     }
 
-
-
     private SecretKey getSignInKey(){
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -89,7 +84,7 @@ public class JwtService {
                 .compact();
     }
 
-    private String extractUsernameFromToken(String token){
+    public String extractUsernameFromToken(String token){
         return Jwts.parser()
                 .verifyWith(getSignInKey())
                 .build()
