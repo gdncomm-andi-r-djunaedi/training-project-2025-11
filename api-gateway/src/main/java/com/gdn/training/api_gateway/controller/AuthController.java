@@ -1,24 +1,31 @@
 package com.gdn.training.api_gateway.controller;
 
+import java.util.Map;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.gdn.training.api_gateway.client.MemberClient;
 import com.gdn.training.api_gateway.dto.LoginRequest;
 import com.gdn.training.api_gateway.dto.LoginResponse;
 import com.gdn.training.api_gateway.dto.UserInfoDTO;
 import com.gdn.training.api_gateway.security.JwtService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Authentication", description = "User authentication endpoints (handled by Gateway)")
 public class AuthController {
 
@@ -32,6 +39,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "User login", description = "Login and receive JWT token in secure cookie")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        log.info("Login attempt started for {}", request.getEmail());
         UserInfoDTO userInfo = memberClient.validateCredentials(request);
 
         String token = jwtService.generateToken(
@@ -52,6 +60,7 @@ public class AuthController {
 
         LoginResponse response = new LoginResponse(token);
 
+        log.info("Login succeeded for {}", userInfo.getEmail());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(response);
@@ -68,6 +77,7 @@ public class AuthController {
                 .maxAge(0)
                 .build();
 
+        log.info("Logout executed, authentication cookie cleared");
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
