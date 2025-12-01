@@ -1,0 +1,43 @@
+package com.blublu.member.controller;
+
+import com.blublu.member.interfaces.AuthenticationService;
+import com.blublu.member.model.request.LoginRequest;
+import com.blublu.member.model.request.SignUpRequest;
+import com.blublu.member.model.response.LoginResponse;
+import com.blublu.member.service.MemberServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+
+@RestController
+@RequestMapping("/member")
+public class MemberController {
+
+  @Autowired
+  MemberServiceImpl memberService;
+
+  @Autowired
+  AuthenticationService authenticationService;
+
+  @RequestMapping(path = "/login", method = RequestMethod.POST)
+  public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest,
+      @RequestHeader(required = true) String secret) {
+    String username = authenticationService.authenticateUser(loginRequest, secret).getUsername();
+    return ResponseEntity.ok(LoginResponse.builder()
+        .username(username)
+        .success(true)
+        .build());
+  }
+
+  @RequestMapping(path = "/sign-up", method = RequestMethod.GET)
+  public ResponseEntity<?> signUp(@RequestBody SignUpRequest signUpRequest) {
+    memberService.signUp(signUpRequest);
+    return ResponseEntity.ok(new HashMap<>());
+  }
+}
