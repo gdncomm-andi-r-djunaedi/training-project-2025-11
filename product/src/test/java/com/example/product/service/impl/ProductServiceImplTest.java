@@ -22,7 +22,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,30 +37,32 @@ class ProductServiceImplTest {
     private ProductDTO productDTO;
     private Product product;
     private ObjectId productId;
+    public static final String PRODUCT_NAME_VALUE = "Laptop";
+    public static final String CATEGORY_VALUE = "Electronics";
 
     @BeforeEach
     void setUp() {
         productId = new ObjectId();
         
         productDTO = new ProductDTO();
-        productDTO.setProductName("Laptop");
+        productDTO.setProductName(PRODUCT_NAME_VALUE);
         productDTO.setDescription("High-performance laptop");
         productDTO.setPrice(999.99);
-        productDTO.setCategory("Electronics");
+        productDTO.setCategory(CATEGORY_VALUE);
         productDTO.setImages(Arrays.asList("image1.jpg", "image2.jpg"));
 
         product = new Product();
         product.setProductId(productId);
-        product.setProductName("Laptop");
+        product.setProductName(PRODUCT_NAME_VALUE);
         product.setDescription("High-performance laptop");
         product.setPrice(999.99);
-        product.setCategory("Electronics");
+        product.setCategory(CATEGORY_VALUE);
         product.setImages(Arrays.asList("image1.jpg", "image2.jpg"));
     }
 
     @Test
     @DisplayName("Should create product successfully")
-    void testCreateProduct_Success() {
+    void testCreateProductSuccess() {
         // Given
         Product savedProduct = new Product();
         savedProduct.setProductId(productId);
@@ -89,7 +90,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should get product by ID when product exists")
-    void testGetProduct_WhenProductExists() {
+    void testGetProductWhenProductExists() {
         // Given
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
@@ -108,7 +109,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should return null when product does not exist")
-    void testGetProduct_WhenProductDoesNotExist() {
+    void testGetProductWhenProductDoesNotExist() {
         // Given
         when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
@@ -122,13 +123,13 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should update product successfully when product exists")
-    void testUpdateProduct_WhenProductExists() {
+    void testUpdateProductWhenProductExists() {
         // Given
         ProductDTO updatedDTO = new ProductDTO();
         updatedDTO.setProductName("Updated Laptop");
         updatedDTO.setDescription("Updated description");
         updatedDTO.setPrice(1299.99);
-        updatedDTO.setCategory("Electronics");
+        updatedDTO.setCategory(CATEGORY_VALUE);
         updatedDTO.setImages(Arrays.asList("new-image.jpg"));
 
         Product updatedProduct = new Product();
@@ -157,7 +158,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should return null when updating non-existent product")
-    void testUpdateProduct_WhenProductDoesNotExist() {
+    void testUpdateProductWhenProductDoesNotExist() {
         // Given
         ProductDTO updatedDTO = new ProductDTO();
         updatedDTO.setProductName("Updated Laptop");
@@ -175,7 +176,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should delete product successfully")
-    void testDeleteProduct_Success() {
+    void testDeleteProductSuccess() {
         // Given
         doNothing().when(productRepository).deleteById(productId);
 
@@ -188,39 +189,38 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should search products by name successfully")
-    void testSearchProducts_ByName_Success() {
+    void testSearchProductsByNameSuccess() {
         // Given
-        String productName = "Laptop";
         Pageable pageable = PageRequest.of(0, 10);
         
         List<Product> products = Arrays.asList(
             product,
-            new Product(new ObjectId(), "Laptop Pro", "Pro laptop", 1499.99, "Electronics", Arrays.asList("img1.jpg"))
+            new Product(new ObjectId(), "Laptop Pro", "Pro laptop", 1499.99, CATEGORY_VALUE, Arrays.asList("img1.jpg"))
         );
         Page<Product> productPage = new PageImpl<>(products, pageable, products.size());
 
-        when(productRepository.findByProductName(eq(productName), eq(pageable))).thenReturn(productPage);
+        when(productRepository.findByProductName(PRODUCT_NAME_VALUE, pageable)).thenReturn(productPage);
 
         // When
-        List<ProductDTO> result = productService.searchProducts(productName, pageable);
+        List<ProductDTO> result = productService.searchProducts(PRODUCT_NAME_VALUE, pageable);
 
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(dto -> dto.getProductName().contains("Laptop")));
+        assertTrue(result.stream().allMatch(dto -> dto.getProductName().contains(PRODUCT_NAME_VALUE)));
         
-        verify(productRepository, times(1)).findByProductName(eq(productName), eq(pageable));
+        verify(productRepository, times(1)).findByProductName(PRODUCT_NAME_VALUE, pageable);
     }
 
     @Test
     @DisplayName("Should return empty list when no products found by name")
-    void testSearchProducts_ByName_NoResults() {
+    void testSearchProductsByNameNoResults() {
         // Given
         String productName = "NonExistent";
         Pageable pageable = PageRequest.of(0, 10);
         Page<Product> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
-        when(productRepository.findByProductName(eq(productName), eq(pageable))).thenReturn(emptyPage);
+        when(productRepository.findByProductName(productName, pageable)).thenReturn(emptyPage);
 
         // When
         List<ProductDTO> result = productService.searchProducts(productName, pageable);
@@ -229,89 +229,85 @@ class ProductServiceImplTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
         
-        verify(productRepository, times(1)).findByProductName(eq(productName), eq(pageable));
+        verify(productRepository, times(1)).findByProductName(productName, pageable);
     }
 
     @Test
     @DisplayName("Should search products by name and category successfully")
-    void testSearchProducts_ByNameAndCategory_Success() {
+    void testSearchProductsByNameAndCategorySuccess() {
         // Given
-        String productName = "Laptop";
-        String category = "Electronics";
         Pageable pageable = PageRequest.of(0, 10);
         
         List<Product> products = Arrays.asList(product);
         Page<Product> productPage = new PageImpl<>(products, pageable, products.size());
 
-        when(productRepository.findByProductNameAndCategory(eq(productName), eq(category), eq(pageable)))
+        when(productRepository.findByProductNameAndCategory(PRODUCT_NAME_VALUE, CATEGORY_VALUE, pageable))
                 .thenReturn(productPage);
 
         // When
-        List<ProductDTO> result = productService.searchProducts(productName, category, pageable);
+        List<ProductDTO> result = productService.searchProducts(PRODUCT_NAME_VALUE, CATEGORY_VALUE, pageable);
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(productName, result.get(0).getProductName());
-        assertEquals(category, result.get(0).getCategory());
+        assertEquals(PRODUCT_NAME_VALUE, result.get(0).getProductName());
+        assertEquals(CATEGORY_VALUE, result.get(0).getCategory());
         
         verify(productRepository, times(1))
-                .findByProductNameAndCategory(eq(productName), eq(category), eq(pageable));
+                .findByProductNameAndCategory(PRODUCT_NAME_VALUE, CATEGORY_VALUE, pageable);
     }
 
     @Test
     @DisplayName("Should return empty list when no products found by name and category")
-    void testSearchProducts_ByNameAndCategory_NoResults() {
+    void testSearchProductsByNameAndCategoryNoResults() {
         // Given
-        String productName = "Laptop";
         String category = "Clothing";
         Pageable pageable = PageRequest.of(0, 10);
         Page<Product> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
-        when(productRepository.findByProductNameAndCategory(eq(productName), eq(category), eq(pageable)))
+        when(productRepository.findByProductNameAndCategory(PRODUCT_NAME_VALUE, category, pageable))
                 .thenReturn(emptyPage);
 
         // When
-        List<ProductDTO> result = productService.searchProducts(productName, category, pageable);
+        List<ProductDTO> result = productService.searchProducts(PRODUCT_NAME_VALUE, category, pageable);
 
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
         
         verify(productRepository, times(1))
-                .findByProductNameAndCategory(eq(productName), eq(category), eq(pageable));
+                .findByProductNameAndCategory(PRODUCT_NAME_VALUE, category, pageable);
     }
 
     @Test
     @DisplayName("Should handle pagination correctly in search by name")
-    void testSearchProducts_ByName_WithPagination() {
+    void testSearchProductsByNameWithPagination() {
         // Given
-        String productName = "Laptop";
         Pageable pageable = PageRequest.of(1, 5); // Second page, 5 items per page
         
         List<Product> products = Arrays.asList(product);
         Page<Product> productPage = new PageImpl<>(products, pageable, 10); // Total 10 items
 
-        when(productRepository.findByProductName(eq(productName), eq(pageable))).thenReturn(productPage);
+        when(productRepository.findByProductName(PRODUCT_NAME_VALUE, pageable)).thenReturn(productPage);
 
         // When
-        List<ProductDTO> result = productService.searchProducts(productName, pageable);
+        List<ProductDTO> result = productService.searchProducts(PRODUCT_NAME_VALUE, pageable);
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(productRepository, times(1)).findByProductName(eq(productName), eq(pageable));
+        verify(productRepository, times(1)).findByProductName(PRODUCT_NAME_VALUE, pageable);
     }
 
     @Test
     @DisplayName("Should handle null images in product DTO")
-    void testCreateProduct_WithNullImages() {
+    void testCreateProductWithNullImages() {
         // Given
         ProductDTO dtoWithNullImages = new ProductDTO();
         dtoWithNullImages.setProductName("Phone");
         dtoWithNullImages.setDescription("Smartphone");
         dtoWithNullImages.setPrice(599.99);
-        dtoWithNullImages.setCategory("Electronics");
+        dtoWithNullImages.setCategory(CATEGORY_VALUE);
         dtoWithNullImages.setImages(null);
 
         Product savedProduct = new Product();
