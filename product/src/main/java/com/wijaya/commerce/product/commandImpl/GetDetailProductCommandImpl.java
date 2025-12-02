@@ -13,6 +13,7 @@ import com.wijaya.commerce.product.modelDb.CategoryDbModel;
 import com.wijaya.commerce.product.modelDb.ProductDbModel;
 import com.wijaya.commerce.product.repository.CategoryRepository;
 import com.wijaya.commerce.product.repository.ProductRepository;
+import com.wijaya.commerce.product.restWebModel.response.GetDetailProductWebModel;
 import com.wijaya.commerce.product.service.helper.CacheService;
 
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,9 @@ public class GetDetailProductCommandImpl implements GetDetailProductCommand {
     if (isCategories(product)) {
       categories = categoryRepository.findAllById(product.getCategoryIds());
     }
-    cacheService.set(commandRequest.getSku(), mapToResponse(product, categories));
-    return mapToResponse(product, categories);
+    GetDetailProductCommandResponse response = mapToResponse(product, categories);
+    cacheService.set(commandRequest.getSku(), response);
+    return response;
   }
 
   private boolean isCategories(ProductDbModel product) {
@@ -55,6 +57,7 @@ public class GetDetailProductCommandImpl implements GetDetailProductCommand {
         .brand(product.getBrand())
         .price(product.getPrice())
         .comparePrice(product.getComparePrice())
+        .active(product.getActive())
         .discountPercentage(product.getDiscountPercentage())
         .images(mapImages(product.getImages()))
         .specifications(product.getSpecifications())

@@ -20,6 +20,7 @@ public class GetDetailProductWebModel {
     private String brand;
     private Long price;
     private Long comparePrice;
+    private Boolean active;
     private Integer discountPercentage;
     private List<ProductImage> images;
     private Map<String, String> specifications;
