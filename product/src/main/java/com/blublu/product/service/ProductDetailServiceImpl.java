@@ -12,7 +12,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
   ProductDetailRepository productDetailRepository;
 
   @Override
-  public ProductDetail findProductDetailByName(String name) {
-    return productDetailRepository.findProductByName(name);
+  public ProductDetail findProductDetailBySku(String skuCode) {
+    return productDetailRepository.findProductBySkuCode(skuCode);
   }
 }

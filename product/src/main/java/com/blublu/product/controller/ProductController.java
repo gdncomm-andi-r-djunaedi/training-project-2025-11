@@ -1,12 +1,12 @@
 package com.blublu.product.controller;
 
-import com.blublu.product.document.Product;
-import com.blublu.product.document.ProductDetail;
+import com.blublu.product.document.Products;
 import com.blublu.product.interfaces.ProductDetailService;
 import com.blublu.product.interfaces.ProductService;
 import com.blublu.product.model.response.GenericBodyResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,10 +29,11 @@ public class ProductController {
   @Autowired
   ProductDetailService productDetailService;
 
-  @RequestMapping(method = RequestMethod.GET)
+  @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> findAllProduct(@RequestParam(required = false, defaultValue = "0") int page,
       @RequestParam(required = false, defaultValue = "10") int size) {
-    List<Product> products = productService.findAllProductWithPageAndSize(page, size);
+    List<Products> products = productService.findAllProductWithPageAndSize(page, size);
+    System.out.println(products);
     if (products.isEmpty()) {
       return ResponseEntity.internalServerError()
           .body(GenericBodyResponse.builder()
@@ -42,43 +43,26 @@ public class ProductController {
               .success(false)
               .build());
     } else {
-      return ResponseEntity.ok().body(GenericBodyResponse.builder().content(products).success(true));
+      return ResponseEntity.ok().body(GenericBodyResponse.builder().content(products).success(true).build());
     }
   }
 
-  @RequestMapping(value = "/{productName}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{productName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> findProductByName(@PathVariable("productName") String productName,
       @RequestParam(required = false, defaultValue = "0") int page,
       @RequestParam(required = false, defaultValue = "5") int size) {
-    List<Product> product = productService.findByName(productName, page, size);
-    if (Objects.isNull(product)) {
+    List<Products> products = productService.findByName(productName, page, size);
+    if (Objects.isNull(products)) {
       return ResponseEntity.internalServerError()
           .body(GenericBodyResponse.builder()
               .errorMessage("No product found")
               .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
               .success(false)
-              .content(new ArrayList<>()));
+              .content(new ArrayList<>())
+              .build());
     } else {
       return ResponseEntity.ok()
-          .body(GenericBodyResponse.builder().content(Collections.singletonList(product)).success(true));
+          .body(GenericBodyResponse.builder().content(Collections.singletonList(products)).success(true).build());
     }
-  }
-
-  @RequestMapping(value = "/{productName}/_detail", method = RequestMethod.GET)
-  public ResponseEntity<?> findProductDetail(@PathVariable String productName) {
-    ProductDetail productDetail = productDetailService.findProductDetailByName(productName);
-    return Objects.isNull(productDetail) ?
-        ResponseEntity.internalServerError()
-            .body(GenericBodyResponse.builder()
-                .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .errorMessage("Product detail not found!")
-                .success(false)
-                .content(new ArrayList<>())
-                .build()) :
-        ResponseEntity.ok()
-            .body(GenericBodyResponse.builder()
-                .success(true)
-                .content(Collections.singletonList(productDetail))
-                .build());
   }
 }
