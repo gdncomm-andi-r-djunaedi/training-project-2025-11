@@ -16,20 +16,20 @@ public class TokenBlacklistService {
 
     private final StringRedisTemplate redisTemplate;
 
-    public void blacklist(String jti, Duration ttl) {
-        if (!StringUtils.hasText(jti) || ttl == null || ttl.isZero() || ttl.isNegative()) {
+    public void blacklist(String jwtId, Duration ttl) {
+        if (!StringUtils.hasText(jwtId) || ttl == null || ttl.isZero() || ttl.isNegative()) {
             return;
         }
-        redisTemplate.opsForValue().set(buildKey(jti), "1", ttl);
+        redisTemplate.opsForValue().set(buildKey(jwtId), "1", ttl);
     }
 
-    public boolean isBlacklisted(String jti) {
-        return StringUtils.hasText(jti)
-                && Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(jti)));
+    public boolean isBlacklisted(String jwtId) {
+        return StringUtils.hasText(jwtId)
+                && Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(jwtId)));
     }
 
-    private String buildKey(String jti) {
-        return KEY_PREFIX + jti;
+    private String buildKey(String jwtId) {
+        return KEY_PREFIX + jwtId;
     }
 }
 

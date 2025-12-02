@@ -3,6 +3,7 @@ package com.gdn.training.api_gateway.security;
 import java.io.IOException;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -53,6 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = jwtService.parseToken(token);
 
                 if (tokenBlacklistService.isBlacklisted(claims.getId())) {
+                    log.warn("Token blacklisted for jwtId={}", claims.getId());
                     SecurityContextHolder.clearContext();
                     filterChain.doFilter(request, response);
                     return;
@@ -60,6 +63,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 String userId = claims.getSubject();
                 String role = (String) claims.get("role");
+
+                log.debug("Authenticated request. userId={}, role={}, path={}", userId, role, request.getRequestURI());
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -81,6 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
 
             } catch (Exception ex) {
+                log.error("Error during JWT processing for path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
                 SecurityContextHolder.clearContext();
             }
         }

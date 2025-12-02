@@ -4,6 +4,7 @@ import com.gdn.training.cart.config.ServiceClientConfig;
 import com.gdn.training.cart.config.ServiceClientsProperties;
 import com.gdn.training.cart.dto.ProductDTO;
 import com.gdn.training.common.model.BaseResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 
 @Component
+@Slf4j
 public class ProductClient {
 
     private final RestTemplate restTemplate;
@@ -33,11 +35,19 @@ public class ProductClient {
         ServiceClientConfig config = serviceClientsProperties.getRequired("product");
         String detailEndpoint = config.getEndpoints().get("detail");
         String url = config.getBaseUrl() + detailEndpoint.replace("{id}", productId);
+
+        log.debug("Calling Product Service URL: {}", url);
+
         ResponseEntity<BaseResponse<ProductDTO>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<BaseResponse<ProductDTO>>() {}
+        );
+
+        log.debug("Response received from Product Service: status={}, body={}",
+                response.getStatusCode(),
+                response.getBody()
         );
 
         BaseResponse<ProductDTO> body = response.getBody();

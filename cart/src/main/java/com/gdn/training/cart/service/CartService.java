@@ -36,20 +36,14 @@ public class CartService {
             throw new IllegalArgumentException("Product not found");
         }
 
+        // keep cart item details aligned with the latest product information
+        item.setProductName(product.getName());
+        item.setPrice(product.getPrice());
+        item.setImageUrl(product.getImageUrl());
+
         Cart cart = getCart(userId);
 
-        int currentQuantityInCart = cart.getItems().stream()
-                .filter(i -> i.getProductId().equals(item.getProductId()))
-                .mapToInt(CartItem::getQuantity)
-                .sum();
-
-        int totalQuantity = currentQuantityInCart + item.getQuantity();
-
-        if (totalQuantity > product.getQuantity()) {
-            log.warn("Insufficient stock for product {}. Requested {}, available {}",
-                    item.getProductId(), totalQuantity, product.getQuantity());
-            throw new IllegalArgumentException("Insufficient stock. Available: " + product.getQuantity() + ", Requested: " + totalQuantity);
-        }
+        log.debug("Current cart {} loaded for user {}", cart.getId(), userId);
 
         Optional<CartItem> existingItem = cart.getItems().stream()
                 .filter(i -> i.getProductId().equals(item.getProductId()))

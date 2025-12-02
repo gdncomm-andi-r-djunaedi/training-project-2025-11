@@ -20,6 +20,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final String DEFAULT_ROLE_USER = "ROLE_USER";
 
     @Transactional
     public void register(RegisterRequest request) {
@@ -32,7 +33,7 @@ public class MemberService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role("ROLE_USER")
+                .role(DEFAULT_ROLE_USER)
                 .build();
 
         Member saved = memberRepository.save(member);

@@ -38,13 +38,13 @@ class ProductServiceIntegrationTest {
                 .name("Gadget Alpha")
                 .description("Alpha gadget for testing")
                 .price(BigDecimal.valueOf(199.99))
-                .quantity(100)
+                .quantity(Integer.MAX_VALUE)
                 .build();
         Product widget = Product.builder()
                 .name("Widget Beta")
                 .description("Widget for pagination")
                 .price(BigDecimal.valueOf(49.99))
-                .quantity(200)
+                .quantity(Integer.MAX_VALUE)
                 .build();
         gadgetId = productRepository.save(gadget).getId();
         productRepository.save(widget);
