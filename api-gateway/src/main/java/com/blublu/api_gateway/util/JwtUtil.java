@@ -1,10 +1,10 @@
 package com.blublu.api_gateway.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -15,14 +15,10 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
-  @Value("${jwt.secret}")
-  private String secret;
+  private final Key SIGNING_KEY;
 
-  private final Key SIGNING_KEY = Keys.hmacShaKeyFor(secret.getBytes());
-
-  public String generateToken(UserDetails userDetails) {
-    Map<String, Object> claims = new HashMap<>();
-    return createToken(claims, userDetails.getUsername());
+  public JwtUtil(@Value("${jwt.secret}") String secret) {
+    this.SIGNING_KEY = Keys.hmacShaKeyFor(secret.getBytes());
   }
 
   public String generateToken(String username) {

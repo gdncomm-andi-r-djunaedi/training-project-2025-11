@@ -8,5 +8,6 @@ import java.util.List;
 
 @Component
 public interface MemberRepository extends JpaRepository<Member, Long> {
-  List<Member> findByUsername(String username);
+  int countByUsername(String username);
+  Member findByUsername(String username);
 }

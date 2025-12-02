@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) {
-    Member member = memberRepository.findByUsername(username).getFirst();
+    Member member = memberRepository.findByUsername(username);
     if (Objects.isNull(member))
       throw new UsernameNotExistException("User not found: " + username);
 

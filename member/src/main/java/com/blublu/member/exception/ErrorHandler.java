@@ -29,4 +29,14 @@ public class ErrorHandler {
             "errorMessage",
             usernameNotExistException.getMessage()));
   }
+
+  @ExceptionHandler(WrongPasswordException.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public ResponseEntity<Map<String, Object>> wrongPasswordHandler(WrongPasswordException wrongPasswordException) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(Map.of("code",
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "errorMessage",
+            wrongPasswordException.getMessage()));
+  }
 }

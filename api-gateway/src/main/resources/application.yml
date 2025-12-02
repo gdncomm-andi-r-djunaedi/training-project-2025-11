@@ -1,0 +1,24 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: product
+              uri: 'http://localhost:8081'
+              predicates:
+                - Path=/product/**
+            - id: member
+              uri: 'http://localhost:8082'
+              predicates:
+                - Path=/member/**
+            - id: cart
+              uri: 'http://localhost:8083'
+              predicates:
+                - Path=/cart/**
+jwt:
+  secret: this-is-a-very-secret-and-safe-key-no-hacker-can-hack
