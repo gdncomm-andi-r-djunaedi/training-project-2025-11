@@ -79,9 +79,9 @@ public class MemberController {
   }
 
   @GetMapping(MemberApiPath.GET_USER_DETAIL)
-  public WebResponse<GetUserDetailResponseWebModel> getUserDetail(@Valid @RequestParam String request) {
+  public WebResponse<GetUserDetailResponseWebModel> getUserDetail(@Valid @RequestParam String userId) {
     GetUserDetailCommandRequest commandRequest = GetUserDetailCommandRequest.builder()
-        .id(request)
+        .id(userId)
         .build();
     GetUserDetailCommandResponse response = commandExecutor.execute(GetUserDetailCommand.class, commandRequest);
 
