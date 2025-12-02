@@ -17,4 +17,6 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     List<Product> findByTitleContainingIgnoreCase(String title);
 
     void deleteProductByProductId(long id);
+
+    List<Product> findByProductIdIn(List<Long> productIds);
 }
