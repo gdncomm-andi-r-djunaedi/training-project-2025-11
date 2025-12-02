@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.math.BigDecimal;
 
@@ -19,7 +20,14 @@ public class Product {
     @Id
     private String id;
 
-    private String name;
+    @Field("product_sku")
+    private String productSku;
+
+    @Field("product_name")
+    private String productName;
+
+    @Field("quantity")
+    private Integer quantity;
 
     private String description;
 
@@ -28,4 +36,8 @@ public class Product {
     private String imageUrl;
 
     private String category;
+
+    @org.springframework.data.annotation.CreatedDate
+    @Field("created_time")
+    private java.util.Date createdTime;
 }
