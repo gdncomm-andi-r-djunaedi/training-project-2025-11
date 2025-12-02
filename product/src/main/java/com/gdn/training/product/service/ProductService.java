@@ -2,6 +2,7 @@ package com.gdn.training.product.service;
 
 import java.util.UUID;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "productById", key = "#id")
     public Product getProductById(UUID id) {
         return productRepository.findById(id)
                 .map(product -> {

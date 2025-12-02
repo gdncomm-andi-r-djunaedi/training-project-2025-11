@@ -1,7 +1,7 @@
 # Training Project 2025-11 - Microservices E-Commerce Platform
 
 ## Overview
-This is a microservices-based online marketplace platform built with Spring Boot, implementing authentication, product catalog, and shopping cart functionality.
+This is a microservices-based online marketplace platform built with Spring Boot, implementing JWT-based authentication, product catalog, caching, and shopping cart functionality.
 
 ## Architecture
 - **API Gateway** (Port 8080) - Entry point, JWT validation, request routing
@@ -25,11 +25,12 @@ This is a microservices-based online marketplace platform built with Spring Boot
 
 ### 2. Database Setup
 
-**PostgreSQL:**
+**PostgreSQL (members + products):**
 ```bash
-psql -U postgres -f member/setup-db.sql
-psql -U postgres -f product/setup-db.sql
+psql -U postgres -d member -f member/setup-db.sql
+psql -U postgres -d product -f product/setup-db.sql
 ```
+The scripts will generate 5,000 members (with BCrypt hashed passwords) and 50,000 products using `gen_random_uuid()`. Ensure the `pgcrypto` extension is enabled on both databases (`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`).
 
 **MongoDB:**
 MongoDB will auto-create the database on first connection.
@@ -44,10 +45,10 @@ cd cart && ./mvnw spring-boot:run
 cd api-gateway && ./mvnw spring-boot:run
 ```
 
-### 4. Seed Product Data
-
-After Product service starts:
+### 4. Seed Data (optional re-run)
+If you need to refresh data without restarting the apps:
 ```bash
+psql -U member_user -d member -f member/setup-db.sql
 psql -U product_user -d product -f product/setup-db.sql
 ```
 
@@ -59,8 +60,8 @@ See [`walkthrough.md`](file:///C:/Users/User/.gemini/antigravity/brain/2f22b458-
 
 ### Authentication (via Gateway :8080)
 - `POST /auth/register` - Register new user
-- `POST /auth/login` - Login (returns JWT cookie)
-- `POST /auth/logout` - Logout (clears cookie)
+- `POST /auth/login` - Login (returns JWT cookie + token body)
+- `POST /auth/logout` - Logout (clears cookie + blacklists token in Redis)
 
 ### Products (via Gateway :8080)
 - `GET /products?query={search}&page={n}&size={n}` - Search products
@@ -74,12 +75,13 @@ See [`walkthrough.md`](file:///C:/Users/User/.gemini/antigravity/brain/2f22b458-
 ## Features Implemented
 ✅ User registration with password hashing (BCrypt)  
 ✅ JWT-based authentication with HttpOnly cookies  
-✅ Logout functionality  
+✅ Logout with Redis-backed token blacklist  
 ✅ Product search with wildcard support  
 ✅ Pagination for product listing  
 ✅ Shopping cart (add, view, remove)  
 ✅ Authorization via JWT validation in API Gateway  
 ✅ User ID propagation via `X-User-Id` header  
+✅ Redis cache for product detail lookups  
 
 ## Project Structure
 ```

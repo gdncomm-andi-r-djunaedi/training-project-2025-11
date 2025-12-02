@@ -12,11 +12,6 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "services")
 public class ServiceClientsProperties {
 
-    /**
-     * key: service name (product, member, etc.)
-     * value: ServiceClientConfig for that service
-     * maps to: services.clients.<name>.*
-     */
     private Map<String, ServiceClientConfig> clients = new HashMap<>();
 
     public ServiceClientConfig getRequired(String name) {

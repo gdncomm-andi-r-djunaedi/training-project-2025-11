@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/internal/auth")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Authentication", description = "User authentication endpoints (internal use by Gateway)")

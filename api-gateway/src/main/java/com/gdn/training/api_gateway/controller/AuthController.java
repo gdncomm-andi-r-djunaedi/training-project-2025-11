@@ -2,9 +2,11 @@ package com.gdn.training.api_gateway.controller;
 
 import java.util.Map;
 
+import io.jsonwebtoken.Claims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,11 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gdn.training.api_gateway.client.MemberClient;
 import com.gdn.training.api_gateway.dto.LoginRequest;
 import com.gdn.training.api_gateway.dto.LoginResponse;
+import com.gdn.training.api_gateway.dto.RegisterRequest;
 import com.gdn.training.api_gateway.dto.UserInfoDTO;
+import com.gdn.training.api_gateway.security.AccessTokenResolver;
 import com.gdn.training.api_gateway.security.JwtService;
+import com.gdn.training.api_gateway.security.TokenBlacklistService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +41,18 @@ public class AuthController {
 
     private final MemberClient memberClient;
     private final JwtService jwtService;
+    private final AccessTokenResolver accessTokenResolver;
+    private final TokenBlacklistService tokenBlacklistService;
+
+    @PostMapping("/register")
+    @Operation(summary = "User registration", description = "Register a new user account")
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
+        log.info("Register attempt started for {}", request.getEmail());
+        memberClient.register(request);
+        log.info("Register succeeded for {}", request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "User registered successfully"));
+    }
+
 
     @PostMapping("/login")
     @Operation(summary = "User login", description = "Login and receive JWT token in secure cookie")
@@ -68,7 +86,18 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "User logout", description = "Logout and clear authentication cookie")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String token = accessTokenResolver.resolve(request);
+        if (StringUtils.hasText(token)) {
+            try {
+                Claims claims = jwtService.parseToken(token);
+                tokenBlacklistService.blacklist(claims.getId(), jwtService.remainingTtl(claims));
+                log.debug("Token {} blacklisted until {}", claims.getId(), claims.getExpiration());
+            } catch (Exception ex) {
+                log.warn("Failed to blacklist token during logout: {}", ex.getMessage());
+            }
+        }
+
         ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE, "")
                 .httpOnly(true)
                 .secure(true)
@@ -82,4 +111,5 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
     }
+
 }

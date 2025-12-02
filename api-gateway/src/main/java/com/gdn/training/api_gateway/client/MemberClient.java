@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import com.gdn.training.api_gateway.config.ServiceClientConfig;
 import com.gdn.training.api_gateway.config.ServiceClientsProperties;
 import com.gdn.training.api_gateway.dto.LoginRequest;
+import com.gdn.training.api_gateway.dto.RegisterRequest;
 import com.gdn.training.api_gateway.dto.UserInfoDTO;
 import com.gdn.training.common.model.BaseResponse;
 
@@ -71,5 +72,41 @@ public class MemberClient {
             throw new IllegalStateException("Unable to validate credentials at the moment", ex);
         }
     }
+
+    public void register(RegisterRequest request) {
+        ServiceClientConfig config = serviceClientsProperties.getRequired("member");
+        String url = config.getBaseUrl() + config.getEndpoints().get("register");
+        log.debug("Calling Member Service register endpoint at {} for {}", url, request.getEmail());
+        try {
+            ResponseEntity<BaseResponse<Void>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    new HttpEntity<>(request),
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            BaseResponse<Void> body = response.getBody();
+            if (body == null || !body.isSuccess()) {
+                log.error("Member service returned an unsuccessful response for {}", request.getEmail());
+                throw new IllegalStateException("Unable to register user right now");
+            }
+
+            log.info("Member service registered new user {}", request.getEmail());
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().is4xxClientError()) {
+                log.warn("Member service rejected registration for {} with status {} and body {}",
+                        request.getEmail(), ex.getStatusCode(), ex.getResponseBodyAsString());
+                throw new IllegalArgumentException("Unable to register user with the provided data");
+            }
+
+            log.error("Member service returned {} for {} with body {}",
+                    ex.getStatusCode(), request.getEmail(), ex.getResponseBodyAsString());
+            throw new IllegalStateException("Member service is unavailable right now", ex);
+        } catch (RestClientException ex) {
+            log.error("Failed to reach member service for {}: {}", request.getEmail(), ex.getMessage());
+            throw new IllegalStateException("Unable to register user at the moment", ex);
+        }
+    }
+
 
 }

@@ -21,10 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/cart")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Shopping Cart", description = "Shopping cart management endpoints")
+@Tag(name = "Cart", description = "Cart management endpoints")
 public class CartController {
 
     private final CartService cartService;

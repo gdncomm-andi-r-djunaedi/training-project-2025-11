@@ -1,30 +1,36 @@
 package com.gdn.training.api_gateway.security;
 
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.List;
+import com.gdn.training.api_gateway.config.SecurityProperties;
+
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final SecurityProperties securityProperties;
+    private final AccessTokenResolver accessTokenResolver;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final PathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(
@@ -34,17 +40,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        
-        if (path.startsWith("/auth/")) {
+
+        if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = resolveToken(request);
+        String token = accessTokenResolver.resolve(request);
 
         if (StringUtils.hasText(token)) {
             try {
                 Claims claims = jwtService.parseToken(token);
+
+                if (tokenBlacklistService.isBlacklisted(claims.getId())) {
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
                 String userId = claims.getSubject();
                 String role = (String) claims.get("role");
@@ -76,20 +88,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String resolveToken(HttpServletRequest request) {
-        String bearer = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
+    private boolean isPublicPath(String path) {
+        if (securityProperties.getPublicPaths() == null) {
+            return false;
         }
-
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("ACCESS_TOKEN".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
+        for (String pattern : securityProperties.getPublicPaths()) {
+            if (pathMatcher.match(pattern, path)) {
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     private static class HeaderMapRequestWrapper extends jakarta.servlet.http.HttpServletRequestWrapper {
