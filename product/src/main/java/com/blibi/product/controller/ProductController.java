@@ -2,6 +2,7 @@ package com.blibi.product.controller;
 
 import com.blibi.product.dto.ProductDTO;
 import com.blibi.product.service.ProductService;
+import com.blibi.product.wrapper.GenericResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,38 +23,41 @@ public class ProductController {
     }
 
     @PostMapping("/createProduct")
-    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO) {
+    public ResponseEntity<GenericResponse<ProductDTO>> createProduct(@Valid @RequestBody ProductDTO productDTO) {
         ProductDTO savedProduct = productService.createProduct(productDTO);
-        return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
+        return new ResponseEntity<>(GenericResponse.success(savedProduct, "Product created successfully"),
+                HttpStatus.CREATED);
     }
 
     @GetMapping("/productDetail/productName/{productName}")
-    public ResponseEntity<Page<ProductDTO>> getProductByName(
+    public ResponseEntity<GenericResponse<Page<ProductDTO>>> getProductByName(
             @PathVariable String productName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductDTO> products = productService.viewProductDetailsByName(productName, pageable);
-        return new ResponseEntity<>(products, HttpStatus.OK);
+        return new ResponseEntity<>(GenericResponse.success(products, "Product details fetched successfully"),
+                HttpStatus.OK);
     }
 
     @PostMapping("/searchProduct/productName/{productName}")
-    public ResponseEntity<Page<ProductDTO>> searchProductByName(
+    public ResponseEntity<GenericResponse<Page<ProductDTO>>> searchProductByName(
             @PathVariable String productName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductDTO> products = productService.searchProductByName(productName, pageable);
-        return new ResponseEntity<>(products, HttpStatus.OK);
+        return new ResponseEntity<>(GenericResponse.success(products, "Products found successfully"), HttpStatus.OK);
     }
 
     @GetMapping("/searchProduct/category/{category}")
-    public ResponseEntity<Page<ProductDTO>> searchProductByCategory(
+    public ResponseEntity<GenericResponse<Page<ProductDTO>>> searchProductByCategory(
             @PathVariable String category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductDTO> products = productService.searchProductByCategory(category, pageable);
-        return new ResponseEntity<>(products, HttpStatus.OK);
+        return new ResponseEntity<>(GenericResponse.success(products, "Products found by category successfully"),
+                HttpStatus.OK);
     }
 }

@@ -12,12 +12,6 @@ import org.springframework.stereotype.Service;
 import static com.blibi.product.utils.CommonUtils.getProductDTO;
 import static com.blibi.product.utils.CommonUtils.getProductFromDTO;
 
-/**
- * Implementation of ProductService interface.
- * Handles business logic for product operations.
- * 
- * Topics to be learned: Service Layer, Business Logic, Logging, DTO Conversion
- */
 @Slf4j
 @Service
 public class ProductServiceImpl implements ProductService {

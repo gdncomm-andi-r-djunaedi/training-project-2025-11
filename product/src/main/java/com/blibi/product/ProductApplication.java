@@ -8,11 +8,9 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories
 @SpringBootApplication
 @EnableCaching
-public class
-ProductApplication {
+public class ProductApplication {
 
-	public static void main(String[] args)
-    {
+	public static void main(String[] args) {
 		SpringApplication.run(ProductApplication.class, args);
 	}
 
