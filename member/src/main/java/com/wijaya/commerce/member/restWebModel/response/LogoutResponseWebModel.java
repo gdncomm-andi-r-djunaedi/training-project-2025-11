@@ -1,4 +1,4 @@
-package com.wijaya.commerce.member.web.controller;
+package com.wijaya.commerce.member.restWebModel.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
