@@ -1,5 +1,7 @@
 package com.wijaya.commerce.member.web.controller;
 
+import com.wijaya.commerce.member.commandImpl.model.GetUserDetailCommandRequest;
+import com.wijaya.commerce.member.commandImpl.model.GetUserDetailCommandResponse;
 import com.wijaya.commerce.member.commandImpl.model.LoginCommandRequest;
 import com.wijaya.commerce.member.commandImpl.model.LoginCommandResponse;
 import com.wijaya.commerce.member.commandImpl.model.LogoutCommandRequest;
@@ -8,15 +10,19 @@ import com.wijaya.commerce.member.commandImpl.model.RegisterCommandRequest;
 import com.wijaya.commerce.member.commandImpl.model.RegisterCommandResponse;
 import com.wijaya.commerce.member.restWebModel.request.LoginRequestWebModel;
 import com.wijaya.commerce.member.restWebModel.request.RegisterRequestWebModel;
+import com.wijaya.commerce.member.restWebModel.response.GetUserDetailResponseWebModel;
 import com.wijaya.commerce.member.restWebModel.response.LoginResponseWebModel;
 import com.wijaya.commerce.member.restWebModel.response.RegisterResponseWebModel;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wijaya.commerce.member.command.CommandExecutor;
+import com.wijaya.commerce.member.command.GetUserDetailCommand;
 import com.wijaya.commerce.member.command.LoginCommand;
 import com.wijaya.commerce.member.command.LogoutCommand;
 import com.wijaya.commerce.member.command.RegisterCommand;
@@ -70,6 +76,17 @@ public class MemberController {
         .build();
     return WebResponse.<LogoutResponseWebModel>builder().success(true)
         .data(logoutResponseWebModel).build();
+  }
+
+  @GetMapping(MemberApiPath.GET_USER_DETAIL)
+  public WebResponse<GetUserDetailResponseWebModel> getUserDetail(@Valid @RequestParam String request) {
+    GetUserDetailCommandRequest commandRequest = GetUserDetailCommandRequest.builder()
+        .id(request)
+        .build();
+    GetUserDetailCommandResponse response = commandExecutor.execute(GetUserDetailCommand.class, commandRequest);
+
+    return WebResponse.<GetUserDetailResponseWebModel>builder().success(true)
+        .data(MemberResponseHelper.toGetUserDetailResponseWebModel(response)).build();
   }
 
 }

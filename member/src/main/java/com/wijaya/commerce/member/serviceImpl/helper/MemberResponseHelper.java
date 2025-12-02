@@ -2,8 +2,10 @@ package com.wijaya.commerce.member.serviceImpl.helper;
 
 import org.springframework.stereotype.Service;
 
+import com.wijaya.commerce.member.commandImpl.model.GetUserDetailCommandResponse;
 import com.wijaya.commerce.member.commandImpl.model.LoginCommandResponse;
 import com.wijaya.commerce.member.commandImpl.model.RegisterCommandResponse;
+import com.wijaya.commerce.member.restWebModel.response.GetUserDetailResponseWebModel;
 import com.wijaya.commerce.member.restWebModel.response.LoginResponseWebModel;
 import com.wijaya.commerce.member.restWebModel.response.RegisterResponseWebModel;
 
@@ -20,6 +22,12 @@ public class MemberResponseHelper {
                 .email(response.getEmail())
                 .name(response.getName())
                 .build());
+        return webResponse;
+    }
+
+    public static GetUserDetailResponseWebModel toGetUserDetailResponseWebModel(GetUserDetailCommandResponse response) {
+        GetUserDetailResponseWebModel webResponse = CommonHelper.copyProperties(response,
+                new GetUserDetailResponseWebModel());
         return webResponse;
     }
 }
