@@ -33,7 +33,7 @@ public class ProductController {
     }
 
     @GetMapping("/detail/{id}")
-    public ProductDetailResponse viewProductDetail(@PathVariable @NonNull Long id) {
+    public ProductDetailResponse viewProductDetail(@PathVariable @NonNull String id) {
         return productService.getDetail(id);
     }
 

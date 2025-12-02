@@ -59,7 +59,7 @@ public class ProductService {
         return toPagedResponse(products);
     }
 
-    public ProductDetailResponse getDetail(@NonNull Long id) {
+    public ProductDetailResponse getDetail(@NonNull String id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
