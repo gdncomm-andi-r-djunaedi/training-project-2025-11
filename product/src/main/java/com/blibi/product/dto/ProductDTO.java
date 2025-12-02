@@ -16,7 +16,7 @@ import java.util.List;
 @ToString
 public class ProductDTO implements Serializable  {
 
-    private ObjectId productId;
+
     private String productName;
     private String description;
     private Double price;

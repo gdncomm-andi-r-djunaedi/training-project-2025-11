@@ -40,7 +40,7 @@ public class ProductController {
     public ResponseEntity<Page<ProductDTO>> searchProductByName(
             @PathVariable String productName,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductDTO> products = productService.searchProductByName(productName, pageable);
         return new ResponseEntity<>(products, HttpStatus.OK);
@@ -50,7 +50,7 @@ public class ProductController {
     public ResponseEntity<Page<ProductDTO>> searchProductByCategory(
             @PathVariable String category,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductDTO> products = productService.searchProductByCategory(category, pageable);
         return new ResponseEntity<>(products, HttpStatus.OK);

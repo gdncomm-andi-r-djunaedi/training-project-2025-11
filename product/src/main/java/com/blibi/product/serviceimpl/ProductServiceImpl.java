@@ -4,6 +4,7 @@ import com.blibi.product.dto.ProductDTO;
 import com.blibi.product.entity.Product;
 import com.blibi.product.repository.ProductRepository;
 import com.blibi.product.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
