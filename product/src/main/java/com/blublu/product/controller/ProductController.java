@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/product")
+  @RequestMapping("/product")
 public class ProductController {
 
   @Autowired
@@ -29,7 +29,7 @@ public class ProductController {
   @Autowired
   ProductDetailService productDetailService;
 
-  @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> findAllProduct(@RequestParam(required = false, defaultValue = "0") int page,
       @RequestParam(required = false, defaultValue = "10") int size) {
     List<Products> products = productService.findAllProductWithPageAndSize(page, size);
@@ -47,8 +47,8 @@ public class ProductController {
     }
   }
 
-  @RequestMapping(value = "/{productName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> findProductByName(@PathVariable("productName") String productName,
+  @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> findProductByName(@RequestParam("productName") String productName,
       @RequestParam(required = false, defaultValue = "0") int page,
       @RequestParam(required = false, defaultValue = "5") int size) {
     List<Products> products = productService.findByName(productName, page, size);

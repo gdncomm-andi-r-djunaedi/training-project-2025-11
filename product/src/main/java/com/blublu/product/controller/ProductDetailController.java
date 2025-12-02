@@ -17,13 +17,13 @@ import java.util.Collections;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/product-detail")
 public class ProductDetailController {
 
   @Autowired
   ProductDetailService productDetailService;
 
-  @RequestMapping(value = "/{sku}/_detail", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/{sku}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> findProductDetail(@PathVariable String sku) {
     ProductDetail productDetail = productDetailService.findProductDetailBySku(sku);
     System.out.println(productDetail);

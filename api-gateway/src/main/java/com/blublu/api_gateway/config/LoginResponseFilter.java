@@ -2,69 +2,82 @@ package com.blublu.api_gateway.config;
 
 import com.blublu.api_gateway.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.util.Map;
 
-public class LoginResponseFilter extends OncePerRequestFilter {
+@Component
+public class LoginResponseFilter implements WebFilter {
 
-    private final JwtUtil jwtUtil;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+  private final JwtUtil jwtUtil;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public LoginResponseFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
+  @Autowired
+  public LoginResponseFilter(JwtUtil jwtUtil) {
+    this.jwtUtil = jwtUtil;
+  }
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    if (exchange.getRequest().getURI().getPath().contains("member/login")
+        && exchange.getRequest().getMethod().equals(HttpMethod.POST)) {
 
-        // Check if it's a login request (adjust path as needed)
-        if (request.getRequestURI().contains("/login") && request.getMethod().equalsIgnoreCase("POST")) {
+      ServerHttpResponse originalResponse = exchange.getResponse();
+      DataBufferFactory bufferFactory = originalResponse.bufferFactory();
 
-            ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+      ServerHttpResponseDecorator decoratedResponse = new ServerHttpResponseDecorator(originalResponse) {
+        @Override
+        public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+          if (body instanceof Flux) {
+            Flux<? extends DataBuffer> fluxBody = (Flux<? extends DataBuffer>) body;
 
-            filterChain.doFilter(request, responseWrapper);
+            Flux<DataBuffer> newBody = fluxBody.collectList().flatMapMany(list -> {
+              DataBuffer joined = bufferFactory.join(list);
+              byte[] content = new byte[joined.readableByteCount()];
+              joined.read(content);
+              DataBufferUtils.release(joined);
 
-            // Only process if status is OK (200)
-            if (responseWrapper.getStatus() == HttpServletResponse.SC_OK) {
-                byte[] responseBody = responseWrapper.getContentAsByteArray();
-                if (responseBody.length > 0) {
-                    try {
-                        Map<String, Object> body = objectMapper.readValue(responseBody, Map.class);
-
-                        if (body.containsKey("username")) {
-                            String username = (String) body.get("username");
-                            String token = jwtUtil.generateToken(username);
-
-                            // Add token to response body
-                            body.put("token", token);
-
-                            // Write modified body back to response
-                            byte[] newBody = objectMapper.writeValueAsBytes(body);
-                            response.setContentLength(newBody.length);
-                            response.getOutputStream().write(newBody);
-                        } else {
-                            responseWrapper.copyBodyToResponse();
-                        }
-                    } catch (Exception e) {
-                        // In case of parsing error, just copy original body
-                        responseWrapper.copyBodyToResponse();
-                    }
-                } else {
-                    responseWrapper.copyBodyToResponse();
+              try {
+                Map<String, Object> map = objectMapper.readValue(content, Map.class);
+                if (map.containsKey("username")) {
+                  String username = (String) map.get("username");
+                  String token = jwtUtil.generateToken(username);
+                  map.put("token", token);
+                  byte[] newContent = objectMapper.writeValueAsBytes(map);
+                  getDelegate().getHeaders().setContentLength(newContent.length);
+                  getDelegate().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+                  return Flux.just(bufferFactory.wrap(newContent));
                 }
-            } else {
-                responseWrapper.copyBodyToResponse();
-            }
-        } else {
-            filterChain.doFilter(request, response);
+              } catch (Exception ignored) {
+                // fall back to original body
+              }
+
+              getDelegate().getHeaders().setContentLength(content.length);
+              return Flux.just(bufferFactory.wrap(content));
+            });
+
+            return super.writeWith(newBody);
+          }
+          return super.writeWith(body);
         }
+      };
+
+      return chain.filter(exchange.mutate().response(decoratedResponse).build());
     }
+    return chain.filter(exchange);
+  }
 }

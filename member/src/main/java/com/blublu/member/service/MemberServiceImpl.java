@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class MemberServiceImpl implements MemberService {
 
@@ -20,12 +18,12 @@ public class MemberServiceImpl implements MemberService {
   @Autowired
   PasswordEncoder passwordEncoder;
 
-  public List<Member> findByUsername(String username) {
-    return memberRepository.findByUsername(username);
+  public boolean isUsernameExist(String username) {
+    return memberRepository.countByUsername(username) > 0;
   }
 
   public void signUp(SignUpRequest signUpRequest) {
-    if (!findByUsername(signUpRequest.getUsername()).isEmpty()) {
+    if (isUsernameExist(signUpRequest.getUsername())) {
       throw new UsernameExistException(
           "Username with name " + signUpRequest.getUsername() + " exist! Please login instead");
     }
