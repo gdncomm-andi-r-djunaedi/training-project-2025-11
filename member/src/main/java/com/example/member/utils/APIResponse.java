@@ -1,8 +1,10 @@
 package com.example.member.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class APIResponse<T> {
 
