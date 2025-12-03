@@ -1,5 +1,6 @@
 package com.blublu.product.controller;
 
+import com.blublu.product.document.ProductDetail;
 import com.blublu.product.document.Products;
 import com.blublu.product.interfaces.ProductDetailService;
 import com.blublu.product.interfaces.ProductService;
@@ -64,5 +65,24 @@ public class ProductController {
       return ResponseEntity.ok()
           .body(GenericBodyResponse.builder().content(Collections.singletonList(products)).success(true).build());
     }
+  }
+
+  @RequestMapping(value = "/{skuCode}/_detail", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> findProductDetail(@PathVariable String skuCode) {
+    ProductDetail productDetail = productDetailService.findProductDetailBySku(skuCode);
+    System.out.println(productDetail);
+    return Objects.isNull(productDetail) ?
+        ResponseEntity.internalServerError()
+            .body(GenericBodyResponse.builder()
+                .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .errorMessage("Product detail not found!")
+                .success(false)
+                .content(new ArrayList<>())
+                .build()) :
+        ResponseEntity.ok()
+            .body(GenericBodyResponse.builder()
+                .success(true)
+                .content(Collections.singletonList(productDetail))
+                .build());
   }
 }
