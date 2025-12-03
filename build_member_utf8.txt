@@ -1,0 +1,34 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.gdn.marketplace:member >---------------------
+[INFO] Building member 1.0.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ member ---
+[INFO] Deleting C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\target
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ member ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 1 resource
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.11.0:compile (default-compile) @ member ---
+[INFO] Changes detected - recompiling the module! :source
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 9 source files with javac [debug target 17] to target\classes
+[WARNING] system modules path not set in conjunction with -source 17
+[INFO] Annotation processing is enabled because one or more processors were found
+  on the class path. A future release of javac may disable annotation processing
+  unless at least one processor is specified by name (-processor), or a search
+  path is specified (--processor-path, --processor-module-path), or annotation
+  processing is enabled explicitly (-proc:only, -proc:full).
+  Use -Xlint:-options to suppress this message.
+  Use -proc:none to disable annotation processing.
+[WARNING] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/main/java/com/gdn/marketplace/member/config/SecurityConfig.java:[22,20] csrf() in org.springframework.security.config.annotation.web.builders.HttpSecurity has been deprecated and marked for removal
+[WARNING] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/main/java/com/gdn/marketplace/member/config/SecurityConfig.java:[23,17] authorizeHttpRequests() in org.springframework.security.config.annotation.web.builders.HttpSecurity has been deprecated and marked for removal
+[WARNING] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/main/java/com/gdn/marketplace/member/config/SecurityConfig.java:[26,17] and() in org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry has been deprecated and marked for removal
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.626 s
+[INFO] Finished at: 2025-12-03T14:35:50+07:00
+[INFO] ------------------------------------------------------------------------

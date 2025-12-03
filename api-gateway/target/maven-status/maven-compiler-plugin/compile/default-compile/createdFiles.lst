@@ -1,0 +1,5 @@
+com\gdn\marketplace\gateway\filter\RouteValidator.class
+com\gdn\marketplace\gateway\GatewayApplication.class
+com\gdn\marketplace\gateway\filter\AuthenticationFilter$Config.class
+com\gdn\marketplace\gateway\util\JwtUtil.class
+com\gdn\marketplace\gateway\filter\AuthenticationFilter.class
