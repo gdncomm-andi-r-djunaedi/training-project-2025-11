@@ -1,7 +1,9 @@
 package com.marketplace.api_gateway.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.marketplace.api_gateway.model.ApiResponse;
 import com.marketplace.api_gateway.security.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,27 +28,26 @@ public class LoginHandler {
   public LoginHandler(WebClient.Builder webClientBuilder,
       JwtUtils jwtUtils,
       ObjectMapper objectMapper) {
-
     this.webClient = webClientBuilder.build();
     this.jwtUtils = jwtUtils;
     this.objectMapper = objectMapper;
   }
 
   public Mono<ServerResponse> handleLogin(ServerRequest request) {
-
     return webClient.post()
         .uri(memberServiceUrl + "/login")
         .body(request.bodyToMono(Object.class), Object.class)
         .exchangeToMono(clientResponse -> {
 
-          // Handle non-2xx responses
           if (!clientResponse.statusCode().is2xxSuccessful()) {
             return clientResponse.bodyToMono(String.class)
                 .flatMap(body -> ServerResponse.status(clientResponse.statusCode())
-                    .bodyValue(body));
+                    .bodyValue(ApiResponse.builder()
+                        .success(false)
+                        .message(body)
+                        .build()));
           }
 
-          // Success → process login
           return clientResponse.bodyToMono(String.class)
               .flatMap(responseBody -> handleSuccessfulLogin(responseBody, request));
         });
@@ -57,28 +58,49 @@ public class LoginHandler {
       JsonNode json = objectMapper.readTree(responseBody);
 
       if (json == null || !json.has("success")) {
-        return ServerResponse.badRequest().bodyValue("Invalid login response format");
+        return ServerResponse.badRequest().bodyValue(
+            ApiResponse.builder()
+                .success(false)
+                .message("Invalid login response format")
+                .build()
+        );
       }
 
       boolean success = json.get("success").asBoolean();
       if (!success) {
-        return ServerResponse.badRequest().bodyValue(responseBody);
+        return ServerResponse.badRequest().bodyValue(
+            ApiResponse.builder()
+                .success(false)
+                .message("Login failed")
+                .data(responseBody)
+                .build()
+        );
       }
 
       if (!json.has("data")) {
-        return ServerResponse.badRequest().bodyValue("Login response missing data");
+        return ServerResponse.badRequest().bodyValue(
+            ApiResponse.builder()
+                .success(false)
+                .message("Login response missing data")
+                .build()
+        );
       }
 
       JsonNode user = json.get("data");
       if (user == null || !user.has("username") || !user.has("id")) {
-        return ServerResponse.badRequest().bodyValue("Invalid user object");
+        return ServerResponse.badRequest().bodyValue(
+            ApiResponse.builder()
+                .success(false)
+                .message("Invalid user object")
+                .build()
+        );
       }
 
       String username = user.get("username").asText();
       Long userId = user.get("id").asLong();
 
       // -------------------------------------
-      // TOKEN REUSE WITH NULL CHECK FIX
+      // TOKEN REUSE WITH NULL CHECK
       // -------------------------------------
       String existingToken = request.cookies().getFirst("token") != null
           ? request.cookies().getFirst("token").getValue()
@@ -89,10 +111,8 @@ public class LoginHandler {
       if (existingToken != null) {
         try {
           jwtUtils.validateToken(existingToken);
-
           String tokenUser = jwtUtils.extractUsername(existingToken);
 
-          // FIXED → Null check added
           if (tokenUser != null && username.equals(tokenUser)) {
             tokenToReturn = existingToken;
           } else {
@@ -120,12 +140,30 @@ public class LoginHandler {
       return ServerResponse.ok()
           .cookie(cookie)
           .header("Authorization", "Bearer " + tokenToReturn)
-          .bodyValue(responseBody);
+          .bodyValue(
+              ApiResponse.builder()
+                  .success(true)
+                  .message("Login successful")
+                  .data(user)
+                  .build()
+          );
 
+    } catch (JsonProcessingException e) {
+      log.error("Malformed JSON response from member service", e);
+      return ServerResponse.status(502).bodyValue(
+          ApiResponse.builder()
+              .success(false)
+              .message("Invalid response from authentication service")
+              .build()
+      );
     } catch (Exception e) {
-      log.error("Error parsing login response", e);
-      return ServerResponse.status(500)
-          .bodyValue("Error parsing login response: " + e.getMessage());
+      log.error("Unexpected error parsing login response", e);
+      return ServerResponse.status(500).bodyValue(
+          ApiResponse.builder()
+              .success(false)
+              .message("Error parsing login response")
+              .build()
+      );
     }
   }
 }

@@ -18,6 +18,9 @@ public class JwtUtils {
   @Value("${jwt.secret}")
   private String secret;
 
+  @Value("${jwt.expiration-ms}")
+  private long tokenExpirationMs;
+
   private JwtParser jwtParser;
 
   // Initialize parser ONCE after secret is injected
@@ -41,7 +44,7 @@ public class JwtUtils {
         .claims(claims)
         .subject(subject)
         .issuedAt(new Date())
-        .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+        .expiration(new Date(System.currentTimeMillis() + tokenExpirationMs)) // 10 hours
         .signWith(getSignKey(), Jwts.SIG.HS256) // new signature API
         .compact();
   }
