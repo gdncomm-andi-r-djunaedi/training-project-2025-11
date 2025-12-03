@@ -9,9 +9,9 @@ import com.blublu.member.service.MemberServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -37,4 +37,10 @@ public class MemberController {
     memberService.signUp(signUpRequest);
     return ResponseEntity.ok().body(GenericBodyResponse.builder().content(new ArrayList<>()).success(true).build());
   }
+
+  @RequestMapping(path = "/logout", method = RequestMethod.POST)
+  public ResponseEntity<?> logout() {
+    return ResponseEntity.ok(GenericBodyResponse.builder().success(true).build());
+  }
+
 }

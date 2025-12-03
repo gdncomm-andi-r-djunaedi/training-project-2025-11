@@ -1,13 +1,15 @@
 package com.blublu.api_gateway.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,9 +18,11 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
   private final Key SIGNING_KEY;
+  private final Long TOKEN_VALIDITY;
 
-  public JwtUtil(@Value("${jwt.secret}") String secret) {
+  public JwtUtil(@Value("${jwt.secret}") String secret, @Value("${jwt.expiryInMinutes}") String expiry) {
     this.SIGNING_KEY = Keys.hmacShaKeyFor(secret.getBytes());
+    this.TOKEN_VALIDITY = Long.parseLong(expiry);
   }
 
   public String generateToken(String username) {
@@ -28,12 +32,11 @@ public class JwtUtil {
 
   private String createToken(Map<String, Object> claims, String subject) {
     long now = System.currentTimeMillis();
-    final long TOKEN_VALIDITY = 60 * 60 * 1000;
     return Jwts.builder()
         .setClaims(claims)
         .setSubject(subject)
         .setIssuedAt(new Date(now))
-        .setExpiration(new Date(now + TOKEN_VALIDITY))
+        .setExpiration(Date.from(Instant.now().plus(TOKEN_VALIDITY, ChronoUnit.MINUTES)))
         .signWith(SIGNING_KEY)
         .compact();
   }
@@ -65,5 +68,13 @@ public class JwtUtil {
 
   public Date extractExpiration(String token) {
     return extractClaim(token, Claims::getExpiration);
+  }
+
+  public String getTokenFromAuthHeaders(ServerHttpRequest request) {
+    String authHeader = request.getHeaders().getFirst("Authorization");
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+      return authHeader.substring(7);
+    }
+    return null;
   }
 }

@@ -20,5 +20,12 @@ spring:
               uri: 'http://localhost:8083'
               predicates:
                 - Path=/cart/**
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
 jwt:
   secret: this-is-a-very-secret-and-safe-key-no-hacker-can-hack
+  expiryInMinutes: 60
+redis:
+  expiryInMinutes: 60
