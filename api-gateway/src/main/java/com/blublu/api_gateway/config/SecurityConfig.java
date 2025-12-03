@@ -36,6 +36,7 @@ public class SecurityConfig {
         .csrf(ServerHttpSecurity.CsrfSpec::disable)
         .authorizeExchange(exchanges -> exchanges
             .pathMatchers("/member/login").permitAll()
+            .pathMatchers("/product/**").permitAll()
             .anyExchange().authenticated()
         )
         .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
