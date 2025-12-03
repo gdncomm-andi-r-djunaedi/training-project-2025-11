@@ -1,4 +1,4 @@
-package com.gdn.training.member.configuration;
+package com.gdn.training.member.config;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;

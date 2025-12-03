@@ -1,4 +1,4 @@
-package com.gdn.training.api_gateway.configuration;
+package com.gdn.training.api_gateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

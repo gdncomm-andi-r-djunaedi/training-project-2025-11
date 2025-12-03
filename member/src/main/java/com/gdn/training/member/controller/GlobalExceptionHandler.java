@@ -12,7 +12,9 @@ import com.gdn.training.member.model.response.ErrorResponse;
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldError().getDefaultMessage();
+        String message = ex.getBindingResult().getFieldError() != null
+                ? ex.getBindingResult().getFieldError().getDefaultMessage()
+                : "Validation error";
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .message(message)
                 .statusCode(HttpStatus.BAD_REQUEST.value())

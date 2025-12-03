@@ -3,6 +3,7 @@ package com.gdn.training.member.service;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import com.gdn.training.member.repository.UserRepository;
@@ -17,7 +18,7 @@ public class JpaUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(final String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
-                .map(user -> org.springframework.security.core.userdetails.User.builder()
+                .map(user -> User.builder()
                         .username(user.getEmail())
                         .password(user.getPassword())
                         .roles("USER")
