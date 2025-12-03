@@ -9,6 +9,10 @@ customer:
   service:
     url: http://localhost:8081
 
+cart:
+  service:
+    url: http://localhost:8082/api/cart
+
 spring:
   application:
     name: api-gateway
