@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.gdn.training.member.infrastructure.grpc.proto";
+option java_outer_classname = "MemberServiceProto";
+
+package member;
+
+// Empty message for requests/responses with no data
+message Empty {
+}
+
+// Messages
+message MemberMessage {
+    string id = 1;
+    string email = 2;
+    string full_name = 3;
+    string phone_number = 4;
+    string address = 5;
+    int64 created_at = 6;  // Unix timestamp in seconds
+    int64 updated_at = 7;  // Unix timestamp in seconds
+}
+
+message RegisterMemberRequest {
+    string full_name = 1;
+    string email = 2;
+    string raw_password = 3;
+    string phone_number = 4;
+}
+
+message RegisterMemberResponse {
+    string member_id = 1;
+    string full_name = 2;
+    string email = 3;
+}
+
+message LoginMemberRequest {
+    string email = 1;
+    string raw_password = 2;
+}
+
+message LoginMemberResponse {
+    bool success = 1;
+    string member_id = 2;
+    string full_name = 3;
+    string email = 4;
+}
+
+message GetMemberProfileRequest {
+    string member_id = 1;
+}
+
+message GetMemberProfileResponse {
+    MemberMessage member = 1;
+}
+
+message ValidateMemberRequest {
+    string member_id = 1;
+}
+
+message ValidateMemberResponse {
+    bool exists = 1;
+}
+
+// Services
+service MemberService {
+    rpc RegisterMember (RegisterMemberRequest) returns (RegisterMemberResponse);
+    rpc LoginMember (LoginMemberRequest) returns (LoginMemberResponse);
+    rpc LogoutMember (Empty) returns (Empty);
+    rpc GetMemberProfile (GetMemberProfileRequest) returns (GetMemberProfileResponse);
+    rpc ValidateMember (ValidateMemberRequest) returns (ValidateMemberResponse);
+}
