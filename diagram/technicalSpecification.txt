@@ -1,0 +1,659 @@
+# E-Commerce Microservices - Technical Specification
+
+## Architecture Overview
+
+### Microservices Structure
+1. **API Gateway** (Port 8080) - Spring Cloud Gateway
+2. **Member Service** (Port 8081) - PostgreSQL + Redis
+3. **Product Service** (Port 8082) - MongoDB + Redis
+4. **Cart Service** (Port 8083) - Redis
+
+---
+
+## 1. API Gateway Service
+
+### Responsibilities
+- Authentication & Authorization (JWT validation)
+- Rate limiting
+- Request routing
+- CORS handling
+- API versioning
+
+### Technology Stack
+- Spring Boot 3.x
+- Spring Cloud Gateway
+- Spring Security
+- JJWT (Java JWT)
+
+### Key Configuration
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: member-service
+          uri: lb://MEMBER-SERVICE
+          predicates:
+            - Path=/api/member/**
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/product/**
+        - id: cart-service
+          uri: lb://CART-SERVICE
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - AuthenticationFilter
+```
+
+### Security Implementation
+- JWT validation on each request
+- Token blacklist check via Redis
+- Role-based access control (RBAC)
+
+---
+
+## 2. Member Service
+
+### Database: PostgreSQL
+
+#### Tables
+
+**members**
+```sql
+CREATE TABLE members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP,
+    CONSTRAINT email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$')
+);
+
+CREATE INDEX idx_members_email ON members(email);
+CREATE INDEX idx_members_status ON members(status);
+```
+
+**member_addresses**
+```sql
+CREATE TABLE member_addresses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    label VARCHAR(50),
+    address_line1 TEXT NOT NULL,
+    address_line2 TEXT,
+    city VARCHAR(100) NOT NULL,
+    province VARCHAR(100) NOT NULL,
+    postal_code VARCHAR(10),
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_member_addresses_member_id ON member_addresses(member_id);
+```
+
+**jwt_tokens**
+```sql
+CREATE TABLE jwt_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    token_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    is_revoked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_jwt_tokens_member_id ON jwt_tokens(member_id);
+CREATE INDEX idx_jwt_tokens_expires_at ON jwt_tokens(expires_at);
+```
+
+### Redis Cache Structure
+```
+Key Pattern: member:{member_id}
+TTL: 1 hour
+Value: JSON of member object
+
+Key Pattern: token:blacklist:{token_hash}
+TTL: Same as JWT expiry
+Value: "revoked"
+
+Key Pattern: session:{member_id}
+TTL: 24 hours
+Value: JSON of session data
+```
+
+### API Endpoints
+
+#### Authentication
+- `POST /api/member/register` - Register new member
+- `POST /api/member/login` - Login and get JWT
+- `POST /api/member/logout` - Logout and revoke token
+- `POST /api/member/refresh` - Refresh JWT token
+
+#### Member Management
+- `GET /api/member/profile` - Get current member profile (authenticated)
+- `PUT /api/member/profile` - Update member profile (authenticated)
+- `GET /api/member/addresses` - Get member addresses (authenticated)
+- `POST /api/member/addresses` - Add new address (authenticated)
+
+### Password Security
+```java
+// Use BCryptPasswordEncoder from Spring Security
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder(12); // strength 12
+}
+
+// Hash password
+String hashedPassword = passwordEncoder.encode(rawPassword);
+
+// Validate password
+boolean matches = passwordEncoder.matches(rawPassword, hashedPassword);
+```
+
+### JWT Implementation
+```java
+// JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-min-256-bits}
+  expiration: 3600000 # 1 hour
+  refresh-expiration: 86400000 # 24 hours
+
+// Generate JWT
+public String generateToken(Member member) {
+    return Jwts.builder()
+        .setSubject(member.getId().toString())
+        .setIssuedAt(new Date())
+        .setExpiration(new Date(System.currentTimeMillis() + expiration))
+        .claim("email", member.getEmail())
+        .claim("role", "CUSTOMER")
+        .signWith(SignatureAlgorithm.HS512, secret)
+        .compact();
+}
+```
+
+---
+
+## 3. Product Service
+
+### Database: MongoDB
+
+#### Collection: products
+
+```javascript
+{
+  "_id": ObjectId("..."),
+  "sku": "LAPTOP-001",
+  "name": "Gaming Laptop XYZ",
+  "slug": "gaming-laptop-xyz",
+  "description": "High performance gaming laptop...",
+  "price": 15000000,
+  "discount_price": 13500000,
+  "category": "Electronics",
+  "tags": ["laptop", "gaming", "electronics"],
+  "images": {
+    "thumbnail": "https://cdn.example.com/thumb.jpg",
+    "main": "https://cdn.example.com/main.jpg",
+    "gallery": [
+      "https://cdn.example.com/img1.jpg",
+      "https://cdn.example.com/img2.jpg"
+    ]
+  },
+  "specifications": {
+    "brand": "XYZ",
+    "processor": "Intel i7",
+    "ram": "16GB",
+    "storage": "512GB SSD"
+  },
+  "view_count": 1250,
+  "rating": 4.5,
+  "review_count": 89,
+  "is_active": true,
+  "created_at": ISODate("2024-01-01T00:00:00Z"),
+  "updated_at": ISODate("2024-12-01T00:00:00Z")
+}
+```
+
+#### Indexes
+```javascript
+db.products.createIndex({ "sku": 1 }, { unique: true })
+db.products.createIndex({ "name": "text", "description": "text" })
+db.products.createIndex({ "slug": 1 })
+db.products.createIndex({ "category": 1 })
+db.products.createIndex({ "tags": 1 })
+db.products.createIndex({ "is_active": 1 })
+db.products.createIndex({ "price": 1 })
+db.products.createIndex({ "created_at": -1 })
+```
+
+### Redis Cache Structure
+```
+Key Pattern: product:{product_id}
+TTL: 30 minutes
+Value: JSON of product object
+
+Key Pattern: product:search:{query_hash}:page:{page}
+TTL: 5 minutes
+Value: JSON of search results
+
+Key Pattern: product:popular:list
+TTL: 1 hour
+Value: List of popular product IDs
+```
+
+### API Endpoints
+
+#### Product Search & View
+- `GET /api/product/search?q={query}&page={page}&size={size}` - Search products (wildcard)
+- `GET /api/product/list?category={cat}&page={page}&size={size}` - List products
+- `GET /api/product/{id}` - Get product detail
+- `GET /api/product/slug/{slug}` - Get product by slug
+- `GET /api/product/popular` - Get popular products
+
+#### Product Management (Admin - Optional)
+- `POST /api/product` - Create product (admin)
+- `PUT /api/product/{id}` - Update product (admin)
+- `DELETE /api/product/{id}` - Delete product (admin)
+
+### Search Implementation
+```java
+// Wildcard search with pagination
+public Page<Product> searchProducts(String query, Pageable pageable) {
+    // Create regex pattern for wildcard search
+    Pattern pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE);
+
+    Query mongoQuery = new Query();
+    mongoQuery.addCriteria(new Criteria().orOperator(
+        Criteria.where("name").regex(pattern),
+        Criteria.where("description").regex(pattern),
+        Criteria.where("tags").regex(pattern)
+    ));
+    mongoQuery.addCriteria(Criteria.where("is_active").is(true));
+    mongoQuery.with(pageable);
+
+    List<Product> products = mongoTemplate.find(mongoQuery, Product.class);
+    long count = mongoTemplate.count(mongoQuery.skip(0).limit(0), Product.class);
+
+    return new PageImpl<>(products, pageable, count);
+}
+```
+
+---
+
+## 4. Cart Service
+
+### Database: Redis
+
+#### Data Structures
+
+**Cart Items (Hash)**
+```
+Key: cart:{member_id}
+Field: product_{product_id}
+Value: {
+  "product_id": "uuid",
+  "product_name": "string",
+  "product_image": "url",
+  "price": 150000,
+  "quantity": 2,
+  "added_at": "2024-12-01T10:00:00Z"
+}
+TTL: 7 days (604800 seconds)
+```
+
+**Cart Summary (String)**
+```
+Key: cart:{member_id}:summary
+Value: {
+  "member_id": "uuid",
+  "total_items": 5,
+  "total_quantity": 8,
+  "total_price": 1500000,
+  "updated_at": "2024-12-01T10:00:00Z"
+}
+TTL: 7 days
+```
+
+### API Endpoints
+
+#### Cart Management
+- `POST /api/cart/items` - Add item to cart (authenticated)
+- `GET /api/cart` - Get cart summary and items (authenticated)
+- `PUT /api/cart/items/{productId}` - Update item quantity (authenticated)
+- `DELETE /api/cart/items/{productId}` - Remove item from cart (authenticated)
+- `DELETE /api/cart` - Clear cart (authenticated)
+
+### Cart Operations
+```java
+// Add to cart
+public void addToCart(String memberId, CartItemRequest request) {
+    // Verify product exists
+    Product product = productService.getProduct(request.getProductId());
+
+    // Create cart item
+    CartItem item = CartItem.builder()
+        .productId(product.getId())
+        .productName(product.getName())
+        .productImage(product.getImages().getThumbnail())
+        .price(product.getDiscountPrice() != null ?
+               product.getDiscountPrice() : product.getPrice())
+        .quantity(request.getQuantity())
+        .addedAt(LocalDateTime.now())
+        .build();
+
+    // Store in Redis
+    String cartKey = "cart:" + memberId;
+    String field = "product_" + product.getId();
+    redisTemplate.opsForHash().put(cartKey, field, objectMapper.writeValueAsString(item));
+    redisTemplate.expire(cartKey, 7, TimeUnit.DAYS);
+
+    // Update summary
+    updateCartSummary(memberId);
+}
+```
+
+---
+
+## 5. Data Seeding
+
+### Member Data (5,000 records)
+```java
+@Component
+public class MemberDataSeeder {
+
+    @PostConstruct
+    public void seedMembers() {
+        for (int i = 1; i <= 5000; i++) {
+            Member member = Member.builder()
+                .email("customer" + i + "@example.com")
+                .passwordHash(passwordEncoder.encode("password123"))
+                .fullName("Customer " + i)
+                .phoneNumber("+62812" + String.format("%08d", i))
+                .status(MemberStatus.ACTIVE)
+                .build();
+            memberRepository.save(member);
+        }
+    }
+}
+```
+
+### Product Data (50,000 records)
+```java
+@Component
+public class ProductDataSeeder {
+
+    @PostConstruct
+    public void seedProducts() {
+        String[] categories = {"Electronics", "Fashion", "Home", "Sports", "Books"};
+
+        for (int i = 1; i <= 50000; i++) {
+            Product product = Product.builder()
+                .sku("PROD-" + String.format("%06d", i))
+                .name("Product " + i)
+                .slug("product-" + i)
+                .description("Description for product " + i)
+                .price(BigDecimal.valueOf(10000 + (i * 100)))
+                .category(categories[i % categories.length])
+                .tags(Arrays.asList("tag" + (i % 10), "popular"))
+                .isActive(true)
+                .viewCount(0)
+                .rating(4.0 + (i % 10) * 0.1)
+                .reviewCount(i % 100)
+                .build();
+            productRepository.save(product);
+        }
+    }
+}
+```
+
+---
+
+## 6. Testing Strategy
+
+### Unit Tests
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+public class MemberServiceTest {
+
+    @Test
+    public void testRegisterMember_Success() {
+        // Test password hashing
+        // Test duplicate email validation
+        // Test password strength validation
+    }
+
+    @Test
+    public void testLogin_Success() {
+        // Test password validation
+        // Test JWT generation
+        // Test token storage in Redis
+    }
+}
+```
+
+### Integration Tests
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class ProductSearchIntegrationTest {
+
+    @Test
+    public void testSearchProducts_WithPagination() {
+        // Test wildcard search
+        // Test pagination
+        // Test cache behavior
+    }
+}
+```
+
+### Test Coverage Target
+- Unit Tests: > 80%
+- Integration Tests: > 70%
+- E2E Tests: Critical flows
+
+---
+
+## 7. Configuration Files
+
+### application.yml (API Gateway)
+```yaml
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: member-service
+          uri: lb://member-service
+          predicates:
+            - Path=/api/member/**
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/api/product/**
+        - id: cart-service
+          uri: lb://cart-service
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - AuthFilter
+
+jwt:
+  secret: ${JWT_SECRET}
+```
+
+### application.yml (Member Service)
+```yaml
+server:
+  port: 8081
+
+spring:
+  application:
+    name: member-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/member_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  redis:
+    host: localhost
+    port: 6379
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+```
+
+### application.yml (Product Service)
+```yaml
+server:
+  port: 8082
+
+spring:
+  application:
+    name: product-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/product_db
+  redis:
+    host: localhost
+    port: 6379
+```
+
+### application.yml (Cart Service)
+```yaml
+server:
+  port: 8083
+
+spring:
+  application:
+    name: cart-service
+  redis:
+    host: localhost
+    port: 6379
+
+cart:
+  ttl: 604800 # 7 days
+```
+
+---
+
+## 8. Deployment Considerations
+
+### Docker Compose
+```yaml
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: member_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - member-service
+      - product-service
+      - cart-service
+
+  member-service:
+    build: ./member-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - redis
+
+  product-service:
+    build: ./product-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongodb
+      - redis
+
+  cart-service:
+    build: ./cart-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - redis
+```
+
+---
+
+## 9. API Documentation
+
+Use Swagger/OpenAPI for API documentation:
+
+```java
+@Configuration
+public class SwaggerConfig {
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+            .info(new Info()
+                .title("E-Commerce API")
+                .version("1.0")
+                .description("E-Commerce Microservices API Documentation"));
+    }
+}
+```
+
+Access at: `http://localhost:8080/swagger-ui.html`
+
+---
+
+## 10. Security Checklist
+
+- ✅ Password hashing with BCrypt (strength 12)
+- ✅ JWT token with expiration
+- ✅ Token blacklist on logout
+- ✅ HTTPS in production
+- ✅ CORS configuration
+- ✅ Rate limiting
+- ✅ Input validation
+- ✅ SQL injection prevention (JPA)
+- ✅ XSS prevention
+- ✅ CSRF protection
+
+---
+
+## Next Steps for Implementation
+
+1. **Setup project structure** - Create 4 Spring Boot projects
+2. **Configure databases** - PostgreSQL, MongoDB, Redis
+3. **Implement Member Service** - Authentication & JWT
+4. **Implement Product Service** - Search & pagination
+5. **Implement Cart Service** - Redis operations
+6. **Implement API Gateway** - Security filters
+7. **Data seeding** - 5K members, 50K products
+8. **Write tests** - Unit & integration tests
+9. **API documentation** - Swagger setup
+10. **Docker deployment** - Docker Compose configuration

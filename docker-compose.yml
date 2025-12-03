@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: member-postgres
+    environment:
+      POSTGRES_DB: memberdb
+      POSTGRES_USER: member
+      POSTGRES_PASSWORD: memberpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  member-service:
+    build:
+      context: ./member
+    image: member-service:latest
+    container_name: member-service
+    depends_on:
+      - postgres
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/memberdb
+      DB_USERNAME: member
+      DB_PASSWORD: memberpass
+      JWT_SECRET: supersecretkeysupersecretkeysupersecr
+      JWT_EXPIRATION_SECONDS: 3600
+    ports:
+      - "8080:8080"
+volumes:
+  pgdata:
