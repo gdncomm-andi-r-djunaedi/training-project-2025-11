@@ -1,8 +1,7 @@
 package org.edmund.member.config;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import org.edmund.commonlibrary.security.*;
+import org.edmund.commonlibrary.security.JwtService;
 import org.edmund.member.properties.JwtProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

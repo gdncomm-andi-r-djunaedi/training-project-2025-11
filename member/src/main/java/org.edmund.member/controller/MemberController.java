@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.edmund.member.dto.LoginMemberDto;
 import org.edmund.member.dto.RegisterMemberDto;
 import org.edmund.member.entity.Member;
-import org.edmund.member.response.GenericResponse;
+import org.edmund.commonlibrary.response.GenericResponse;
 import org.edmund.member.response.GetMemberResponse;
 import org.edmund.member.response.LoginResponse;
 import org.edmund.member.services.MemberService;

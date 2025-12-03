@@ -1,4 +1,4 @@
-package org.edmund.member.response;
+package org.edmund.commonlibrary.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
