@@ -1,10 +1,12 @@
 package com.marketplace.api_gateway.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
 import java.security.Key;
 import java.util.Date;
@@ -31,13 +33,38 @@ public class JwtUtils {
         .compact();
   }
 
-  public boolean validateToken(final String token) {
-    Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token);
-    return false;
+  public boolean validateToken(String token) {
+    if (token == null || token.isBlank()) {
+      return false;
+    }
+    try {
+      Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token);
+      return true;
+
+    } catch (JwtException | IllegalArgumentException e) {
+      // Malformed, expired, invalid signature, empty, etc.
+      return false;
+    }
   }
 
   public String extractUsername(String token) {
-    return extractClaim(token, Claims::getSubject);
+    if (token == null || token.isBlank()) {
+      return null;
+    }
+
+    try {
+      return Jwts.parserBuilder()
+          .setSigningKey(getSignKey())
+          .build()
+          .parseClaimsJws(token)
+          .getBody()
+          .getSubject();
+
+    } catch (JwtException | IllegalArgumentException e) {
+      // Includes: MalformedJwtException, SignatureException,
+      // ExpiredJwtException, UnsupportedJwtException
+      return null;
+    }
   }
 
   public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -52,5 +79,22 @@ public class JwtUtils {
   private Key getSignKey() {
     byte[] keyBytes = Decoders.BASE64.decode(SECRET);
     return Keys.hmacShaKeyFor(keyBytes);
+  }
+
+  public String extractToken(ServerRequest request) {
+    // Authorization: Bearer <token>
+    String auth = request.headers().firstHeader("Authorization");
+    if (auth != null && auth.startsWith("Bearer ")) {
+      return auth.substring(7).trim();
+    }
+
+    // Cookie token
+    if (request.cookies().getFirst("token") != null) {
+      String cookieToken = request.cookies().getFirst("token").getValue();
+      if (cookieToken != null && !cookieToken.isBlank()) {
+        return cookieToken.trim();
+      }
+    }
+    return null;
   }
 }
