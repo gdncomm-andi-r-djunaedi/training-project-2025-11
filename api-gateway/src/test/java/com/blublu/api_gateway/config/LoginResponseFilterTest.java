@@ -1,5 +1,6 @@
 package com.blublu.api_gateway.config;
 
+import com.blublu.api_gateway.config.filter.LoginResponseFilter;
 import com.blublu.api_gateway.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
