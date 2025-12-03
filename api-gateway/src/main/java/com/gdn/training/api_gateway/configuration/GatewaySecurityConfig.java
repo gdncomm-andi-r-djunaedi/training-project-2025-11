@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.core.io.ClassPathResource;
@@ -21,21 +20,14 @@ public class GatewaySecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-
-                // PUBLIC ENDPOINTS - No JWT required
                 .authorizeExchange(ex -> ex
                         .pathMatchers(
-                                "/api/v1/member/auth/**", // register/login
-                                "/api/v1/products/**" // list products
+                                "/api/v1/member/auth/**",
+                                "/api/v1/products/**"
                         ).permitAll()
-
-                        // Everything else needs JWT
                         .anyExchange().authenticated())
-
-                // JWT Validation - only for authenticated routes
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt.jwtDecoder(reactiveJwtDecoder())))
-
                 .build();
     }
 
