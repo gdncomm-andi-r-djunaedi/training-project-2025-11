@@ -41,7 +41,7 @@ class ProductControllerTest {
         Page<Product> page = new PageImpl<>(List.of(product), PageRequest.of(0, 20), 1);
         when(productService.searchProducts(any(), any())).thenReturn(page);
 
-        mockMvc.perform(get("/products").param("query", "gadget").param("size", "20"))
+        mockMvc.perform(get("/").param("query", "gadget").param("size", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.data.content[0].name", is("Gadget Alpha")));
@@ -53,7 +53,7 @@ class ProductControllerTest {
         product.setId(UUID.randomUUID());
         when(productService.getProductById(product.getId())).thenReturn(product);
 
-        mockMvc.perform(get("/products/{id}", product.getId()))
+        mockMvc.perform(get("/{id}", product.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name", is("Widget Beta")));
     }

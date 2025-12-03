@@ -157,10 +157,9 @@ curl http://localhost:8083/cart/actuator/health  # Cart
 
 ### 5. Access Swagger Documentation
 
-- Gateway API: http://localhost:8080/swagger-ui.html
-- Member Service: http://localhost:8081/members/swagger-ui.html
-- Product Service: http://localhost:8082/products/swagger-ui.html
-- Cart Service: http://localhost:8083/cart/swagger-ui.html
+- Member Service: http://localhost:8081/members/swagger-ui/index.html
+- Product Service: http://localhost:8082/products/swagger-ui/index.html
+- Cart Service: http://localhost:8083/cart/swagger-ui/index.html
 
 ## API Endpoints
 

@@ -50,7 +50,7 @@ class ProductControllerIntegrationTest {
                 .imageUrl("https://example.com/widget-beta")
                 .build());
 
-        mockMvc.perform(get("/products").param("query", "Gadget"))
+        mockMvc.perform(get("/").param("query", "Gadget"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[0].name", is("Gadget Alpha")));
@@ -66,7 +66,7 @@ class ProductControllerIntegrationTest {
                 .imageUrl("https://example.com/camera-pro")
                 .build());
 
-        mockMvc.perform(get("/products/{id}", saved.getId()))
+        mockMvc.perform(get("/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name", is("Camera Pro")))
                 .andExpect(jsonPath("$.data.id", is(saved.getId().toString())));
@@ -89,7 +89,7 @@ class ProductControllerIntegrationTest {
                 .imageUrl("https://example.com/beta")
                 .build());
 
-        mockMvc.perform(get("/products").param("query", "   "))
+        mockMvc.perform(get("/").param("query", "   "))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content", hasSize(2)));
     }
@@ -111,7 +111,7 @@ class ProductControllerIntegrationTest {
                 .imageUrl("https://example.com/widget-pro")
                 .build());
 
-        mockMvc.perform(get("/products").param("query", "Gadget*Pro"))
+        mockMvc.perform(get("/").param("query", "Gadget*Pro"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[0].name", is("Gadget Pro")));
@@ -134,7 +134,7 @@ class ProductControllerIntegrationTest {
                 .imageUrl("https://example.com/other")
                 .build());
 
-        mockMvc.perform(get("/products").param("query", "widget"))
+        mockMvc.perform(get("/").param("query", "widget"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[0].name", is("Widget Beta")));
@@ -142,7 +142,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     void getProductByIdThrowsWhenMissing() throws Exception {
-        mockMvc.perform(get("/products/{id}", java.util.UUID.randomUUID()))
+        mockMvc.perform(get("/{id}", java.util.UUID.randomUUID()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("Product not found")));
     }

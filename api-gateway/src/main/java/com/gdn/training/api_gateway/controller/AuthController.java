@@ -21,8 +21,6 @@ import com.gdn.training.api_gateway.security.AccessTokenResolver;
 import com.gdn.training.api_gateway.security.JwtService;
 import com.gdn.training.api_gateway.security.TokenBlacklistService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Authentication", description = "User authentication endpoints (handled by Gateway)")
 public class AuthController {
 
     private static final String ACCESS_TOKEN_COOKIE = "ACCESS_TOKEN";
@@ -45,7 +42,6 @@ public class AuthController {
     private final TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/register")
-    @Operation(summary = "User registration", description = "Register a new user account")
     public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Register attempt started for {}", request.getEmail());
         memberClient.register(request);
@@ -55,7 +51,6 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    @Operation(summary = "User login", description = "Login and receive JWT token in secure cookie")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         log.info("Login attempt started for {}", request.getEmail());
         UserInfoDTO userInfo = memberClient.validateCredentials(request);
@@ -85,7 +80,6 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "User logout", description = "Logout and clear authentication cookie")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         String token = accessTokenResolver.resolve(request);
         if (StringUtils.hasText(token)) {

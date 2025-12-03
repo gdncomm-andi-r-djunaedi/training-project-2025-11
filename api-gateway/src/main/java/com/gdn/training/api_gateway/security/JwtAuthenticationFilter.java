@@ -1,8 +1,12 @@
 package com.gdn.training.api_gateway.security;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -106,8 +110,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return false;
     }
 
-    private static class HeaderMapRequestWrapper extends jakarta.servlet.http.HttpServletRequestWrapper {
-        private final java.util.Map<String, String> headerMap = new java.util.HashMap<>();
+    private static class HeaderMapRequestWrapper extends HttpServletRequestWrapper {
+        private final Map<String, String> headerMap = new HashMap<>();
 
         public HeaderMapRequestWrapper(HttpServletRequest request) {
             super(request);
@@ -128,20 +132,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         @Override
         public java.util.Enumeration<String> getHeaderNames() {
-            java.util.List<String> names = java.util.Collections.list(super.getHeaderNames());
+            List<String> names = Collections.list(super.getHeaderNames());
             for (String name : headerMap.keySet()) {
                 names.add(name);
             }
-            return java.util.Collections.enumeration(names);
+            return Collections.enumeration(names);
         }
 
         @Override
         public java.util.Enumeration<String> getHeaders(String name) {
-            java.util.List<String> values = java.util.Collections.list(super.getHeaders(name));
+            List<String> values = Collections.list(super.getHeaders(name));
             if (headerMap.containsKey(name)) {
                 values.add(headerMap.get(name));
             }
-            return java.util.Collections.enumeration(values);
+            return Collections.enumeration(values);
         }
     }
 }

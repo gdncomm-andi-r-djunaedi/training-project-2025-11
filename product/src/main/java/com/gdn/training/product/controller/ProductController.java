@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/products")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Products", description = "Product catalog and search endpoints")
