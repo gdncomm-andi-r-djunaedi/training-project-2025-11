@@ -16,9 +16,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
     // get all items inside a cart
     List<CartItem> findByCartId(UUID cartId);
 
-    // check if a product is already inside a cart
-    boolean existsByCartIdAndProductId(UUID cartId, UUID productId);
-
     // find a specific cart item
     CartItem findByCartIdAndProductId(UUID cartId, UUID productId);
 

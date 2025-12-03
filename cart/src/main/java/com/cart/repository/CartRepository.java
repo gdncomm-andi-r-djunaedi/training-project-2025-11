@@ -11,7 +11,4 @@ public interface CartRepository extends JpaRepository<Cart, String> {
 
     // find cart by user id
     Cart findByCustomerId(UUID customerId);
-
-    // check if user already has a cart
-    boolean existsByCustomerId(UUID customerId);
 }
