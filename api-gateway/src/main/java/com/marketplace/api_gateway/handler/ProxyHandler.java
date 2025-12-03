@@ -3,6 +3,7 @@ package com.marketplace.api_gateway.handler;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -22,19 +23,29 @@ public class ProxyHandler {
 
   private final WebClient webClient;
 
+  @Value("${gateway.webclient.connect-timeout-ms}")
+  private int connectTimeout;
+
+  @Value("${gateway.webclient.response-timeout-seconds}")
+  private int responseTimeout;
+
+  @Value("${gateway.webclient.read-timeout-seconds}")
+  private int readTimeout;
+
+  @Value("${gateway.webclient.write-timeout-seconds}")
+  private int writeTimeout;
+
   public ProxyHandler(WebClient.Builder webClientBuilder) {
 
     HttpClient httpClient = HttpClient.create()
-        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)   // TCP connect timeout
-        .responseTimeout(Duration.ofSeconds(10))              // downstream service timeout
-        .doOnConnected(conn ->
-            conn.addHandlerLast(new ReadTimeoutHandler(10))   // read timeout
-                .addHandlerLast(new WriteTimeoutHandler(10))  // write timeout
+        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)   // TCP connect timeout
+        .responseTimeout(Duration.ofSeconds(responseTimeout))              // downstream service timeout
+        .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(readTimeout))   // read timeout
+            .addHandlerLast(new WriteTimeoutHandler(writeTimeout))  // write timeout
         );
 
-    this.webClient = webClientBuilder
-        .clientConnector(new ReactorClientHttpConnector(httpClient))
-        .build();
+    this.webClient =
+        webClientBuilder.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
   }
 
   public Mono<ServerResponse> proxyRequest(ServerRequest request, String baseUrl) {
@@ -44,29 +55,23 @@ public class ProxyHandler {
     // Stream body (no buffering)
     Flux<DataBuffer> requestBody = request.bodyToFlux(DataBuffer.class);
 
-    return webClient
-        .method(request.method())
-        .uri(fullUrl)
-        .headers(headers -> {
-          headers.addAll(request.headers().asHttpHeaders());
-          headers.remove(HttpHeaders.CONTENT_LENGTH);
-          headers.remove(HttpHeaders.HOST);
-        })
-        .body(requestBody, DataBuffer.class)
-        .exchangeToMono(clientResponse -> {
+    return webClient.method(request.method()).uri(fullUrl).headers(headers -> {
+      headers.addAll(request.headers().asHttpHeaders());
+      headers.remove(HttpHeaders.CONTENT_LENGTH);
+      headers.remove(HttpHeaders.HOST);
+    }).body(requestBody, DataBuffer.class).exchangeToMono(clientResponse -> {
 
-          HttpStatusCode status = clientResponse.statusCode();
+      HttpStatusCode status = clientResponse.statusCode();
 
-          HttpHeaders responseHeaders = new HttpHeaders();
-          responseHeaders.addAll(clientResponse.headers().asHttpHeaders());
-          responseHeaders.remove(HttpHeaders.CONTENT_LENGTH);
+      HttpHeaders responseHeaders = new HttpHeaders();
+      responseHeaders.addAll(clientResponse.headers().asHttpHeaders());
+      responseHeaders.remove(HttpHeaders.CONTENT_LENGTH);
 
-          Flux<DataBuffer> responseBody = clientResponse.bodyToFlux(DataBuffer.class);
+      Flux<DataBuffer> responseBody = clientResponse.bodyToFlux(DataBuffer.class);
 
-          return ServerResponse
-              .status(status)
-              .headers(h -> h.addAll(responseHeaders))
-              .body(responseBody, DataBuffer.class);
-        });
+      return ServerResponse.status(status)
+          .headers(h -> h.addAll(responseHeaders))
+          .body(responseBody, DataBuffer.class);
+    });
   }
 }

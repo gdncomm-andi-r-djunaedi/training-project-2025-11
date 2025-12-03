@@ -4,6 +4,7 @@ import com.marketplace.api_gateway.model.ApiResponse;
 import com.marketplace.api_gateway.security.JwtBlacklistService;
 import com.marketplace.api_gateway.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -12,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class LogoutHandler {
 
   private final JwtUtils jwtUtils;
@@ -21,22 +23,22 @@ public class LogoutHandler {
     String token = jwtUtils.extractToken(request);
 
     if (token == null) {
-      ApiResponse<Object> res = ApiResponse.builder()
-          .success(false).message("Missing token").build();
+      ApiResponse<Object> res =
+          ApiResponse.builder().success(false).message("Missing token").build();
       return ServerResponse.badRequest().bodyValue(res);
     }
 
     if (!jwtUtils.validateToken(token)) {
-      ApiResponse<Object> res = ApiResponse.builder()
-          .success(false).message("Invalid or expired token").build();
+      ApiResponse<Object> res =
+          ApiResponse.builder().success(false).message("Invalid or expired token").build();
       return ServerResponse.status(401).bodyValue(res);
     }
 
     // Check if already blacklisted
     return blacklistService.isBlacklisted(token).flatMap(isBlacklisted -> {
       if (isBlacklisted) {
-        ApiResponse<Object> res = ApiResponse.builder()
-            .success(false).message("Invalid or expired token").build();
+        ApiResponse<Object> res =
+            ApiResponse.builder().success(false).message("Invalid or expired token").build();
         return ServerResponse.status(401).bodyValue(res);
       }
 
@@ -44,13 +46,24 @@ public class LogoutHandler {
       long expiresIn = jwtUtils.getRemainingValidity(token);
 
       // Blacklist the token
-      return blacklistService.blacklistToken(token, expiresIn)
-          .then(ServerResponse.ok()
+      return blacklistService.blacklistToken(token, expiresIn).flatMap(blacklisted -> {
+        if (blacklisted) {
+          return ServerResponse.ok()
               .cookie(clearCookie())
               .bodyValue(ApiResponse.builder()
                   .success(true)
                   .message("Logged out successfully for user: " + username)
-                  .build()));
+                  .build());
+        } else {
+          log.error("Failed to blacklist token for user {}", username);
+          return ServerResponse.status(500)
+              .bodyValue(ApiResponse.builder()
+                  .success(false)
+                  .message("Failed to logout user: " + username)
+                  .build());
+        }
+      });
+
     });
   }
 
