@@ -12,15 +12,15 @@ public interface ProductService {
 
     Page<ProductResponseDto> getProductsBySearch(String searchTerm, Pageable pageable);
 
-    ProductResponseDto getProductsById(String skuId);  // Changed from Long to String
+    ProductResponseDto getProductsById(String skuId);
 
     ProductResponseDto addProduct(ProductDto productDto);
 
-    ProductResponseDto updateProduct(String skuId, ProductDto productDto);  // Changed from Long to String
+    ProductResponseDto updateProduct(String skuId, ProductDto productDto);
 
-    void deleteById(String skuId);  // Changed from Long to String
+    void deleteById(String skuId);
 
-    Boolean isProductIdPresent(String skuId);  // Changed from Long to String
+    Boolean isProductIdPresent(String skuId);
 
     List<ProductResponseDto> getProductsBySkuIds(List<String> skuIds);
 }

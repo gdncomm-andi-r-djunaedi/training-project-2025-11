@@ -5,6 +5,6 @@ import com.microservice.cart.dto.CartDto;
 
 public interface CartService {
     CartDto getCart(Long userId);
-    CartDto addItemToCart(Long userId, AddToCartRequestDto request);
-    void removeItemFromCart(Long userId, Long itemId);
+    Boolean addItemToCart(Long userId, AddToCartRequestDto request);
+    void removeItemFromCart(Long userId, String itemId);  // Changed from Long itemId to String itemId
 }

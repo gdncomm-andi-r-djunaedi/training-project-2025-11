@@ -16,24 +16,18 @@ public class ApiResponse<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // Core fields similar to GDN
     private boolean success;
     private String errorMessage;
     private String errorCode;
 
-    // HTTP status info
-    private int status;          // HTTP status code: 200, 400, 404, ...
-    private String statusText;   // "OK", "BAD_REQUEST", "NOT_FOUND", ...
+    private int status;
+    private String statusText;
 
-    // Remove @JsonFormat - let Jackson serialize Instant as ISO-8601 string
-    private Instant timestamp;   // when this response was created
+    private Instant timestamp;
 
-    // Actual payload
     private T data;
 
-    // ---------- Static factory methods ----------
 
-    // Success with explicit HttpStatus
     public static <T> ApiResponse<T> success(T data, HttpStatus httpStatus) {
         return new ApiResponse<>(
                 true,
@@ -46,12 +40,10 @@ public class ApiResponse<T> implements Serializable {
         );
     }
 
-    // Success with default 200 OK (if you don't want to pass status always)
     public static <T> ApiResponse<T> success(T data) {
         return success(data, HttpStatus.OK);
     }
 
-    // Error with HttpStatus + errorCode + message
     public static <T> ApiResponse<T> error(String errorMessage,
                                            String errorCode,
                                            HttpStatus httpStatus) {
@@ -66,7 +58,6 @@ public class ApiResponse<T> implements Serializable {
         );
     }
 
-    // Error with default 400 BAD_REQUEST
     public static <T> ApiResponse<T> error(String errorMessage,
                                            String errorCode) {
         return error(errorMessage, errorCode, HttpStatus.BAD_REQUEST);

@@ -25,7 +25,6 @@ public class JacksonConfig {
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
 
-        // Register JavaTimeModule with custom LocalDateTime formatter
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer(LocalDateTime.class,
                 new LocalDateTimeSerializer(DATE_TIME_FORMATTER));
@@ -39,7 +38,6 @@ public class JacksonConfig {
         return mapper;
     }
 
-    // This bean ensures Spring MVC uses the configured ObjectMapper
     @Bean
     public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();

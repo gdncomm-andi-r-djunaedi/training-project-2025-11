@@ -37,19 +37,16 @@ public class MemberServiceImpl implements MemberService {
         log.info("Processing registration for email: {}", registerRequestDto.getEmail());
 
         try {
-            // Check if email already exists
             if (memberRepository.existsByEmail(registerRequestDto.getEmail().trim().toLowerCase())) {
                 log.warn("Registration failed: Email already exists - {}", registerRequestDto.getEmail());
                 throw new BusinessException("Email address is already registered. Please use a different email or try logging in.");
             }
 
-            // Check if phone number already exists
             if (memberRepository.existsByPhoneNumber(registerRequestDto.getPhoneNumber().trim())) {
                 log.warn("Registration failed: Phone number already exists - {}", registerRequestDto.getPhoneNumber());
                 throw new BusinessException("Phone number is already registered. Please use a different phone number.");
             }
 
-            // Create new member
             Member member = new Member();
             member.setName(registerRequestDto.getName().trim());
             member.setAddress(registerRequestDto.getAddress() != null ? registerRequestDto.getAddress().trim() : null);
@@ -74,7 +71,6 @@ public class MemberServiceImpl implements MemberService {
             throw e;
         } catch (DataIntegrityViolationException e) {
             log.error("Registration failed due to database constraint violation for email: {}", registerRequestDto.getEmail());
-            // Handle concurrent registration attempts
             if (e.getMessage() != null && (e.getMessage().contains("email") || e.getMessage().contains("uc_members_email"))) {
                 throw new BusinessException("Email address is already registered. Please use a different email or try logging in.");
             } else if (e.getMessage() != null && (e.getMessage().contains("phone") || e.getMessage().contains("uc_members_phone"))) {

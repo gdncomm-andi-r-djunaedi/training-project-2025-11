@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -18,4 +19,6 @@ public class CartDto {
     private List<CartItemDto> items;
 
     private Date updatedAt;
+
+    private Integer totalQuantity;
 }

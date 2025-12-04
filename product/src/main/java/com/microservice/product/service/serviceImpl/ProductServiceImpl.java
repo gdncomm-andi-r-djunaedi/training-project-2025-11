@@ -31,10 +31,6 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     ProductRepository productRepository;
 
-    // Remove this - no longer needed
-    // @Autowired
-    // ObjectMapper objectMapper;
-
     @Override
     @Transactional
     public Page<ProductResponseDto> getProducts(Pageable pageable) {
@@ -78,7 +74,6 @@ public class ProductServiceImpl implements ProductService {
         log.info("Adding new product with SKU: {}, name: {}",
                 productDto.getSkuId(), productDto.getName());
 
-        // Replace objectMapper.convertValue() with manual mapping
         Product product = convertToEntity(productDto);
 
         Product savedProduct = productRepository.save(product);
@@ -171,7 +166,6 @@ public class ProductServiceImpl implements ProductService {
         return result;
     }
 
-    // Manual mapping - Entity to DTO (no serialization needed)
     private ProductResponseDto convertToDto(Product productEntity) {
         if (productEntity == null) {
             return null;
@@ -198,7 +192,6 @@ public class ProductServiceImpl implements ProductService {
         return dto;
     }
 
-    // Manual mapping - DTO to Entity (no serialization needed)
     private Product convertToEntity(ProductDto productDto) {
         if (productDto == null) {
             return null;
@@ -206,20 +199,17 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = new Product();
         product.setSkuId(productDto.getSkuId());
-//        product.setStoreId(productDto.getStored());
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
         product.setCategory(productDto.getCategory());
         product.setBrand(productDto.getBrand());
         product.setPrice(productDto.getPrice());
         product.setItemCode(productDto.getItemCode());
-//        product.setIsActive(productDto.getIsActive());
         product.setLength(productDto.getLength());
         product.setHeight(productDto.getHeight());
         product.setWidth(productDto.getWidth());
         product.setWeight(productDto.getWeight());
         product.setDangerousLevel(productDto.getDangerousLevel());
-        // createdAt and updatedAt will be set automatically by the entity defaults
 
         return product;
     }

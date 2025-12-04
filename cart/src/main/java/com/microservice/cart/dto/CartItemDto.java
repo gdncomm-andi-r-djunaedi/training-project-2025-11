@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
@@ -12,8 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @ToString
 public class CartItemDto {
-    private Long id;
-    private Long productId;
+    private String skuId;
 
     private Integer quantity;
 
@@ -21,7 +21,6 @@ public class CartItemDto {
 
     private Date addedAt;
 
-    private String sku;
     private String name;
     private String description;
     private String category;

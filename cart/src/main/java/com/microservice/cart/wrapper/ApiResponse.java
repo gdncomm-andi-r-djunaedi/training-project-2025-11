@@ -1,4 +1,4 @@
-package com.microservice.member.wrapper;
+package com.microservice.cart.wrapper;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +28,7 @@ public class ApiResponse<T> implements Serializable {
     private T data;
 
 
+    // Success with explicit HttpStatus
     public static <T> ApiResponse<T> success(T data, HttpStatus httpStatus) {
         return new ApiResponse<>(
                 true,
@@ -71,5 +72,3 @@ public class ApiResponse<T> implements Serializable {
         );
     }
 }
-
-

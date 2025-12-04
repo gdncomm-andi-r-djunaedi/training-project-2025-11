@@ -13,9 +13,9 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Product Service")
+                        .title("Member Service")
                         .version("1.0")
-                        .description("API documentation for Product application")
+                        .description("API documentation for Member application")
                         .contact(new Contact()
                                 .name("")
                                 .email("")));

@@ -19,7 +19,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findBySkuIdIn(List<String> skuIds);
 
-    // New methods to query by skuId (String) instead of id (Long)
     Optional<Product> findBySkuId(String skuId);
 
     Boolean existsBySkuId(String skuId);
