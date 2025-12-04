@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,27 +31,27 @@ class CartServiceTest {
 
     @Test
     void addToCart_NewCart_Success() {
-        String username = "testuser";
+        UUID userId = UUID.randomUUID();
         AddToCartRequest request = new AddToCartRequest();
         request.setProductId("p1");
         request.setProductName("Product 1");
         request.setPrice(BigDecimal.TEN);
         request.setQuantity(1);
 
-        when(cartRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(cartRepository.findByUserId(userId)).thenReturn(Optional.empty());
         when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cart result = cartService.addToCart(username, request);
+        Cart result = cartService.addToCart(userId, request);
 
         assertNotNull(result);
-        assertEquals(username, result.getUsername());
+        assertEquals(userId, result.getUserId());
         assertEquals(1, result.getItems().size());
         assertEquals("p1", result.getItems().get(0).getProductId());
     }
 
     @Test
     void addToCart_ExistingCart_NewItem_Success() {
-        String username = "testuser";
+        UUID userId = UUID.randomUUID();
         AddToCartRequest request = new AddToCartRequest();
         request.setProductId("p2");
         request.setProductName("Product 2");
@@ -58,14 +59,14 @@ class CartServiceTest {
         request.setQuantity(1);
 
         Cart existingCart = Cart.builder()
-                .username(username)
+                .userId(userId)
                 .items(new ArrayList<>())
                 .build();
 
-        when(cartRepository.findByUsername(username)).thenReturn(Optional.of(existingCart));
+        when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(existingCart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cart result = cartService.addToCart(username, request);
+        Cart result = cartService.addToCart(userId, request);
 
         assertEquals(1, result.getItems().size());
         assertEquals("p2", result.getItems().get(0).getProductId());
@@ -73,7 +74,7 @@ class CartServiceTest {
 
     @Test
     void addToCart_ExistingItem_UpdateQuantity_Success() {
-        String username = "testuser";
+        UUID userId = UUID.randomUUID();
         AddToCartRequest request = new AddToCartRequest();
         request.setProductId("p1");
         request.setQuantity(2);
@@ -83,15 +84,15 @@ class CartServiceTest {
                 .quantity(1)
                 .build();
         Cart existingCart = Cart.builder()
-                .username(username)
+                .userId(userId)
                 .items(new ArrayList<>())
                 .build();
         existingCart.addItem(existingItem);
 
-        when(cartRepository.findByUsername(username)).thenReturn(Optional.of(existingCart));
+        when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(existingCart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cart result = cartService.addToCart(username, request);
+        Cart result = cartService.addToCart(userId, request);
 
         assertEquals(1, result.getItems().size());
         assertEquals(3, result.getItems().get(0).getQuantity());
@@ -99,28 +100,28 @@ class CartServiceTest {
 
     @Test
     void removeFromCart_Success() {
-        String username = "testuser";
+        UUID userId = UUID.randomUUID();
         String productId = "p1";
 
         CartItem item = CartItem.builder().productId(productId).build();
-        Cart cart = Cart.builder().username(username).items(new ArrayList<>()).build();
+        Cart cart = Cart.builder().userId(userId).items(new ArrayList<>()).build();
         cart.addItem(item);
 
-        when(cartRepository.findByUsername(username)).thenReturn(Optional.of(cart));
+        when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(cart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cart result = cartService.removeFromCart(username, productId);
+        Cart result = cartService.removeFromCart(userId, productId);
 
         assertTrue(result.getItems().isEmpty());
     }
 
     @Test
     void removeFromCart_CartNotFound_ThrowsException() {
-        String username = "testuser";
+        UUID userId = UUID.randomUUID();
         String productId = "p1";
 
-        when(cartRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(cartRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
-        assertThrows(CartNotFoundException.class, () -> cartService.removeFromCart(username, productId));
+        assertThrows(CartNotFoundException.class, () -> cartService.removeFromCart(userId, productId));
     }
 }
