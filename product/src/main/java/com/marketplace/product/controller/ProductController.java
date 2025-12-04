@@ -5,7 +5,6 @@ import com.marketplace.common.dto.ApiResponse;
 import com.marketplace.common.mapper.MapperService;
 import com.marketplace.product.command.GetProductByIdCommand;
 import com.marketplace.product.command.SearchProductsCommand;
-import com.marketplace.product.command.SeedProductsCommand;
 import com.marketplace.product.document.Product;
 import com.marketplace.product.dto.request.GetProductByIdRequest;
 import com.marketplace.product.dto.request.SearchProductsRequest;
@@ -28,13 +27,6 @@ public class ProductController extends BaseCommandController {
 
     @Autowired
     private MapperService mapperService;
-
-    @PostMapping("/seed")
-    public ResponseEntity<ApiResponse<String>> seedProducts() {
-        log.info("Seed products request received");
-        execute(SeedProductsCommand.class, null);
-        return okResponse("Products seeded successfully", "Database populated");
-    }
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<ProductResponse>>> searchProducts(
