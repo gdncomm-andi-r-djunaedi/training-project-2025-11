@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -21,42 +21,30 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    private ProductDetailResponse toResponse(Product product) {
-        return ProductDetailResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .price(product.getPrice())
-                .description(product.getDescription())
-                .build();
-    }
+    public PagedResponse<ProductDetailResponse> getAll(String name, Pageable pageable) {
+        Page<Product> products;
 
-    private PagedResponse<ProductDetailResponse> toPagedResponse(Page<Product> products) {
+        if (name == null || name.isBlank()) {
+            products = productRepository.findAll(pageable);
+        } else {
+            Pattern pattern = Pattern.compile(Pattern.quote(name), Pattern.CASE_INSENSITIVE);
+            products = productRepository.findByNameRegex(pattern, pageable);
+        }
+
         return PagedResponse.<ProductDetailResponse>builder()
                 .page(products.getPageable().getPageNumber())
                 .size(products.getPageable().getPageSize())
                 .totalPages(products.getTotalPages())
                 .totalElements(products.getTotalElements())
-                .content(products.getContent().stream().map(this::toResponse).collect(Collectors.toList()))
+                .content(products.getContent().stream()
+                        .map(p -> ProductDetailResponse.builder()
+                                .id(p.getId())
+                                .name(p.getName())
+                                .price(p.getPrice())
+                                .description(p.getDescription())
+                                .build())
+                        .collect(Collectors.toList()))
                 .build();
-    }
-
-    public PagedResponse<ProductDetailResponse> search(String name, int page, int size) {
-        Page<Product> products;
-
-        if (name == null || name.isBlank()) {
-            products = productRepository.findAll(PageRequest.of(page, size));
-        } else {
-            Pattern pattern = Pattern.compile(Pattern.quote(name), Pattern.CASE_INSENSITIVE);
-            products = productRepository.findByNameRegex(pattern, PageRequest.of(page, size));
-        }
-
-        return toPagedResponse(products);
-
-    }
-
-    public PagedResponse<ProductDetailResponse> getAll(int page, int size) {
-        Page<Product> products = productRepository.findAll(PageRequest.of(page, size));
-        return toPagedResponse(products);
     }
 
     public ProductDetailResponse getDetail(@NonNull String id) {
@@ -66,9 +54,8 @@ public class ProductService {
         return ProductDetailResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
-                .description(product.getDescription())
                 .price(product.getPrice())
+                .description(product.getDescription())
                 .build();
     }
-
 }

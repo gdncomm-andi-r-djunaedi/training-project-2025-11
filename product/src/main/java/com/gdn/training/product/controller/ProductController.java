@@ -1,6 +1,9 @@
 package com.gdn.training.product.controller;
 
-import org.springframework.lang.NonNull;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,30 +14,32 @@ import com.gdn.training.product.model.response.ProductDetailResponse;
 import com.gdn.training.product.model.response.PagedResponse;
 import com.gdn.training.product.service.ProductService;
 
+import jakarta.validation.constraints.Min;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
+@Validated
 public class ProductController {
     private final ProductService productService;
 
-    @GetMapping("/search")
-    public PagedResponse<ProductDetailResponse> searchProduct(@RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return productService.search(name, page, size);
-    }
+    @GetMapping
+    public ResponseEntity<PagedResponse<ProductDetailResponse>> getProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") @Min(value = 0, message = "Page number must be greater than or equal to 0") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "Page size must be greater than 0") int size) {
 
-    @GetMapping("/list")
-    public PagedResponse<ProductDetailResponse> getAllProduct(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return productService.getAll(page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        PagedResponse<ProductDetailResponse> response = productService.getAll(name, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/detail/{id}")
-    public ProductDetailResponse viewProductDetail(@PathVariable @NonNull String id) {
-        return productService.getDetail(id);
+    public ResponseEntity<ProductDetailResponse> viewProductDetail(
+            @PathVariable String id) {
+        ProductDetailResponse response = productService.getDetail(id);
+        return ResponseEntity.ok(response);
     }
-
 }
