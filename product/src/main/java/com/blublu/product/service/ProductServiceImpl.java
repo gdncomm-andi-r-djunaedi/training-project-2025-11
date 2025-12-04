@@ -26,4 +26,9 @@ public class ProductServiceImpl implements ProductService {
     Pageable pageable = PageRequest.of(page, size);
     return productsRepository.findProductsByName(name, pageable);
   }
+
+  @Override
+  public Products findProductBySkuCode(String skuCode) {
+    return productsRepository.findBySkuCode(skuCode);
+  }
 }

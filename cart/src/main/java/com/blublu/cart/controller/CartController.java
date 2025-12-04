@@ -52,7 +52,7 @@ public class CartController {
         ResponseEntity.internalServerError()
             .body(GenericBodyResponse.builder()
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .errorMessage("Fail to add to cart!")
+                .errorMessage("SKU not found!")
                 .success(false)
                 .build());
   }

@@ -8,4 +8,7 @@ public interface ProductService {
   List<Products> findAllProductWithPageAndSize(int page, int size);
 
   List<Products> findByName(String name, int page, int size);
+
+  Products findProductBySkuCode(String name);
+
 }

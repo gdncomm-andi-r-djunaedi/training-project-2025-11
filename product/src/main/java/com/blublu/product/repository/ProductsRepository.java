@@ -13,4 +13,5 @@ public interface ProductsRepository extends MongoRepository<Products, Long> {
   @Query("{ 'name': { $regex: ?0, $options: 'i' } }")
   List<Products> findProductsByName(String productName, Pageable page);
 
+  Products findBySkuCode(String skuCode);
 }

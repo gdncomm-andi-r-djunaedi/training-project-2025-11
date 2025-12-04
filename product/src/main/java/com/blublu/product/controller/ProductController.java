@@ -1,8 +1,6 @@
 package com.blublu.product.controller;
 
-import com.blublu.product.document.ProductDetail;
 import com.blublu.product.document.Products;
-import com.blublu.product.interfaces.ProductDetailService;
 import com.blublu.product.interfaces.ProductService;
 import com.blublu.product.model.response.GenericBodyResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +19,11 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-  @RequestMapping("/product")
+@RequestMapping("/product")
 public class ProductController {
 
   @Autowired
   ProductService productService;
-
-  @Autowired
-  ProductDetailService productDetailService;
 
   @RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> findAllProduct(@RequestParam(required = false, defaultValue = "0") int page,
@@ -69,9 +64,9 @@ public class ProductController {
 
   @RequestMapping(value = "/{skuCode}/_detail", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> findProductDetail(@PathVariable String skuCode) {
-    ProductDetail productDetail = productDetailService.findProductDetailBySku(skuCode);
-    System.out.println(productDetail);
-    return Objects.isNull(productDetail) ?
+    Products products = productService.findProductBySkuCode(skuCode);
+    System.out.println(products);
+    return Objects.isNull(products) ?
         ResponseEntity.internalServerError()
             .body(GenericBodyResponse.builder()
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -80,9 +75,6 @@ public class ProductController {
                 .content(new ArrayList<>())
                 .build()) :
         ResponseEntity.ok()
-            .body(GenericBodyResponse.builder()
-                .success(true)
-                .content(Collections.singletonList(productDetail))
-                .build());
+            .body(GenericBodyResponse.builder().success(true).content(Collections.singletonList(products)).build());
   }
 }

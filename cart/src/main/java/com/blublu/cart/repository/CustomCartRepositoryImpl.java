@@ -54,6 +54,18 @@ public class CustomCartRepositoryImpl implements CustomCartRepository {
 
   @Override
   public boolean removeItemFromCart(String username, String skuCode) {
+    Query userCartQuery = new Query(Criteria.where("username").is(username));
+    CartDocument cart = mongoTemplate.findOne(userCartQuery, CartDocument.class);
+
+    if (cart == null || cart.getItems() == null) {
+      return false;
+    }
+
+    if (cart.getItems().size() == 1 && skuCode.equals(cart.getItems().getFirst().getSkuCode())) {
+      mongoTemplate.remove(userCartQuery, CartDocument.class);
+      return true;
+    }
+
     Query query = new Query(Criteria.where("username").is(username).and("items.skuCode").is(skuCode));
 
     if (mongoTemplate.exists(query, CartDocument.class)) {
