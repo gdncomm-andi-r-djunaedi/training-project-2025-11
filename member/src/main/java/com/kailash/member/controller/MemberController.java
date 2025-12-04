@@ -18,7 +18,7 @@ public class MemberController {
     MemberService svc;
 
     @PostMapping("/auth/register")
-    public ResponseEntity<ApiResponse<MemberResponse>> register(@RequestBody RegisterRequest req) {
+    public ResponseEntity<ApiResponse<MemberResponse>> register(@Valid @RequestBody RegisterRequest req) {
         ApiResponse<MemberResponse> resp = svc.register(req);
         return ResponseEntity.created(URI.create("/members/" + resp.getData().getId())).body(resp);
     }
