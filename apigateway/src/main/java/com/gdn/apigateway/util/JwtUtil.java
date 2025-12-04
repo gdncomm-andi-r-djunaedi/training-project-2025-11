@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Date;
 
 @Component
 public class JwtUtil {
@@ -47,6 +49,16 @@ public class JwtUtil {
 
   public String getMemberIdFromToken(String token) {
     return validateTokenAndGetClaims(token).getId();
+  }
+
+  /**
+   * Get remaining time until token expires
+   */
+  public Duration getRemainingTime(String token) {
+    Claims claims = validateTokenAndGetClaims(token);
+    Date expiration = claims.getExpiration();
+    long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+    return Duration.ofMillis(Math.max(remainingMillis, 0));
   }
 }
 
