@@ -24,12 +24,14 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Cart Service Implementation Tests")
@@ -72,8 +74,8 @@ class CartServiceImplTest {
                 .price(new BigDecimal("99.99"))
                 .stockQuantity(100)
                 .category("ELECTRONICS")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(new Date())
+                .updatedAt(new Date())
                 .build();
 
         addToCartRequest = AddToCartRequest.builder()
@@ -84,8 +86,8 @@ class CartServiceImplTest {
         cart = Cart.builder()
                 .userId(USER_ID)
                 .items(new ArrayList<>())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(new Date())
+                .updatedAt(new Date())
                 .build();
     }
 
@@ -110,7 +112,8 @@ class CartServiceImplTest {
         assertThat(response.getItems()).hasSize(1);
         assertThat(response.getTotalItems()).isEqualTo(2);
         verify(cartRepository).save(any(Cart.class));
-        verify(redisTemplate.opsForValue()).set(eq(CART_KEY), anyString(), eq(7L), any());
+        // saveCart() calls cacheCartInRedis() and addToCart() also calls cacheCartInRedis(), so set() is called twice
+        verify(redisTemplate.opsForValue(), atLeastOnce()).set(eq(CART_KEY), anyString(), eq(7L), any());
     }
 
     @Test
@@ -164,7 +167,7 @@ class CartServiceImplTest {
                 .name("Test Product")
                 .price(new BigDecimal("99.99"))
                 .quantity(3)
-                .addedAt(LocalDateTime.now())
+                .addedAt(new Date())
                 .build();
         cart.getItems().add(existingItem);
 
@@ -220,9 +223,9 @@ class CartServiceImplTest {
     @DisplayName("Should throw ResourceNotFoundException when product does not exist")
     void addToCart_Failure_ProductNotFound() {
         // Given
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get(CART_KEY)).thenReturn(null);
-        when(cartRepository.findByUserId(USER_ID)).thenReturn(Optional.of(cart));
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(valueOperations.get(CART_KEY)).thenReturn(null);
+        lenient().when(cartRepository.findByUserId(USER_ID)).thenReturn(Optional.of(cart));
         when(productClient.getProductById(PRODUCT_ID)).thenThrow(FeignException.NotFound.class);
 
         // When/Then
@@ -231,6 +234,7 @@ class CartServiceImplTest {
                 .hasMessageContaining("Product not found");
         
         verify(productClient).getProductById(PRODUCT_ID);
+        verify(cartRepository, never()).save(any(Cart.class));
     }
 
     @Test
@@ -239,9 +243,9 @@ class CartServiceImplTest {
         // Given
         productResponse.setStockQuantity(1);
         String cartJson = "{\"userId\":\"" + USER_ID + "\",\"items\":[]}";
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get(CART_KEY)).thenReturn(cartJson);
-        when(objectMapper.readValue(cartJson, Cart.class)).thenReturn(cart);
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(valueOperations.get(CART_KEY)).thenReturn(cartJson);
+        lenient().when(objectMapper.readValue(cartJson, Cart.class)).thenReturn(cart);
         when(productClient.getProductById(PRODUCT_ID)).thenReturn(createApiResponse(productResponse));
 
         // When/Then
@@ -250,15 +254,16 @@ class CartServiceImplTest {
                 .hasMessageContaining("Insufficient stock");
         
         verify(productClient).getProductById(PRODUCT_ID);
+        verify(cartRepository, never()).save(any(Cart.class));
     }
 
     @Test
     @DisplayName("Should throw ExternalServiceException when product service fails")
     void addToCart_Failure_ProductServiceError() {
         // Given
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get(CART_KEY)).thenReturn(null);
-        when(cartRepository.findByUserId(USER_ID)).thenReturn(Optional.of(cart));
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(valueOperations.get(CART_KEY)).thenReturn(null);
+        lenient().when(cartRepository.findByUserId(USER_ID)).thenReturn(Optional.of(cart));
         when(productClient.getProductById(PRODUCT_ID)).thenThrow(FeignException.InternalServerError.class);
 
         // When/Then
@@ -267,6 +272,7 @@ class CartServiceImplTest {
                 .hasMessageContaining("Failed to fetch product details");
         
         verify(productClient).getProductById(PRODUCT_ID);
+        verify(cartRepository, never()).save(any(Cart.class));
     }
 
     @Test
@@ -316,7 +322,7 @@ class CartServiceImplTest {
                 .name("Test Product")
                 .price(new BigDecimal("99.99"))
                 .quantity(2)
-                .addedAt(LocalDateTime.now())
+                .addedAt(new Date())
                 .build();
         cart.getItems().add(item);
 

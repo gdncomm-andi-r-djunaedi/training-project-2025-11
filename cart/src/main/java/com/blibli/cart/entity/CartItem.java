@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Builder
@@ -17,7 +18,7 @@ public class CartItem implements Serializable {
     private String name;
     private BigDecimal price;
     private Integer quantity;
-    private LocalDateTime addedAt;
+    private Date addedAt;
 
 
 }

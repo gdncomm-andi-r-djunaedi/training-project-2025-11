@@ -9,23 +9,43 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.support.NoOpCacheManager;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(ProductController.class)
+@WebMvcTest(controllers = ProductController.class, excludeAutoConfiguration = {
+        CacheAutoConfiguration.class,
+        RedisAutoConfiguration.class
+})
+@ContextConfiguration(classes = {ProductControllerTest.TestCacheConfig.class})
 @DisplayName("Product Controller Tests")
 class ProductControllerTest {
+
+    @TestConfiguration
+    static class TestCacheConfig {
+        @Bean
+        public CacheManager cacheManager() {
+            return new NoOpCacheManager();
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,7 +61,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should create product successfully")
-    void createProduct_Success() throws Exception {
+    void createProductSuccess() throws Exception {
 
         ProductRequest request = ProductRequest.builder()
                 .sku(SKU)
@@ -59,8 +79,8 @@ class ProductControllerTest {
                 .price(new BigDecimal("99.99"))
                 .category(CategoryType.ELECTRONIC)
                 .stockQuantity(100)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(new Date())
+                .updatedAt(new Date())
                 .build();
 
         when(productService.createProduct(any(ProductRequest.class))).thenReturn(response);
@@ -78,7 +98,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should return 400 when request validation fails")
-    void createProduct_Failure_ValidationError() throws Exception {
+    void createProductFailureValidationError() throws Exception {
 
         ProductRequest invalidRequest = ProductRequest.builder()
                 .sku("") // Invalid: empty SKU
@@ -94,7 +114,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should update product successfully")
-    void updateProduct_Success() throws Exception {
+    void updateProductSuccess() throws Exception {
 
         ProductRequest request = ProductRequest.builder()
                 .sku(SKU)
@@ -126,7 +146,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should get product by ID successfully")
-    void getProduct_Success() throws Exception {
+    void getProductSuccess() throws Exception {
 
         ProductResponse response = ProductResponse.builder()
                 .id(PRODUCT_ID)
@@ -149,7 +169,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should get product by SKU successfully")
-    void getProductBySku_Success() throws Exception {
+    void getProductBySkuSuccess() throws Exception {
 
         ProductResponse response = ProductResponse.builder()
                 .id(PRODUCT_ID)
@@ -169,7 +189,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should get all products with pagination")
-    void getAllProducts_Success() throws Exception {
+    void getAllProductsSuccess() throws Exception {
 
         PageResponse<ProductResponse> pageResponse = PageResponse.<ProductResponse>builder()
                 .content(new ArrayList<>())
@@ -196,7 +216,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should get products by category")
-    void getProductsByCategory_Success() throws Exception {
+    void getProductsByCategorySuccess() throws Exception {
         PageResponse<ProductResponse> pageResponse = PageResponse.<ProductResponse>builder()
                 .content(new ArrayList<>())
                 .pageNumber(0)
@@ -221,7 +241,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("Should delete product successfully")
-    void deleteProduct_Success() throws Exception {
+    void deleteProductSuccess() throws Exception {
 // given
         doNothing().when(productService).deleteProduct(PRODUCT_ID);
 

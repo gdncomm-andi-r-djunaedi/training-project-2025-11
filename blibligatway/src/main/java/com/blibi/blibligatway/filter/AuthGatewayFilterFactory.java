@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -20,8 +21,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 
 @Slf4j
@@ -32,6 +37,10 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
     private final TokenBlacklistService tokenBlacklistService;
     private final ObjectMapper objectMapper;
     private static final String USER_ID_HEADER = "X-User-Id";
+    private static final String GATEWAY_SIGNATURE_HEADER = "X-Gateway-Signature";
+    
+    @Value("${gateway.secret:GatewaySecretKeyForServiceVerification2024}")
+    private String gatewaySecret;
 
     public AuthGatewayFilterFactory(JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService, ObjectMapper objectMapper) {
         super(Config.class);
@@ -106,10 +115,14 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
 
             log.debug("Authentication successful - User: {}, Path: {}", userId, path);
 
+            // Generate gateway signature to verify request came from gateway
+            String gatewaySignature = generateGatewaySignature(userId, path);
+
             ServerHttpRequest modifiedRequest = request.mutate()
                     .header(USER_ID_HEADER, userId)
                     .header("X-User-Email", email != null ? email : "")
                     .header("X-User-Roles", roles != null ? String.join(",", roles) : "")
+                    .header(GATEWAY_SIGNATURE_HEADER, gatewaySignature)
                     .build();
 
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
@@ -157,5 +170,23 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
         }
 
         return null;
+    }
+
+    /**
+     * Generate gateway signature to prove request came from gateway
+     * Services can verify this signature to ensure request authenticity
+     */
+    private String generateGatewaySignature(String userId, String path) {
+        try {
+            // Create signature based on userId, path, and secret
+            String dataToSign = userId + "|" + path + "|" + gatewaySecret;
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(dataToSign.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            log.error("Error generating gateway signature: {}", e.getMessage());
+            // Fallback: simple hash
+            return String.valueOf((userId + path + gatewaySecret).hashCode());
+        }
     }
 }

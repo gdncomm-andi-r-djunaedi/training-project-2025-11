@@ -11,6 +11,7 @@ import com.blibli.cart.service.CartService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
+import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -37,67 +39,21 @@ public class CartServiceImpl implements CartService {
     private final ObjectMapper objectMapper;
     private final ProductClient productClient;
 
-
-    public CartResponseDTO addToCarts(String userId, AddToCartRequest request) {
-
-        if (request.getProductId() == null || request.getProductId().trim().isEmpty()) {
-            throw new BadRequestException("Product ID is required");
-        }
-        
-        ProductResponse product = fetchProductById(request.getProductId());
-        validateProduct(product, request.getQuantity());
-
-        Cart cart = getCartFromCache(userId);
-
-        Optional<CartItem> existingItem = cart.getItems().stream()
-                .filter(item -> 
-                    item.getProductId().equals(product.getId()) ||
-                    item.getSku().equals(product.getSku())
-                )
-                .findFirst();
-
-        if (existingItem.isPresent()) {
-            // Update existing item, fixing existing items
-//            CartItem item = existingItem.get();
-
-            int newQuantity = existingItem.get().getQuantity() + request.getQuantity();
-
-            if (product.getStockQuantity() != null && newQuantity > product.getStockQuantity()) {
-                throw new BadRequestException("Insufficient stock. Available: " + product.getStockQuantity());
-            }
-            // old code
-            existingItem.get().setQuantity(newQuantity);
-            existingItem.get().setPrice(product.getPrice());
-        } else {
-            CartItem newItem = CartItem.builder()
-                    .productId(product.getId())
-                    .sku(product.getSku())
-                    .name(product.getName())
-                    .price(product.getPrice())
-                    .quantity(request.getQuantity())
-                    .addedAt(LocalDateTime.now())
-                    .build();
-            cart.getItems().add(newItem);
-        }
-
-        cart.setUpdatedAt(LocalDateTime.now());
-
-
-        // Save to MongoDB first (source of truth), then cache in Redis
-        //  old code
-        saveCart(userId, cart);
-
-        log.info("Product added to cart for user {}: {}", userId, request.getProductId());
-
-        return mapToResponse(cart);
-    }
-
-
     @Override
     public CartResponseDTO addToCart(String userId, AddToCartRequest request) {
 
         if (request.getProductId() == null || request.getProductId().trim().isEmpty()) {
             throw new BadRequestException("Product ID is required");
+        }
+
+        // Validate SKU format if provided (optional field)
+        if (request.getSku() != null && !request.getSku().trim().isEmpty()) {
+            validateSkuFormat(request.getSku());
+        }
+
+        // Validate quantity
+        if (request.getQuantity() <= 0) {
+            throw new BadRequestException("Quantity must be greater than zero");
         }
 
         ProductResponse product = fetchProductById(request.getProductId());
@@ -119,7 +75,7 @@ public class CartServiceImpl implements CartService {
             int newQuantity = item.getQuantity() + request.getQuantity();
             item.setQuantity(newQuantity);
             item.setPrice(product.getPrice());
-            item.setAddedAt(LocalDateTime.now());
+            item.setAddedAt(new Date());
             updatedItem = item;
         } else {
             CartItem newItem = CartItem.builder()
@@ -128,13 +84,13 @@ public class CartServiceImpl implements CartService {
                     .name(product.getName())
                     .price(product.getPrice())
                     .quantity(request.getQuantity())
-                    .addedAt(LocalDateTime.now())
+                    .addedAt(new Date())
                     .build();
             cart.getItems().add(newItem);
             updatedItem = newItem;
         }
 
-        cart.setUpdatedAt(LocalDateTime.now());
+        cart.setUpdatedAt(new Date());
 
         saveCart(userId, cart);
         cacheCartInRedis(userId, cart);
@@ -157,14 +113,14 @@ public class CartServiceImpl implements CartService {
                 }
                 if (itemUpdated) {
                     updated = true;
-                    item.setAddedAt(LocalDateTime.now());
+                    item.setAddedAt(new Date());
                 }
 
             }
             }
 
         if (updated) {
-            cart.setUpdatedAt(LocalDateTime.now());
+            cart.setUpdatedAt(new Date());
             cartRepository.save(cart);
             cacheCartInRedis(userId, cart);
         }
@@ -195,7 +151,7 @@ public class CartServiceImpl implements CartService {
         if (!removed) {
             throw new BadRequestException("Product not found in cart");
         }
-        cart.setUpdatedAt(LocalDateTime.now());
+        cart.setUpdatedAt(new Date());
 
         saveCart(userId, cart);
 
@@ -219,8 +175,7 @@ public class CartServiceImpl implements CartService {
     }
     private Cart getCartFromCache(String userId) {
         log.debug("Getting cart for user {} (read-through cache)", userId);
-        
-        // Step 1: Try Redis cache first
+
         String key = CART_KEY_PREFIX + userId;
         String cartJson = redisTemplate.opsForValue().get(key);
 
@@ -230,11 +185,10 @@ public class CartServiceImpl implements CartService {
                 return objectMapper.readValue(cartJson, Cart.class);
             } catch (JsonProcessingException e) {
                 log.error("Failed to deserialize cart from Redis cache", e);
-                // Continue to fetch from MongoDB if Redis data is corrupted
             }
         }
 
-        // Step 2: Cache MISS - Fetch from MongoDB
+        //  Cache MISS - Fetch from MongoDB
         log.debug("Cache MISS for user {} - fetching from MongoDB", userId);
         Optional<Cart> cartFromDb = cartRepository.findByUserId(userId);
         
@@ -250,8 +204,8 @@ public class CartServiceImpl implements CartService {
             log.info("No cart found for user {} - creating new cart", userId);
             cart = Cart.builder()
                     .userId(userId)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
                     .build();
         }
 
@@ -264,9 +218,9 @@ public class CartServiceImpl implements CartService {
 // saving in to mongo db
         cart.setUserId(userId);
         if (cart.getCreatedAt() == null) {
-            cart.setCreatedAt(LocalDateTime.now());
+            cart.setCreatedAt(new Date());
         }
-        cart.setUpdatedAt(LocalDateTime.now());
+        cart.setUpdatedAt(new Date());
         
         Cart savedCart = cartRepository.save(cart);
         log.info("Cart saved to MongoDB for user {}", userId);
@@ -305,29 +259,27 @@ public class CartServiceImpl implements CartService {
                 .items(items)
                 .totalAmount(totalAmount)
                 .totalItems(totalItems)
-                .updatedAt(cart.getUpdatedAt())
+                .updatedAt(new Date())
                 .build();
     }
 
     public CartResponseDTO mapToResponse(Cart cart, CartItem onlyThisItem) {
+        // Return only the added/updated item (not the entire cart)
+        CartItemResponseDTO itemResponse = mapItemToResponse(onlyThisItem);
+        
+        List<CartItemResponseDTO> items = List.of(itemResponse);
 
-        CartResponseDTO response = new CartResponseDTO();
-        response.setUserId(cart.getUserId());
-        response.setUpdatedAt(cart.getUpdatedAt());
+        // Calculate totals from the single item
+        BigDecimal totalAmount = itemResponse.getSubtotal();
+        Integer totalItems = onlyThisItem.getQuantity();
 
-        // Instead of using cart.getItems(), return only updated item
-        response.setItems(List.of(
-                CartItemResponseDTO.builder()
-                        .productId(onlyThisItem.getProductId())
-                        .sku(onlyThisItem.getSku())
-                        .name(onlyThisItem.getName())
-                        .price(onlyThisItem.getPrice())
-                        .quantity(onlyThisItem.getQuantity())
-                        .addedAt(onlyThisItem.getAddedAt())
-                        .build()
-        ));
-
-        return response;
+        return CartResponseDTO.builder()
+                .userId(cart.getUserId())
+                .items(items)
+                .totalAmount(totalAmount)
+                .totalItems(totalItems)
+                .updatedAt(cart.getUpdatedAt())
+                .build();
     }
 
 
@@ -349,8 +301,13 @@ public class CartServiceImpl implements CartService {
     private ProductResponse fetchProductById(String productId) {
         try {
             log.debug("Fetching product details for productId: {}", productId);
-//            ProductResponse product;
-            ApiResponse<ProductResponse> apiResponse  = productClient.getProductById(productId);
+            ApiResponse<ProductResponse> apiResponse = productClient.getProductById(productId);
+            
+            if (apiResponse == null) {
+                log.error("Null response from product service for productId: {}", productId);
+                throw new ExternalServiceException("Invalid response from product service");
+            }
+            
             ProductResponse product = apiResponse.getData();
             if (product == null) {
                 log.error("Product not found: {}", productId);
@@ -359,14 +316,38 @@ public class CartServiceImpl implements CartService {
             
             return product;
         } catch (FeignException.NotFound e) {
-            log.error("Product not found in product service: {}", productId);
+            log.error("Product not found (404) in product service: {} - Response: {}", 
+                productId, e.contentUTF8());
             throw new ResourceNotFoundException("Product not found with id: " + productId);
+        } catch (DecodeException e) {
+            log.error("Failed to decode product service response for productId: {} - Error: {}", 
+                productId, e.getMessage(), e);
+            throw new ExternalServiceException(
+                "Invalid product data received from product service. Product ID may be invalid: " + productId);
         } catch (FeignException e) {
-            log.error("Error communicating with product service: {}", e.getMessage(), e);
-            throw new ExternalServiceException("Failed to fetch product details. Please try again later.");
+            log.error("Feign error communicating with product service: productId={}, status={}, message={}, response={}", 
+                productId, e.status(), e.getMessage(), e.contentUTF8(), e);
+            
+            // Provide more specific error messages based on status code
+            if (e.status() == 400) {
+                throw new BadRequestException("Invalid product ID format: " + productId);
+            } else if (e.status() == 404) {
+                throw new ResourceNotFoundException("Product not found with id: " + productId);
+            } else if (e.status() >= 500) {
+                throw new ExternalServiceException("Product service is temporarily unavailable. Please try again later.");
+            } else {
+                throw new ExternalServiceException("Failed to fetch product details. Please try again later.");
+            }
+        } catch (ResourceNotFoundException e) {
+            // Re-throw ResourceNotFoundException as-is
+            throw e;
+        } catch (BadRequestException e) {
+            // Re-throw BadRequestException as-is
+            throw e;
         } catch (Exception e) {
-            log.error("Unexpected error while fetching product: {}", e.getMessage(), e);
-            throw new ExternalServiceException("An unexpected error occurred. Please try again later.");
+            log.error("Unexpected error while fetching product: productId={}, error={}", 
+                productId, e.getMessage(), e);
+            throw new ExternalServiceException("An unexpected error occurred while fetching product details. Please try again later.");
         }
     }
 
@@ -382,6 +363,18 @@ public class CartServiceImpl implements CartService {
         if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             log.error("Invalid price for product: {}", product.getId());
             throw new BadRequestException("Invalid product price");
+        }
+    }
+
+    private void validateSkuFormat(String sku) {
+        if (sku == null || sku.trim().isEmpty()) {
+            return; // SKU is optional, so empty is OK
+        }
+        
+        String skuRegex = "^[A-Za-z]{3}-\\d{5}-\\d{5}$"; // AAA-#####-#####
+        if (!sku.matches(skuRegex)) {
+            throw new BadRequestException(
+                String.format("Invalid SKU format: '%s'. SKU must match pattern: AAA-#####-##### (e.g., ABC-12345-67890)", sku));
         }
     }
 

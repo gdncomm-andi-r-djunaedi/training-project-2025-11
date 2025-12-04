@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Builder
@@ -18,6 +19,6 @@ public class ProductResponse {
     private BigDecimal price;
     private CategoryType category;
     private Integer stockQuantity;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Date createdAt;
+    private Date updatedAt;
 }

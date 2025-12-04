@@ -1,10 +1,7 @@
 package com.blibli.product.dto;
 
 import com.blibli.product.enums.CategoryType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,5 +30,6 @@ public class ProductRequest {
     private CategoryType category;
 
     @PositiveOrZero(message = "Stock quantity must be zero or positive")
+    @Max(value = 2147483647, message = "Stock quantity cannot exceed 2,147,483,647")
     private Integer stockQuantity;
 }

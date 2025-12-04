@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Document(collection = "products")
 @Data
@@ -33,8 +34,8 @@ public class Product {
 
     private Integer stockQuantity;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Date createdAt;
+    private Date updatedAt;
 
     @Builder.Default
     private Boolean isActive = true;

@@ -58,7 +58,6 @@ public class ProductEventProducer {
                     event.getEventType(), 
                     event.getId(), 
                     e.getMessage());
-            // Don't throw exception - allow the API to continue working
         }
     }
 }

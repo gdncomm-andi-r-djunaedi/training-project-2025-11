@@ -14,12 +14,17 @@ import com.blibli.product.repository.ProductRepository;
 import com.blibli.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -37,6 +42,15 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductEventProducer eventProducer;
 
+    @Caching(
+            put = {
+                    @CachePut(value = "productById", key = "#result.id"),
+                    @CachePut(value = "productBySku", key = "'product:sku:' + #result.sku.toUpperCase()")
+            },
+            evict = {
+                    @CacheEvict(value = {"productList", "productByCategory"}, allEntries = true)
+            }
+    )
     public ProductResponse createProduct(ProductRequest request) {
         String validatedSku = validateAndFormatSku(request.getSku());
 
@@ -54,8 +68,8 @@ public class ProductServiceImpl implements ProductService {
                 .price(request.getPrice())
                 .category(request.getCategory())
                 .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 1000)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(new Date())
+                .updatedAt(new Date())
                 .isActive(true)
                 .build();
 
@@ -69,9 +83,26 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(saved);
     }
 
+    @Caching(
+            put = {
+                    @CachePut(value = "productById", key = "#id"),
+                    @CachePut(value = "productBySku", key = "'product:sku:' + #result.sku.toUpperCase()")
+            },
+            evict = {
+                    @CacheEvict(value = {"productBySku", "productList", "productByCategory"}, allEntries = true)
+            }
+    )
     public ProductResponse updateProduct(String id, ProductRequest request) {
+        String validatedSku = validateAndFormatSku(request.getSku());
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        String oldSku = existingProduct.getSku();
+
+
+        if (!validatedSku.equalsIgnoreCase(oldSku)) {
+            throw new BadRequestException("SKU cannot be changed. SKU is immutable after product creation.");
+        }
 
         if (StringUtils.hasText(request.getName())) {
             existingProduct.setName(request.getName().trim());
@@ -81,20 +112,30 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // Check if SKU is being changed and if new SKU already exists
-        if (!existingProduct.getSku().equals(request.getSku()) && productRepository.existsBySku(request.getSku())) {
+        String newSku = request.getSku();
+
+
+        if (newSku != null && !newSku.equals(oldSku)
+                && productRepository.existsBySku(newSku)) {
             throw new BadRequestException("SKU already exists");
         }
 
-        existingProduct.setSku(request.getSku());
+        existingProduct.setSku(validatedSku);
         existingProduct.setName(request.getName());
         existingProduct.setDescription(request.getDescription());
         existingProduct.setPrice(request.getPrice());
         existingProduct.setCategory(request.getCategory());
         existingProduct.setStockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 1000);
-        existingProduct.setUpdatedAt(LocalDateTime.now());
+        existingProduct.setUpdatedAt(new Date());
 
         Product updated = productRepository.save(existingProduct);
         log.info("Product updated: {}", updated.getId());
+
+        // If SKU changed, evict old SKU cache (evict all entries for simplicity)
+        if (!oldSku.equalsIgnoreCase(updated.getSku())) {
+            log.info("SKU changed from {} to {}, evicting SKU cache", oldSku, updated.getSku());
+        }
+
 
         // Send event to Kafka
         ProductEvent event = createProductEvent(updated, "UPDATE");
@@ -103,6 +144,7 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(updated);
     }
 
+    @Cacheable(value = "productById", key = "'product:id:' + #id", unless = "#result == null")
     public ProductResponse getProductById(String id) {
         // Try to find by MongoDB ID first
         Optional<Product> product = productRepository.findById(id);
@@ -120,6 +162,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
+    @Cacheable(value = "productBySku", key = "'product:sku:' + #sku.toUpperCase()", unless = "#result == null")
     public ProductResponse getProductBySku(String sku) {
 
         if (!StringUtils.hasText(sku)) {
@@ -128,7 +171,7 @@ public class ProductServiceImpl implements ProductService {
 
 //        Optional<Product> product =  product = productRepository.findBySku(sku);
 
-        Optional<Product> product =  product = productRepository.findBySkuIgnoreCase(sku);
+        Optional<Product> product  = productRepository.findBySkuIgnoreCase(sku);
 
 
         Product foundProduct = product.orElseThrow(() ->
@@ -137,6 +180,7 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(foundProduct);
     }
 
+    @Cacheable(value = "productList", key = "'products:all:page:' + #page + ':size:' + #size", unless = "#result == null || #result.content.isEmpty()")
     public PageResponse<ProductResponse> getAllProducts(int page, int size) {
         Page<Product> productPage = productRepository.findByIsActiveTrue(
                 PageRequest.of(page, size));
@@ -156,6 +200,8 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
+
+    @Cacheable(value = "productByCategory", key = "'products:category:' + #category.name() + ':page:' + #page + ':size:' + #size", unless = "#result == null || #result.content.isEmpty()")
     public PageResponse<ProductResponse> getProductsByCategory(CategoryType category, int page, int size) {
         Page<Product> productPage = productRepository.findByIsActiveTrueAndCategory(
                 category, PageRequest.of(page, size));
@@ -174,13 +220,14 @@ public class ProductServiceImpl implements ProductService {
                 .first(productPage.isFirst())
                 .build();
     }
-
+    @CacheEvict(value = {"productById", "productBySku", "productList", "productByCategory"},
+    allEntries = true, beforeInvocation = true)
     public void deleteProduct(String id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         product.setIsActive(false);
-        product.setUpdatedAt(LocalDateTime.now());
+        product.setUpdatedAt(new Date());
         productRepository.save(product);
 
         // Send event to Kafka

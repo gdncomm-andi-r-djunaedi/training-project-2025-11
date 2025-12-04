@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -53,7 +54,7 @@ class CartControllerTest {
                 .items(new ArrayList<>())
                 .totalAmount(BigDecimal.ZERO)
                 .totalItems(2)
-                .updatedAt(LocalDateTime.now())
+                .updatedAt(new Date())
                 .build();
 
         when(cartService.addToCart(eq(USER_ID), any(AddToCartRequest.class)))
@@ -115,7 +116,7 @@ class CartControllerTest {
                 .items(new ArrayList<>())
                 .totalAmount(BigDecimal.ZERO)
                 .totalItems(0)
-                .updatedAt(LocalDateTime.now())
+                .updatedAt(new Date())
                 .build();
 
         when(cartService.getCarts(USER_ID)).thenReturn(cartResponse);
@@ -138,7 +139,7 @@ class CartControllerTest {
                 .items(new ArrayList<>())
                 .totalAmount(BigDecimal.ZERO)
                 .totalItems(0)
-                .updatedAt(LocalDateTime.now())
+                .updatedAt(new Date())
                 .build();
 
         when(cartService.removeItemFromCart(USER_ID, PRODUCT_ID)).thenReturn(cartResponse);

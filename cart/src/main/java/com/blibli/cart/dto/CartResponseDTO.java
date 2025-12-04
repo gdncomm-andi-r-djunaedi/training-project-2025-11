@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -15,5 +16,5 @@ public class CartResponseDTO {
     private List<CartItemResponseDTO> items;
     private BigDecimal totalAmount;
     private Integer totalItems;
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 }

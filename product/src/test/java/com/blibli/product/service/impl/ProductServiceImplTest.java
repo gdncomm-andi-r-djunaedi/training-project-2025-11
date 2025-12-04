@@ -23,8 +23,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,8 +63,8 @@ class ProductServiceImplTest {
                 .category(CategoryType.ELECTRONIC)
                 .stockQuantity(100)
                 .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(new Date())
+                .updatedAt(new Date())
                 .build();
 
         productRequest = ProductRequest.builder()
@@ -79,7 +79,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should create product successfully")
-    void createProduct_Success() {
+    void createProductSuccess() {
 
         when(productRepository.existsBySku(SKU)).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(product);
@@ -99,7 +99,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should throw BadRequestException when SKU already exists")
-    void createProduct_Failure_DuplicateSKU() {
+    void createProductFailureDuplicateSKU() {
 
         when(productRepository.existsBySku(SKU)).thenReturn(true);
 
@@ -114,7 +114,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should use default stock quantity when not provided")
-    void createProduct_Success_DefaultStockQuantity() {
+    void createProductSuccessDefaultStockQuantity() {
 
         ProductRequest requestWithoutStock = ProductRequest.builder()
                 .sku(SKU)
@@ -140,10 +140,10 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should update product successfully")
-    void updateProduct_Success() {
-        // Given
+    void updateProductSuccess() {
+        // Given - SKU must match existing product's SKU (immutability enforced)
         ProductRequest updateRequest = ProductRequest.builder()
-                .sku("SKU-456")
+                .sku(SKU) // Same SKU as existing product
                 .name("Updated Product")
                 .description("Updated Description")
                 .price(new BigDecimal("149.99"))
@@ -152,7 +152,6 @@ class ProductServiceImplTest {
                 .build();
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
-        when(productRepository.existsBySku("SKU-456")).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(product);
         doNothing().when(eventProducer).sendProductEvent(any(ProductEvent.class));
 
@@ -168,7 +167,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should throw ResourceNotFoundException when product not found for update")
-    void updateProduct_Failure_ProductNotFound() {
+    void updateProductFailureProductNotFound() {
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.empty());
 
@@ -181,28 +180,28 @@ class ProductServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should throw BadRequestException when updating to existing SKU")
-    void updateProduct_Failure_DuplicateSKU() {
-
+    @DisplayName("Should throw BadRequestException when trying to change SKU (SKU immutability)")
+    void updateProductFailureSKUImmutability() {
+        // Given - Try to change SKU to a different valid SKU
+        String newSku = "ABC-12345-67890"; // Valid format but different from existing SKU
         ProductRequest updateRequest = ProductRequest.builder()
-                .sku("EXISTING-SKU")
+                .sku(newSku)
                 .name("Updated Product")
                 .price(new BigDecimal("99.99"))
                 .category(CategoryType.ELECTRONIC)
                 .build();
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
-        when(productRepository.existsBySku("EXISTING-SKU")).thenReturn(true);
 
 
         assertThatThrownBy(() -> productService.updateProduct(PRODUCT_ID, updateRequest))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("SKU already exists");
+                .hasMessageContaining("SKU cannot be changed");
     }
 
     @Test
     @DisplayName("Should get product by ID successfully")
-    void getProductById_Success_ById() {
+    void getProductByIdSuccessById() {
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
 
@@ -218,7 +217,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should get product by SKU when ID not found")
-    void getProductById_Success_BySku() {
+    void getProductByIdSuccessBySku() {
 
         when(productRepository.findById(SKU)).thenReturn(Optional.empty());
         when(productRepository.findBySku(SKU)).thenReturn(Optional.of(product));
@@ -234,7 +233,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should throw ResourceNotFoundException when product not found")
-    void getProductById_Failure_NotFound() {
+    void getProductByIdFailureNotFound() {
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.empty());
         when(productRepository.findBySku(PRODUCT_ID)).thenReturn(Optional.empty());
@@ -247,9 +246,9 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should get product by SKU successfully")
-    void getProductBySku_Success() {
+    void getProductBySkuSuccess() {
 
-        when(productRepository.findBySku(SKU)).thenReturn(Optional.of(product));
+        when(productRepository.findBySkuIgnoreCase(SKU)).thenReturn(Optional.of(product));
 
 
         ProductResponse response = productService.getProductBySku(SKU);
@@ -257,12 +256,12 @@ class ProductServiceImplTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getSku()).isEqualTo(SKU);
-        verify(productRepository).findBySku(SKU);
+        verify(productRepository).findBySkuIgnoreCase(SKU);
     }
 
     @Test
     @DisplayName("Should get all products with pagination")
-    void getAllProducts_Success() {
+    void getAllProductsSuccess() {
 
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<Product> products = Arrays.asList(product);
@@ -284,7 +283,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should get products by category with pagination")
-    void getProductsByCategory_Success() {
+    void getProductsByCategorySuccess() {
 
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<Product> products = Arrays.asList(product);
@@ -306,7 +305,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should delete product (soft delete)")
-    void deleteProduct_Success() {
+    void deleteProductSuccess() {
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
         when(productRepository.save(any(Product.class))).thenReturn(product);
@@ -324,7 +323,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should throw ResourceNotFoundException when product not found for delete")
-    void deleteProduct_Failure_ProductNotFound() {
+    void deleteProductFailureProductNotFound() {
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.empty());
 
@@ -339,7 +338,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should send CREATE event when creating product")
-    void createProduct_Success_VerifyEventType() {
+    void createProductSuccessVerifyEventType() {
 //     given
         when(productRepository.existsBySku(SKU)).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(product);
@@ -357,7 +356,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should send UPDATE event when updating product")
-    void updateProduct_Success_VerifyEventType() {
+    void updateProductSuccessVerifyEventType() {
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
 //        when(productRepository.existsBySku(anyString())).thenReturn(false);
@@ -375,7 +374,7 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("Should send DELETE event when deleting product")
-    void deleteProduct_Success_VerifyEventType() {
+    void deleteProductSuccessVerifyEventType() {
         // Given
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
         when(productRepository.save(any(Product.class))).thenReturn(product);
