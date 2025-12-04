@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +22,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @RequestHeader(value = "Authorization", required = true) String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            authenticationService.logout(token);
+        }
+        return ResponseEntity.ok("Logout successful");
     }
 }

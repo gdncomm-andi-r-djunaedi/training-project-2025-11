@@ -46,8 +46,9 @@ public class JwtConfig {
     @Bean
     public JwtService jwtService(
             @Value("${spring.application.name}") final String issuer,
-            final JwtEncoder jwtEncoder) {
-        return new JwtService(issuer, ttl, jwtEncoder);
+            final JwtEncoder jwtEncoder,
+            final JwtDecoder jwtDecoder) {
+        return new JwtService(issuer, ttl, jwtEncoder, jwtDecoder);
     }
 
 }

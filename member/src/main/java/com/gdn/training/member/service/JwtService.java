@@ -2,8 +2,10 @@ package com.gdn.training.member.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 
@@ -14,6 +16,7 @@ public class JwtService {
     private final String issuer;
     private final Duration ttl;
     private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
 
     public String generateToken(final String username) {
         final var claimsSet = JwtClaimsSet.builder()
@@ -24,5 +27,9 @@ public class JwtService {
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet))
                 .getTokenValue();
+    }
+
+    public Date extractExpiration(String token) {
+        return Date.from(jwtDecoder.decode(token).getExpiresAt());
     }
 }
