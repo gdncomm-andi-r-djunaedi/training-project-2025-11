@@ -147,8 +147,8 @@ public class RefreshTokenGatewayFilterFactory extends AbstractGatewayFilterFacto
             response.addCookie(refreshCookie);
             response.setStatusCode(HttpStatus.OK);
             response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+// build success response
 
-            // Build success response
             try {
                 ObjectNode jsonResponse = objectMapper.createObjectNode();
                 jsonResponse.put("success", true);
@@ -171,7 +171,7 @@ public class RefreshTokenGatewayFilterFactory extends AbstractGatewayFilterFacto
     }
 
     private String extractRefreshTokenFromRequest(ServerHttpRequest request) {
-        // Try Authorization header first
+        // try authorization header first
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);

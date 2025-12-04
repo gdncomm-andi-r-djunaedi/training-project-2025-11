@@ -10,9 +10,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartResponse {
+public class CartResponseDTO {
     private String userId; // UUID from Member service
-    private List<CartItemResponse> items;
+    private List<CartItemResponseDTO> items;
     private BigDecimal totalAmount;
     private Integer totalItems;
     private LocalDateTime updatedAt;

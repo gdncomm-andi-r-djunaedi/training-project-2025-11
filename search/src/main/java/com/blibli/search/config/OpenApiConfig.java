@@ -18,6 +18,6 @@ public class OpenApiConfig {
                         .description("API documentation for the Search Service")
                         .contact(new Contact()
                                 .name("Search Service Team")
-                                .email("search@example.com")));
+                                .email("basanta@gmail.com")));
     }
 }

@@ -24,7 +24,6 @@ public class ElasticsearchConfig {
         String[] parts = elasticsearchUris.replace("http://", "").replace("https://", "").split(":");
         String host = parts[0];
         int port = parts.length > 1 ? Integer.parseInt(parts[1]) : 9200;
-
         RestClient restClient = RestClient.builder(new HttpHost(host, port)).build();
         ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         return new ElasticsearchClient(transport);

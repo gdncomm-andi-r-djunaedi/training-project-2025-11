@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +38,7 @@ public class CartServiceImpl implements CartService {
     private final ProductClient productClient;
 
 
-    public CartResponse addToCarts(String userId, AddToCartRequest request) {
+    public CartResponseDTO addToCarts(String userId, AddToCartRequest request) {
 
         if (request.getProductId() == null || request.getProductId().trim().isEmpty()) {
             throw new BadRequestException("Product ID is required");
@@ -93,7 +94,7 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
-    public CartResponse addToCart(String userId, AddToCartRequest request) {
+    public CartResponseDTO addToCart(String userId, AddToCartRequest request) {
 
         if (request.getProductId() == null || request.getProductId().trim().isEmpty()) {
             throw new BadRequestException("Product ID is required");
@@ -141,7 +142,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse getCart(String userId) {
+    public CartResponseDTO getCarts(String userId) {
         // Read-through cache: Check Redis first, fallback to MongoDB
         Cart cart = getCartFromCache(userId);
         boolean updated = false;
@@ -173,20 +174,29 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse removeFromCart(String userId, String productId) {
+    public CartResponseDTO removeItemFromCart(String userId, String productId) {
         Cart cart = getCartFromCache(userId);
 
-        boolean removed = cart.getItems().removeIf(
-                item -> item.getProductId().equals(productId) || 
-                        item.getSku().equals(productId));
+//        boolean removed = cart.getItems().removeIf(
+//                item -> item.getProductId().equals(productId) ||
+//                        item.getSku().equals(productId));
+
+        boolean removed = false;
+        Iterator<CartItem> iterator=cart.getItems().iterator();
+        while (iterator.hasNext()){
+            CartItem item=iterator.next();
+
+            if(item.getProductId().equals(productId) || item.getSku().equals(productId)){
+                iterator.remove();
+                removed=true;
+            }
+        }
 
         if (!removed) {
             throw new BadRequestException("Product not found in cart");
         }
-
         cart.setUpdatedAt(LocalDateTime.now());
-        
-        // Save to MongoDB and update Redis cache
+
         saveCart(userId, cart);
 
         log.info("Product removed from cart for user {}: {}", userId, productId);
@@ -251,7 +261,7 @@ public class CartServiceImpl implements CartService {
     private void saveCart(String userId, Cart cart) {
         log.debug("Saving cart for user {} (write-through)", userId);
         
-        // Step 1: Save to MongoDB (source of truth)
+// saving in to mongo db
         cart.setUserId(userId);
         if (cart.getCreatedAt() == null) {
             cart.setCreatedAt(LocalDateTime.now());
@@ -261,7 +271,7 @@ public class CartServiceImpl implements CartService {
         Cart savedCart = cartRepository.save(cart);
         log.info("Cart saved to MongoDB for user {}", userId);
         
-        // Step 2: Update Redis cache
+// update redis
         cacheCartInRedis(userId, savedCart);
     }
 
@@ -277,20 +287,20 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    private CartResponse mapToResponse(Cart cart) {
-        List<CartItemResponse> items = cart.getItems().stream()
+    private CartResponseDTO mapToResponse(Cart cart) {
+        List<CartItemResponseDTO> items = cart.getItems().stream()
                 .map(this::mapItemToResponse)
                 .collect(Collectors.toList());
 
         BigDecimal totalAmount = items.stream()
-                .map(CartItemResponse::getSubtotal)
+                .map(CartItemResponseDTO::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Integer totalItems = cart.getItems().stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
 
-        return CartResponse.builder()
+        return CartResponseDTO.builder()
                 .userId(cart.getUserId())
                 .items(items)
                 .totalAmount(totalAmount)
@@ -299,15 +309,15 @@ public class CartServiceImpl implements CartService {
                 .build();
     }
 
-    public CartResponse mapToResponse(Cart cart, CartItem onlyThisItem) {
+    public CartResponseDTO mapToResponse(Cart cart, CartItem onlyThisItem) {
 
-        CartResponse response = new CartResponse();
+        CartResponseDTO response = new CartResponseDTO();
         response.setUserId(cart.getUserId());
         response.setUpdatedAt(cart.getUpdatedAt());
 
         // Instead of using cart.getItems(), return only updated item
         response.setItems(List.of(
-                CartItemResponse.builder()
+                CartItemResponseDTO.builder()
                         .productId(onlyThisItem.getProductId())
                         .sku(onlyThisItem.getSku())
                         .name(onlyThisItem.getName())
@@ -321,11 +331,11 @@ public class CartServiceImpl implements CartService {
     }
 
 
-    private CartItemResponse mapItemToResponse(CartItem item) {
+    private CartItemResponseDTO mapItemToResponse(CartItem item) {
         BigDecimal subtotal = item.getPrice()
                 .multiply(BigDecimal.valueOf(item.getQuantity()));
 
-        return CartItemResponse.builder()
+        return CartItemResponseDTO.builder()
                 .productId(item.getProductId())
                 .sku(item.getSku())
                 .name(item.getName())

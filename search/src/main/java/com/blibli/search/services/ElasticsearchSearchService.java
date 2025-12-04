@@ -75,12 +75,10 @@ public class ElasticsearchSearchService {
     public List<Map<String, Object>> wildcardSearch(String query, int page, int size) {
         log.info("Wildcard search: query={}, page={}, size={}", query, page, size);
         try {
-            // Use query string query which is more flexible and compatible
             String searchTerm = query.trim();
             
             log.info("Search term: {}", searchTerm);
-            
-            // Use query_string for wildcard-like behavior
+
             SearchRequest searchRequest = SearchRequest.of(s -> s
                     .index("products")
                     .query(q -> q
@@ -192,13 +190,11 @@ public class ElasticsearchSearchService {
         if (priceObj instanceof Number) {
             return ((Number) priceObj).doubleValue();
         }
-        
-        // Handle BigDecimal (from ProductEvent)
+
         if (priceObj instanceof java.math.BigDecimal) {
             return ((java.math.BigDecimal) priceObj).doubleValue();
         }
-        
-        // Try to parse as string
+
         try {
             return Double.parseDouble(priceObj.toString());
         } catch (NumberFormatException e) {
@@ -213,15 +209,15 @@ public class ElasticsearchSearchService {
             return null;
         }
         
-        // Handle enum (CategoryType from ProductEvent)
+        // handle enum of category
         if (categoryObj instanceof Enum) {
             return ((Enum<?>) categoryObj).name();
         }
-        
-        // Handle Map (if category is nested object)
+
+
+        // handle map if category is nested object
         if (categoryObj instanceof Map) {
             Map<?, ?> categoryMap = (Map<?, ?>) categoryObj;
-            // Try to get name or value
             Object name = categoryMap.get("name");
             if (name != null) {
                 return name.toString();

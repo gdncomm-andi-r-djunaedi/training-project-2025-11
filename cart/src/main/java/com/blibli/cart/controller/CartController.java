@@ -2,7 +2,7 @@ package com.blibli.cart.controller;
 
 import com.blibli.cart.dto.AddToCartRequest;
 import com.blibli.cart.dto.ApiResponse;
-import com.blibli.cart.dto.CartResponse;
+import com.blibli.cart.dto.CartResponseDTO;
 import com.blibli.cart.exception.BadRequestException;
 import com.blibli.cart.service.CartService;
 import jakarta.validation.Valid;
@@ -20,37 +20,37 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CartResponse>> addToCart(
+    public ResponseEntity<ApiResponse<CartResponseDTO>> addToCart(
             @RequestHeader(value = "X-User-Id", required = true) String userId,
             @Valid @RequestBody AddToCartRequest request) {
         
         validateUserId(userId);
         log.info("Adding product {} to cart for user {}", request.getProductId(), userId);
         
-        CartResponse response = cartService.addToCart(userId, request);
+        CartResponseDTO response = cartService.addToCart(userId, request);
         return ResponseEntity.ok(ApiResponse.success("Product added to cart", response));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<CartResponse>> getCart(
+    public ResponseEntity<ApiResponse<CartResponseDTO>> getCart(
             @RequestHeader(value = "X-User-Id", required = true) String userId) {
         
         validateUserId(userId);
         log.debug("Fetching cart for user {}", userId);
         
-        CartResponse response = cartService.getCart(userId);
+        CartResponseDTO response = cartService.getCarts(userId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<ApiResponse<CartResponse>> removeFromCart(
+    public ResponseEntity<ApiResponse<CartResponseDTO>> removeFromCart(
             @RequestHeader(value = "X-User-Id", required = true) String userId,
             @PathVariable String productId) {
         
         validateUserId(userId);
         log.info("Removing product {} from cart for user {}", productId, userId);
         
-        CartResponse response = cartService.removeFromCart(userId, productId);
+        CartResponseDTO response = cartService.removeItemFromCart(userId, productId);
         return ResponseEntity.ok(ApiResponse.success("Product removed from cart", response));
     }
 

@@ -70,7 +70,6 @@ public class ElasticsearchAdminController {
                 return ResponseEntity.ok(ApiResponse.success("Index '" + indexName + "' already exists"));
             }
 
-            // Create index with mapping
             CreateIndexRequest createRequest = CreateIndexRequest.of(c -> c
                     .index(indexName)
                     .mappings(m -> m

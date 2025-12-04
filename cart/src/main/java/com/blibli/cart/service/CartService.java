@@ -1,16 +1,16 @@
 package com.blibli.cart.service;
 
 import com.blibli.cart.dto.AddToCartRequest;
-import com.blibli.cart.dto.CartResponse;
+import com.blibli.cart.dto.CartResponseDTO;
 
 
 public interface CartService {
 
-    CartResponse addToCart(String userId, AddToCartRequest request);
+    CartResponseDTO addToCart(String userId, AddToCartRequest request);
 
-    CartResponse getCart(String userId);
+    CartResponseDTO getCarts(String userId);
 
-    CartResponse removeFromCart(String userId, String productId);
+    CartResponseDTO removeItemFromCart(String userId, String productId);
 
     void clearCart(String userId);
 }

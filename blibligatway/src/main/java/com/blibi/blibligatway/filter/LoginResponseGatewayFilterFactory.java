@@ -67,7 +67,7 @@ public class LoginResponseGatewayFilterFactory extends AbstractGatewayFilterFact
                     if (dataNode.has("roles") && dataNode.get("roles").isArray()) {
                         dataNode.get("roles").forEach(role -> roles.add(role.asText()));
                     }
-                    // Default to CUSTOMER role if no roles found
+//               set customer role if no role found
                     if (roles.isEmpty()) {
                         roles.add("CUSTOMER");
                     }
@@ -76,7 +76,7 @@ public class LoginResponseGatewayFilterFactory extends AbstractGatewayFilterFact
                         String token = jwtUtil.generateToken(userId, email, roles);
                         String refreshToken = jwtUtil.generateRefreshToken(userId);
                         
-                        // Set JWT cookie
+//                    set jwt cookie
                         long cookieMaxAge = expiration / 1000; // Convert to seconds
                         ResponseCookie jwtCookie = ResponseCookie.from("jwt", token)
                                 .maxAge(Duration.ofSeconds(cookieMaxAge))
@@ -86,7 +86,7 @@ public class LoginResponseGatewayFilterFactory extends AbstractGatewayFilterFact
                                 .sameSite("Strict")
                                 .build();
                         
-                        // Set refresh token cookie
+//            set refresh token cookie
                         long refreshCookieMaxAge = jwtUtil.getRefreshExpiration() / 1000;
                         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                                 .maxAge(Duration.ofSeconds(refreshCookieMaxAge))
@@ -99,8 +99,8 @@ public class LoginResponseGatewayFilterFactory extends AbstractGatewayFilterFact
                         exchange.getResponse().addCookie(jwtCookie);
                         exchange.getResponse().addCookie(refreshCookie);
                         
-                        // Build LoginResponse with token, userId, email, roles at root level
-                        // and full MemberResponse in data field
+                        // Build login response with token, userid, role
+                        // full member respons in data field
                         LoginResponse loginResponse = LoginResponse.builder()
                                 .success(true)
                                 .message("Login successful")

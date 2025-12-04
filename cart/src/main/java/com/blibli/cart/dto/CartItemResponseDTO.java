@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartItemResponse {
+public class CartItemResponseDTO {
     private String productId;
     private String sku;
     private String name;

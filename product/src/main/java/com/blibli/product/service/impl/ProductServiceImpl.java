@@ -62,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
         Product saved = productRepository.save(product);
         log.info("Product created: {}", saved.getId());
 
-        // Send event to Kafka
+        // sending event to kafka
         ProductEvent event = createProductEvent(saved, "CREATE");
         eventProducer.sendProductEvent(event);
 
@@ -130,7 +130,7 @@ public class ProductServiceImpl implements ProductService {
 
         Optional<Product> product =  product = productRepository.findBySkuIgnoreCase(sku);
 
-        // If still not found, throw exception
+
         Product foundProduct = product.orElseThrow(() ->
                 new ResourceNotFoundException("Product not found with id or sku: " + sku));
 

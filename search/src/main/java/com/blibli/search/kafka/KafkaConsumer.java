@@ -30,7 +30,7 @@ public class KafkaConsumer {
         log.info("Raw message: {}", message);
         
         try {
-            // Parse JSON string to Map
+
             Map<String, Object> eventData = parseJsonToMap(message);
             String eventType = (String) eventData.get("eventType");
             String productId = (String) eventData.get("id");
@@ -72,7 +72,7 @@ public class KafkaConsumer {
         }
     }
     
-    @SuppressWarnings("unchecked")
+
     private Map<String, Object> parseJsonToMap(String json) {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();

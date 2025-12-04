@@ -102,7 +102,7 @@ class CartServiceImplTest {
         when(objectMapper.writeValueAsString(any(Cart.class))).thenReturn(cartJson);
 
         // When
-        CartResponse response = cartService.addToCart(USER_ID, addToCartRequest);
+        CartResponseDTO response = cartService.addToCart(USER_ID, addToCartRequest);
 
         // Then
         assertThat(response).isNotNull();
@@ -125,7 +125,7 @@ class CartServiceImplTest {
         when(objectMapper.writeValueAsString(any(Cart.class))).thenReturn("{}");
 
         // When
-        CartResponse response = cartService.addToCart(USER_ID, addToCartRequest);
+        CartResponseDTO response = cartService.addToCart(USER_ID, addToCartRequest);
 
         // Then
         assertThat(response).isNotNull();
@@ -146,7 +146,7 @@ class CartServiceImplTest {
         when(objectMapper.writeValueAsString(any(Cart.class))).thenReturn("{}");
 
         // When
-        CartResponse response = cartService.addToCart(USER_ID, addToCartRequest);
+        CartResponseDTO response = cartService.addToCart(USER_ID, addToCartRequest);
 
         // Then
         assertThat(response).isNotNull();
@@ -177,7 +177,7 @@ class CartServiceImplTest {
         when(objectMapper.writeValueAsString(any(Cart.class))).thenReturn(cartJson);
 
         // When
-        CartResponse response = cartService.addToCart(USER_ID, addToCartRequest);
+        CartResponseDTO response = cartService.addToCart(USER_ID, addToCartRequest);
 
         // Then
         assertThat(response).isNotNull();
@@ -279,7 +279,7 @@ class CartServiceImplTest {
         when(objectMapper.readValue(cartJson, Cart.class)).thenReturn(cart);
 
         // When
-        CartResponse response = cartService.getCart(USER_ID);
+        CartResponseDTO response = cartService.getCarts(USER_ID);
 
         // Then
         assertThat(response).isNotNull();
@@ -298,7 +298,7 @@ class CartServiceImplTest {
         when(objectMapper.writeValueAsString(any(Cart.class))).thenReturn("{}");
 
         // When
-        CartResponse response = cartService.getCart(USER_ID);
+        CartResponseDTO response = cartService.getCarts(USER_ID);
 
         // Then
         assertThat(response).isNotNull();
@@ -328,7 +328,7 @@ class CartServiceImplTest {
         when(objectMapper.writeValueAsString(any(Cart.class))).thenReturn(cartJson);
 
         // When
-        CartResponse response = cartService.removeFromCart(USER_ID, PRODUCT_ID);
+        CartResponseDTO response = cartService.removeItemFromCart(USER_ID, PRODUCT_ID);
 
         // Then
         assertThat(response).isNotNull();
@@ -346,7 +346,7 @@ class CartServiceImplTest {
         when(objectMapper.readValue(cartJson, Cart.class)).thenReturn(cart);
 
         // When/Then
-        assertThatThrownBy(() -> cartService.removeFromCart(USER_ID, PRODUCT_ID))
+        assertThatThrownBy(() -> cartService.removeItemFromCart(USER_ID, PRODUCT_ID))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Product not found in cart");
     }
@@ -374,7 +374,7 @@ class CartServiceImplTest {
         when(objectMapper.writeValueAsString(any(Cart.class))).thenReturn("{}");
 
         // When
-        CartResponse response = cartService.getCart(USER_ID);
+        CartResponseDTO response = cartService.getCarts(USER_ID);
 
         // Then
         assertThat(response).isNotNull();

@@ -37,12 +37,12 @@ class ProductControllerTest {
     private ObjectMapper objectMapper;
 
     private static final String PRODUCT_ID = "product-123";
-    private static final String SKU = "SKU-123";
+    private static final String SKU = "SKU-12453-76452";
 
     @Test
     @DisplayName("Should create product successfully")
     void createProduct_Success() throws Exception {
-        // Given
+
         ProductRequest request = ProductRequest.builder()
                 .sku(SKU)
                 .name("Test Product")
@@ -65,7 +65,6 @@ class ProductControllerTest {
 
         when(productService.createProduct(any(ProductRequest.class))).thenReturn(response);
 
-        // When/Then
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -80,14 +79,13 @@ class ProductControllerTest {
     @Test
     @DisplayName("Should return 400 when request validation fails")
     void createProduct_Failure_ValidationError() throws Exception {
-        // Given
+
         ProductRequest invalidRequest = ProductRequest.builder()
                 .sku("") // Invalid: empty SKU
                 .name("") // Invalid: empty name
                 .price(new BigDecimal("-10")) // Invalid: negative price
                 .build();
 
-        // When/Then
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -97,7 +95,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("Should update product successfully")
     void updateProduct_Success() throws Exception {
-        // Given
+
         ProductRequest request = ProductRequest.builder()
                 .sku(SKU)
                 .name("Updated Product")
@@ -116,7 +114,6 @@ class ProductControllerTest {
         when(productService.updateProduct(eq(PRODUCT_ID), any(ProductRequest.class)))
                 .thenReturn(response);
 
-        // When/Then
         mockMvc.perform(put("/api/products/{id}", PRODUCT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -130,7 +127,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("Should get product by ID successfully")
     void getProduct_Success() throws Exception {
-        // Given
+
         ProductResponse response = ProductResponse.builder()
                 .id(PRODUCT_ID)
                 .sku(SKU)
@@ -141,7 +138,7 @@ class ProductControllerTest {
 
         when(productService.getProductById(PRODUCT_ID)).thenReturn(response);
 
-        // When/Then
+
         mockMvc.perform(get("/api/products/id/{id}", PRODUCT_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -153,7 +150,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("Should get product by SKU successfully")
     void getProductBySku_Success() throws Exception {
-        // Given
+
         ProductResponse response = ProductResponse.builder()
                 .id(PRODUCT_ID)
                 .sku(SKU)
@@ -162,7 +159,6 @@ class ProductControllerTest {
 
         when(productService.getProductBySku(SKU)).thenReturn(response);
 
-        // When/Then
         mockMvc.perform(get("/api/products/sku/{sku}", SKU))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -174,7 +170,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("Should get all products with pagination")
     void getAllProducts_Success() throws Exception {
-        // Given
+
         PageResponse<ProductResponse> pageResponse = PageResponse.<ProductResponse>builder()
                 .content(new ArrayList<>())
                 .pageNumber(0)
@@ -187,7 +183,6 @@ class ProductControllerTest {
 
         when(productService.getAllProducts(0, 20)).thenReturn(pageResponse);
 
-        // When/Then
         mockMvc.perform(get("/api/products/list")
                         .param("page", "0")
                         .param("size", "20"))
@@ -202,7 +197,6 @@ class ProductControllerTest {
     @Test
     @DisplayName("Should get products by category")
     void getProductsByCategory_Success() throws Exception {
-        // Given
         PageResponse<ProductResponse> pageResponse = PageResponse.<ProductResponse>builder()
                 .content(new ArrayList<>())
                 .pageNumber(0)
@@ -216,7 +210,6 @@ class ProductControllerTest {
         when(productService.getProductsByCategory(eq(CategoryType.ELECTRONIC), eq(0), eq(20)))
                 .thenReturn(pageResponse);
 
-        // When/Then
         mockMvc.perform(get("/api/products/category/{category}", "ELECTRONIC")
                         .param("page", "0")
                         .param("size", "20"))
@@ -229,10 +222,10 @@ class ProductControllerTest {
     @Test
     @DisplayName("Should delete product successfully")
     void deleteProduct_Success() throws Exception {
-        // Given
+// given
         doNothing().when(productService).deleteProduct(PRODUCT_ID);
 
-        // When/Then
+//     when and then
         mockMvc.perform(delete("/api/products/{id}", PRODUCT_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));

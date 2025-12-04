@@ -65,7 +65,7 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
                 return unauthorized(exchange, "Missing authentication token");
             }
 
-            // Check if token is blacklisted
+          // check token blacklisted
             if (tokenBlacklistService.isBlacklisted(token)) {
                 log.warn("Authentication failed - Token blacklisted. Path: {}, IP: {}", 
                     path, request.getRemoteAddress());

@@ -36,18 +36,18 @@ public class ProductEventProducer {
             
             future.whenComplete((result, ex) -> {
                 if (ex == null) {
-                    log.info("✅ Product event sent successfully: {} - {} to partition: {}", 
+                    log.info("Product event sent successfully: {} - {} to partition: {}", 
                             event.getEventType(), 
                             event.getId(),
                             result.getRecordMetadata().partition());
                 } else {
                     String errorMsg = ex.getMessage();
                     if (errorMsg != null && errorMsg.contains("not present in metadata")) {
-                        log.error("❌ Kafka topic '{}' does not exist! Please create it first.", topic);
+                        log.error("Kafka topic '{}' does not exist! Please create it first.", topic);
                         log.error("Run: kafka-topics --create --topic {} --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1", topic);
                         log.error("Or use the script: ./create-kafka-topic.sh");
                     }
-                    log.error("❌ Failed to send product event: {} - {}. Error: {}", 
+                    log.error("Failed to send product event: {} - {}. Error: {}", 
                             event.getEventType(), 
                             event.getId(), 
                             errorMsg);

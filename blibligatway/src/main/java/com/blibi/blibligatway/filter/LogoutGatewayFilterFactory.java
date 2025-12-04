@@ -48,10 +48,10 @@ public class LogoutGatewayFilterFactory extends AbstractGatewayFilterFactory<Log
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
 
-            // Extract token from request
+//            extract token
             String token = extractJwtFromRequest(request);
-            
-            // Blacklist the token if it exists and is valid
+
+            // check acces token and black list it
             if (StringUtils.hasText(token)) {
                 try {
                     if (jwtUtil.validateToken(token)) {
@@ -65,7 +65,7 @@ public class LogoutGatewayFilterFactory extends AbstractGatewayFilterFactory<Log
                 }
             }
 
-            // Also check for refresh token and blacklist it
+            // check refresh token and black list it
             HttpCookie refreshCookie = request.getCookies().getFirst("refreshToken");
             if (refreshCookie != null && StringUtils.hasText(refreshCookie.getValue())) {
                 String refreshToken = refreshCookie.getValue();
@@ -104,7 +104,7 @@ public class LogoutGatewayFilterFactory extends AbstractGatewayFilterFactory<Log
             response.setStatusCode(HttpStatus.OK);
             response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-            // Build success response
+            // build success response
             try {
                 ObjectNode jsonResponse = objectMapper.createObjectNode();
                 jsonResponse.put("success", true);
