@@ -4,21 +4,24 @@ import com.zasura.product.dto.ProductSearchRequest;
 import com.zasura.product.entity.Product;
 import com.zasura.product.exception.ProductNotFoundException;
 import com.zasura.product.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
-  @Autowired
-  private ProductRepository productRepository;
-  @Autowired
-  private MongoTemplate mongoTemplate;
+  private final ProductRepository productRepository;
+  private final MongoTemplate mongoTemplate;
 
   @Override
   public Product getProductDetail(String productId) {
@@ -35,9 +38,10 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public List<Product> searchProducts(ProductSearchRequest productSearchRequest) {
+  public Page<Product> searchProducts(ProductSearchRequest productSearchRequest) {
     List<Criteria> criteriaList = new ArrayList<>();
-
+    Pageable pageable = PageRequest.of(productSearchRequest.getPagination().getPage(),
+        productSearchRequest.getPagination().getSize());
     if (productSearchRequest.getName() != null && !productSearchRequest.getName().isEmpty()) {
       criteriaList.add(Criteria.where("name")
           .regex(".*" + productSearchRequest.getName() + ".*", "i"));
@@ -56,8 +60,12 @@ public class ProductServiceImpl implements ProductService {
       criteriaList.add(Criteria.where("price").lte(productSearchRequest.getMaxPrice()));
     }
     Query query = new Query(criteriaList.isEmpty() ?
-        new Criteria() :
-        new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
-    return mongoTemplate.find(query, Product.class);
+        new Criteria() : new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))).with(
+        pageable);
+    List<Product> products = mongoTemplate.find(query, Product.class);
+
+    return PageableExecutionUtils.getPage(products,
+        pageable,
+        () -> mongoTemplate.count(Query.of(query).skip(-1).limit(-1), Product.class));
   }
 }

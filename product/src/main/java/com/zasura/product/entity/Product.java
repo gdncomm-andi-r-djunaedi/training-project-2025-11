@@ -34,7 +34,6 @@ public class Product {
   private String description;
   @NotNull
   @DecimalMin("0.0")
-  @NumberFormat
   private Double price;
 
   @CreatedDate
