@@ -3,7 +3,6 @@ package com.zasura.product.entity;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.format.annotation.NumberFormat;
 
 import java.time.LocalDateTime;
 
@@ -41,4 +39,10 @@ public class Product {
 
   @LastModifiedDate
   private LocalDateTime lastModifiedDate;
+
+  public Product(String name, String description, double price) {
+    this.name = name;
+    this.description = description;
+    this.price = price;
+  }
 }

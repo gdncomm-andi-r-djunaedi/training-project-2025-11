@@ -11,4 +11,6 @@ public interface ProductService {
   Product createProduct(Product product);
 
   Page<Product> searchProducts(ProductSearchRequest productSearchRequest);
+
+  Boolean migrate();
 }

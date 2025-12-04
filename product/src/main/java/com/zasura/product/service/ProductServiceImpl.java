@@ -68,4 +68,15 @@ public class ProductServiceImpl implements ProductService {
         pageable,
         () -> mongoTemplate.count(Query.of(query).skip(-1).limit(-1), Product.class));
   }
+
+  @Override
+  public Boolean migrate() {
+    Product productRequest;
+    for (int i = 0; i < 50000; i++) {
+      productRequest =
+          new Product("Product " + i, "Product Description " + i, Double.parseDouble("" + i + 1));
+      productRepository.save(productRequest);
+    }
+    return true;
+  }
 }

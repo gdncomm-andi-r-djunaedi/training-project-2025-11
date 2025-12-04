@@ -29,6 +29,12 @@ public class ProductController {
         .body(CommonResponse.success(productService.getProductDetail(productId)));
   }
 
+  @GetMapping("/_migrate")
+  public ResponseEntity<CommonResponse> migrate() {
+    return ResponseEntity.ok()
+        .body(CommonResponse.success(productService.migrate()));
+  }
+
   @PostMapping()
   public ResponseEntity<CommonResponse<Product>> createProduct(@Valid @RequestBody Product product) {
     return ResponseEntity.ok(CommonResponse.success(productService.createProduct(product)));
