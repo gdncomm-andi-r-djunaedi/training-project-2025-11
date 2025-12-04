@@ -1,9 +1,8 @@
 version: "3.9"
 
 services:
-
   # ============================
-  # POSTGRES DATABASE
+  # MEMBER POSTGRES
   # ============================
   postgres:
     image: postgres:16
@@ -26,7 +25,47 @@ services:
       - network-service
 
   # ============================
-  # PG ADMIN UI
+  # PRODUCT POSTGRES
+  # ============================
+  product-postgres:
+    image: postgres:16
+    container_name: product-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - product-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d productdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - network-service
+
+  # ============================
+  # SOLR (PRODUCT SEARCH ENGINE)
+  # ============================
+  solr:
+    image: solr:9.6
+    container_name: product-solr
+    restart: always
+    ports:
+      - "8983:8983"
+    command:
+      - solr-precreate
+      - products
+    volumes:
+      - solr-data:/var/solr
+    networks:
+      - network-service
+
+  # ============================
+  # PG ADMIN
   # ============================
   pgadmin:
     image: dpage/pgadmin4
@@ -44,7 +83,7 @@ services:
       - network-service
 
   # ============================
-  # REDIS CACHE
+  # REDIS (for member-service)
   # ============================
   redis:
     image: redis:7
@@ -76,15 +115,49 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
+
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/memberdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
 
       SPRING_REDIS_HOST: redis
-
     ports:
-      - "9095:9095"  # gRPC
-      - "8081:8081"  # Actuator / REST admin
+      - "9095:9095"   # gRPC
+      - "8081:8081"   # Actuator
+    networks:
+      - network-service
+
+  # ============================
+  # PRODUCT SERVICE
+  # ============================
+  product-service:
+    build:
+      context: ./product
+    container_name: product-service
+    restart: always
+    depends_on:
+      product-postgres:
+        condition: service_healthy
+      solr:
+        condition: service_started
+    environment:
+      # ---- App properties ----
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+
+      # ---- Database ----
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-postgres:5432/productdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      # ---- Solr ----
+      SPRING_DATA_SOLR_HOST: http://product-solr:8983/solr/products
+
+      # ---- Seeder ----
+      PRODUCT_SEED_ENABLED: "true"
+      PRODUCT_SEED_SIZE: 50
+    ports:
+      - "9096:8080"   # gRPC or HTTP (depends on your server port)
     networks:
       - network-service
 
@@ -99,16 +172,23 @@ services:
     depends_on:
       member-service:
         condition: service_started
+      product-service:
+        condition: service_started
     ports:
       - "8080:8080"
     environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      # ---- gRPC Member Service ----
       grpc.member.host: member-service
       grpc.member.port: 9095
 
-      # JWT secret
-      security.jwt.hmac.secret: replace-with-very-long-secret-32bytes-min!!!!
+      # ---- gRPC Product Service ----
+      grpc.product.host: product-service
+      grpc.product.port: 8080
 
-      SPRING_PROFILES_ACTIVE: prod
+      # ---- JWT SECRET ----
+      security.jwt.hmac.secret: replace-with-very-long-secret-32bytes-min!!!!
     networks:
       - network-service
 
@@ -120,3 +200,5 @@ networks:
 
 volumes:
   postgresdata:
+  product-postgres-data:
+  solr-data:
