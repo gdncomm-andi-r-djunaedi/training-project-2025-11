@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/api/cart")
 public class CartController {
 
   @Autowired
