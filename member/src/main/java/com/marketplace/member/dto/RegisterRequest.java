@@ -1,5 +1,6 @@
 package com.marketplace.member.dto;
 
+import com.marketplace.member.constant.MemberConstants;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -10,11 +11,11 @@ import lombok.Data;
  */
 @Data
 public class RegisterRequest {
-    @Email(message = "Invalid email format")
-    @NotBlank(message = "Email is required")
+    @Email(message = MemberConstants.ValidationMessages.EMAIL_INVALID)
+    @NotBlank(message = MemberConstants.ValidationMessages.EMAIL_REQUIRED)
     private String email;
 
-    @NotBlank(message = "Password is required")
+    @NotBlank(message = MemberConstants.ValidationMessages.PASSWORD_REQUIRED)
     @com.marketplace.member.validation.ValidPassword
     private String password;
 

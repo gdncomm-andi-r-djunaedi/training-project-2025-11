@@ -1,6 +1,6 @@
 package com.marketplace.product.controller;
 
-import com.marketplace.common.command.CommandExecutor;
+import com.marketplace.common.controller.BaseCommandController;
 import com.marketplace.common.dto.ApiResponse;
 import com.marketplace.common.mapper.MapperService;
 import com.marketplace.product.command.GetProductByIdCommand;
@@ -10,8 +10,8 @@ import com.marketplace.product.document.Product;
 import com.marketplace.product.dto.request.GetProductByIdRequest;
 import com.marketplace.product.dto.request.SearchProductsRequest;
 import com.marketplace.product.dto.response.ProductResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,24 +19,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST controller for product operations
+ * REST controller for product operations.
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/product")
-@RequiredArgsConstructor
-public class ProductController {
+public class ProductController extends BaseCommandController {
 
-    private final CommandExecutor commandExecutor;
-    private final MapperService mapperService;
+    @Autowired
+    private MapperService mapperService;
 
     @PostMapping("/seed")
     public ResponseEntity<ApiResponse<String>> seedProducts() {
         log.info("Seed products request received");
-
-        commandExecutor.execute(SeedProductsCommand.class, null);
-
-        return ResponseEntity.ok(ApiResponse.success("Products seeded successfully", "Database populated"));
+        execute(SeedProductsCommand.class, null);
+        return okResponse("Products seeded successfully", "Database populated");
     }
 
     @GetMapping("/search")
@@ -53,10 +50,9 @@ public class ProductController {
                 .pageable(pageable)
                 .build();
 
-        Page<Product> products = commandExecutor.execute(SearchProductsCommand.class, request);
+        Page<Product> products = execute(SearchProductsCommand.class, request);
         Page<ProductResponse> response = products.map(p -> mapperService.map(p, ProductResponse.class));
-
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return okResponse(response);
     }
 
     @GetMapping("/{id}")
@@ -64,9 +60,8 @@ public class ProductController {
         log.info("Get product request for ID: {}", id);
 
         GetProductByIdRequest request = GetProductByIdRequest.builder().productId(id).build();
-        Product product = commandExecutor.execute(GetProductByIdCommand.class, request);
+        Product product = execute(GetProductByIdCommand.class, request);
         ProductResponse response = mapperService.map(product, ProductResponse.class);
-
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return okResponse(response);
     }
 }

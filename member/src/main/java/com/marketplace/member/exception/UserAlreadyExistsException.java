@@ -1,6 +1,7 @@
 package com.marketplace.member.exception;
 
 import com.marketplace.common.exception.BaseException;
+import com.marketplace.member.constant.MemberConstants;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -16,7 +17,7 @@ public class UserAlreadyExistsException extends BaseException {
     }
 
     public static UserAlreadyExistsException email(String email) {
-        return new UserAlreadyExistsException("Email already exists: " + email);
+        return new UserAlreadyExistsException(String.format(MemberConstants.ErrorMessages.EMAIL_EXISTS, email));
     }
 
     public static UserAlreadyExistsException phoneNumber(String phoneNumber) {

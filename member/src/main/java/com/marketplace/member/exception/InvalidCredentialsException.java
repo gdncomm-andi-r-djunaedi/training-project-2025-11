@@ -1,6 +1,7 @@
 package com.marketplace.member.exception;
 
 import com.marketplace.common.exception.BaseException;
+import com.marketplace.member.constant.MemberConstants;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -9,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public class InvalidCredentialsException extends BaseException {
 
     public InvalidCredentialsException() {
-        super("Invalid username or password",
+        super(MemberConstants.ErrorMessages.INVALID_CREDENTIALS,
                 HttpStatus.UNAUTHORIZED.value(),
                 "INVALID_CREDENTIALS");
     }

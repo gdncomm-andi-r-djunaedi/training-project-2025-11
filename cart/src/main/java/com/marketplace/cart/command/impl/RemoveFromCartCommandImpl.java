@@ -28,7 +28,7 @@ public class RemoveFromCartCommandImpl implements RemoveFromCartCommand {
         log.info("Removing product {} from cart for user: {}", productId, userId);
 
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + userId));
+                .orElseThrow(() -> new CartNotFoundException(userId.toString()));
 
         int initialSize = cart.getItems().size();
         cart.getItems().removeIf(item -> item.getProductId().equals(productId));

@@ -1,6 +1,7 @@
 package com.marketplace.product.exception;
 
 import com.marketplace.common.exception.BaseException;
+import com.marketplace.product.constant.ProductConstants;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -9,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public class ProductNotFoundException extends BaseException {
 
     public ProductNotFoundException(String productId) {
-        super("Product not found with ID: " + productId,
+        super(String.format(ProductConstants.ErrorMessages.PRODUCT_NOT_FOUND, productId),
                 HttpStatus.NOT_FOUND.value(),
                 "PRODUCT_NOT_FOUND");
     }

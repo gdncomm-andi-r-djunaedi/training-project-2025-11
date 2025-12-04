@@ -14,10 +14,24 @@ public final class GatewayConstants {
      */
     public static final class ErrorMessages {
         public static final String INVALID_TOKEN = "Invalid or expired JWT token";
-        public static final String MISSING_TOKEN = "Authorization token is required";
+        public static final String MISSING_TOKEN = "JWT token is missing";
+        public static final String EXPIRED_TOKEN = "JWT token has expired";
+        public static final String MALFORMED_TOKEN = "JWT token is malformed";
         public static final String SERVICE_UNAVAILABLE = "Service temporarily unavailable";
 
         private ErrorMessages() {
+        }
+    }
+
+    /**
+     * Validation messages.
+     */
+    public static final class ValidationMessages {
+        public static final String EMAIL_REQUIRED = "Email is required";
+        public static final String EMAIL_INVALID = "Invalid email format";
+        public static final String PASSWORD_REQUIRED = "Password is required";
+
+        private ValidationMessages() {
         }
     }
 

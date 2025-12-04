@@ -8,78 +8,68 @@ import com.marketplace.cart.dto.request.AddToCartCommandRequest;
 import com.marketplace.cart.dto.request.GetCartRequest;
 import com.marketplace.cart.dto.request.RemoveFromCartRequest;
 import com.marketplace.cart.dto.response.CartResponse;
-import com.marketplace.common.command.CommandExecutor;
+import com.marketplace.common.controller.BaseCommandController;
 import com.marketplace.common.dto.ApiResponse;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 /**
- * REST controller for cart operations
+ * REST controller for cart operations.
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/cart")
-@RequiredArgsConstructor
-public class CartController {
+public class CartController extends BaseCommandController {
 
-    private static final String USER_ID_HEADER = "X-User-Id";
+        private static final String USER_ID_HEADER = "X-User-Id";
 
-    private final CommandExecutor commandExecutor;
+        @PostMapping("/add")
+        public ResponseEntity<ApiResponse<CartResponse>> addToCart(
+                        @RequestHeader(USER_ID_HEADER) String userIdHeader,
+                        @Valid @RequestBody AddToCartRequest request) {
 
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse<CartResponse>> addToCart(
-            @RequestHeader(USER_ID_HEADER) String userIdHeader,
-            @Valid @RequestBody AddToCartRequest request) {
+                UUID userId = UUID.fromString(userIdHeader);
+                log.info("Add to cart request for user: {}, product: {}", userId, request.getProductId());
 
-        UUID userId = UUID.fromString(userIdHeader);
-        log.info("Add to cart request for user: {}, product: {}", userId, request.getProductId());
+                AddToCartCommandRequest commandRequest = AddToCartCommandRequest.builder()
+                                .userId(userId)
+                                .addToCartRequest(request)
+                                .build();
 
-        AddToCartCommandRequest commandRequest = AddToCartCommandRequest.builder()
-                .userId(userId)
-                .addToCartRequest(request)
-                .build();
+                CartResponse response = execute(AddToCartCommand.class, commandRequest);
+                return createdResponse("Item added to cart", response);
+        }
 
-        CartResponse response = commandExecutor.execute(AddToCartCommand.class, commandRequest);
+        @GetMapping
+        public ResponseEntity<ApiResponse<CartResponse>> getCart(
+                        @RequestHeader(USER_ID_HEADER) String userIdHeader) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Item added to cart", response));
-    }
+                UUID userId = UUID.fromString(userIdHeader);
+                log.info("Get cart request for user: {}", userId);
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<CartResponse>> getCart(
-            @RequestHeader(USER_ID_HEADER) String userIdHeader) {
+                GetCartRequest request = GetCartRequest.builder().userId(userId).build();
+                CartResponse response = execute(GetCartCommand.class, request);
+                return okResponse("Cart retrieved successfully", response);
+        }
 
-        UUID userId = UUID.fromString(userIdHeader);
-        log.info("Get cart request for user: {}", userId);
+        @DeleteMapping("/{productId}")
+        public ResponseEntity<ApiResponse<CartResponse>> removeFromCart(
+                        @RequestHeader(USER_ID_HEADER) String userIdHeader,
+                        @PathVariable String productId) {
 
-        GetCartRequest request = GetCartRequest.builder().userId(userId).build();
-        CartResponse response = commandExecutor.execute(GetCartCommand.class, request);
+                UUID userId = UUID.fromString(userIdHeader);
+                log.info("Remove from cart request for user: {}, product: {}", userId, productId);
 
-        return ResponseEntity.ok(ApiResponse.success("Cart retrieved successfully", response));
-    }
+                RemoveFromCartRequest request = RemoveFromCartRequest.builder()
+                                .userId(userId)
+                                .productId(productId)
+                                .build();
 
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<ApiResponse<CartResponse>> removeFromCart(
-            @RequestHeader(USER_ID_HEADER) String userIdHeader,
-            @PathVariable String productId) {
-
-        UUID userId = UUID.fromString(userIdHeader);
-        log.info("Remove from cart request for user: {}, product: {}", userId, productId);
-
-        RemoveFromCartRequest request = RemoveFromCartRequest.builder()
-                .userId(userId)
-                .productId(productId)
-                .build();
-
-        CartResponse response = commandExecutor.execute(RemoveFromCartCommand.class, request);
-
-        return ResponseEntity.ok(ApiResponse.success("Item removed from cart", response));
-    }
+                CartResponse response = execute(RemoveFromCartCommand.class, request);
+                return okResponse("Item removed from cart", response);
+        }
 }

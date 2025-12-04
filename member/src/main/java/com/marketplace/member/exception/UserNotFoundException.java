@@ -1,6 +1,7 @@
 package com.marketplace.member.exception;
 
 import com.marketplace.common.exception.BaseException;
+import com.marketplace.member.constant.MemberConstants;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -9,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public class UserNotFoundException extends BaseException {
 
     public UserNotFoundException(String username) {
-        super("User not found: " + username,
+        super(String.format(MemberConstants.ErrorMessages.USER_NOT_FOUND, username),
                 HttpStatus.NOT_FOUND.value(),
                 "USER_NOT_FOUND");
     }

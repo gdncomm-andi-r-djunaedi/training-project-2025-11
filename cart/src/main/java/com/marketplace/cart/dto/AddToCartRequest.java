@@ -1,5 +1,6 @@
 package com.marketplace.cart.dto;
 
+import com.marketplace.cart.constant.CartConstants;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -11,9 +12,9 @@ import lombok.Data;
  */
 @Data
 public class AddToCartRequest {
-    @NotBlank(message = "Product ID is required")
+    @NotBlank(message = CartConstants.ValidationMessages.PRODUCT_ID_REQUIRED)
     private String productId;
 
-    @Min(value = 1, message = "Quantity must be at least 1")
+    @Min(value = 1, message = CartConstants.ValidationMessages.QUANTITY_MIN)
     private Integer quantity;
 }
