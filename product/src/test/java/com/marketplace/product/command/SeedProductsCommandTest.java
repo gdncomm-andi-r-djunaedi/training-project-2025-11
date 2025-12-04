@@ -1,7 +1,5 @@
 package com.marketplace.product.command;
 
-import com.marketplace.common.command.Command;
-import com.marketplace.common.command.CommandInvoker;
 import com.marketplace.product.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,18 +14,17 @@ class SeedProductsCommandTest {
     @Mock
     private ProductService productService;
 
-    private CommandInvoker invoker;
+    private SeedProductsCommand command;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        invoker = new CommandInvoker();
+        command = new SeedProductsCommand(productService);
     }
 
     @Test
     void testSeedProductsCommand() {
-        SeedProductsCommand command = new SeedProductsCommand(productService);
-        invoker.executeCommand(command);
+        command.execute(null);
 
         verify(productService, times(1)).seedProducts();
     }

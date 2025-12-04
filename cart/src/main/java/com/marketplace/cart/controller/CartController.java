@@ -8,8 +8,6 @@ import com.marketplace.cart.dto.request.AddToCartCommandRequest;
 import com.marketplace.cart.dto.request.GetCartRequest;
 import com.marketplace.cart.dto.request.RemoveFromCartRequest;
 import com.marketplace.cart.dto.response.CartResponse;
-import com.marketplace.cart.entity.Cart;
-import com.marketplace.cart.mapper.CartMapper;
 import com.marketplace.common.command.CommandExecutor;
 import com.marketplace.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -47,8 +45,7 @@ public class CartController {
                 .addToCartRequest(request)
                 .build();
 
-        Cart cart = commandExecutor.execute(AddToCartCommand.class, commandRequest);
-        CartResponse response = CartMapper.toCartResponse(cart);
+        CartResponse response = commandExecutor.execute(AddToCartCommand.class, commandRequest);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -63,8 +60,7 @@ public class CartController {
         log.info("Get cart request for user: {}", userId);
 
         GetCartRequest request = GetCartRequest.builder().userId(userId).build();
-        Cart cart = commandExecutor.execute(GetCartCommand.class, request);
-        CartResponse response = CartMapper.toCartResponse(cart);
+        CartResponse response = commandExecutor.execute(GetCartCommand.class, request);
 
         return ResponseEntity.ok(ApiResponse.success("Cart retrieved successfully", response));
     }
@@ -82,8 +78,7 @@ public class CartController {
                 .productId(productId)
                 .build();
 
-        Cart cart = commandExecutor.execute(RemoveFromCartCommand.class, request);
-        CartResponse response = CartMapper.toCartResponse(cart);
+        CartResponse response = commandExecutor.execute(RemoveFromCartCommand.class, request);
 
         return ResponseEntity.ok(ApiResponse.success("Item removed from cart", response));
     }
