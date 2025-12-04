@@ -5,15 +5,16 @@ import com.marketplace.member.dto.MemberResponse;
 import com.marketplace.member.dto.RegisterRequest;
 import com.marketplace.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
-public class RegisterMemberCommand implements Command<MemberResponse> {
+public class RegisterMemberCommand implements Command<RegisterRequest, MemberResponse> {
 
     private final MemberService memberService;
-    private final RegisterRequest request;
 
     @Override
-    public MemberResponse execute() {
+    public MemberResponse execute(RegisterRequest request) {
         return memberService.register(request);
     }
 }

@@ -5,15 +5,16 @@ import com.marketplace.common.dto.UserDetailsResponse;
 import com.marketplace.common.dto.ValidateCredentialsRequest;
 import com.marketplace.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
-public class ValidateCredentialsCommand implements Command<UserDetailsResponse> {
+public class ValidateCredentialsCommand implements Command<ValidateCredentialsRequest, UserDetailsResponse> {
 
     private final MemberService memberService;
-    private final ValidateCredentialsRequest request;
 
     @Override
-    public UserDetailsResponse execute() {
+    public UserDetailsResponse execute(ValidateCredentialsRequest request) {
         return memberService.validateCredentials(request);
     }
 }

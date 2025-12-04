@@ -1,20 +1,20 @@
 package com.marketplace.cart.command;
 
+import com.marketplace.cart.dto.request.RemoveFromCartRequest;
 import com.marketplace.cart.entity.Cart;
 import com.marketplace.cart.service.CartService;
+import com.marketplace.common.command.Command;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
+@Component
 @RequiredArgsConstructor
-public class RemoveFromCartCommand implements CartCommand {
+public class RemoveFromCartCommand implements Command<RemoveFromCartRequest, Cart> {
 
     private final CartService cartService;
-    private final UUID userId;
-    private final String productId;
 
     @Override
-    public Cart execute() {
-        return cartService.removeFromCart(userId, productId);
+    public Cart execute(RemoveFromCartRequest request) {
+        return cartService.removeFromCart(request.getUserId(), request.getProductId());
     }
 }

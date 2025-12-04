@@ -3,10 +3,11 @@ package com.marketplace.common.command;
 import reactor.core.publisher.Mono;
 
 /**
- * Reactive Command interface for Spring WebFlux controllers.
+ * Reactive Command interface for Spring WebFlux.
  * 
- * @param <R> the return type of the command execution
+ * @param <T> Request type
+ * @param <R> Response type
  */
-public interface ReactiveCommand<R> {
-    Mono<R> execute();
+public interface ReactiveCommand<T, R> {
+    Mono<R> execute(T request);
 }

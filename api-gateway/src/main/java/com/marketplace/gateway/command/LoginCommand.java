@@ -5,16 +5,17 @@ import com.marketplace.gateway.dto.LoginRequest;
 import com.marketplace.gateway.dto.LoginResponse;
 import com.marketplace.gateway.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+@Component
 @RequiredArgsConstructor
-public class LoginCommand implements ReactiveCommand<LoginResponse> {
+public class LoginCommand implements ReactiveCommand<LoginRequest, LoginResponse> {
 
     private final AuthService authService;
-    private final LoginRequest request;
 
     @Override
-    public Mono<LoginResponse> execute() {
+    public Mono<LoginResponse> execute(LoginRequest request) {
         return authService.login(request);
     }
 }
