@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: cart-service
+          uri: http://localhost:8089
+          predicates:
+            - Path=/cart/**
+          filters:
+            - PreserveHostHeader=true
+          metadata:
+            preserveRequestBody: true
