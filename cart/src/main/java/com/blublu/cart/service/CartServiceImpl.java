@@ -42,6 +42,9 @@ public class CartServiceImpl implements CartService {
 
   @Override
   public boolean addItemToCart(String username, CartDocument.Item item) {
+    if (productFeignClient.getProductDetail(item.getSkuCode()).getContent().isEmpty()) {
+      return false;
+    }
     return cartRepository.addOrUpdateItem(username, item);
   }
 
