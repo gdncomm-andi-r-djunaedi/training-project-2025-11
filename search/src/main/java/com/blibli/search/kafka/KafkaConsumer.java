@@ -4,6 +4,7 @@ import com.blibli.search.services.ElasticsearchSearchService;
 //import com.blibli.search.services.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class KafkaConsumer {
+
+//    @Value("${kafka.enabled:true}")
+//    private boolean kafkaEnabled;
+//
+//    @Value("${kafka.topic.product-events}")
+//    private String topic;
 
 //    private final SearchService searchService;
     private final ElasticsearchSearchService elasticsearchSearchService;

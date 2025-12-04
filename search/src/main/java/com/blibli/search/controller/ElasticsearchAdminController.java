@@ -81,7 +81,7 @@ public class ElasticsearchAdminController {
                             .properties("category", Property.of(p -> p.keyword(k -> k)))));
 
             elasticsearchClient.indices().create(createRequest);
-            log.info("✅ Index '{}' created successfully", indexName);
+            log.info("Index '{}' created successfully", indexName);
 
             return ResponseEntity.ok(ApiResponse.success("Index '" + indexName + "' created successfully"));
         } catch (Exception e) {
@@ -96,7 +96,7 @@ public class ElasticsearchAdminController {
             String indexName = "products";
             IndexOperations indexOps = elasticsearchOperations.indexOps(com.blibli.search.entity.elasticsearch.ElasticsearchProductDocument.class);
             indexOps.refresh();
-            log.info("✅ Index '{}' refreshed successfully", indexName);
+            log.info("Index '{}' refreshed successfully", indexName);
             return ResponseEntity.ok(ApiResponse.success("Index refreshed successfully"));
         } catch (Exception e) {
             log.error("Failed to refresh index", e);
