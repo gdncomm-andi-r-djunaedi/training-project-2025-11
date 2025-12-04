@@ -1,9 +1,13 @@
+com\gdn\marketplace\member\command\RegisterMemberCommand.class
 com\gdn\marketplace\member\MemberApplication.class
-com\gdn\marketplace\member\service\MemberService.class
-com\gdn\marketplace\member\util\JwtUtil.class
+com\gdn\marketplace\member\command\LoginMemberCommand.class
+com\gdn\marketplace\member\command\ValidateTokenCommand.class
 com\gdn\marketplace\member\config\SecurityConfig.class
 com\gdn\marketplace\member\entity\Member.class
 com\gdn\marketplace\member\config\DataSeeder.class
 com\gdn\marketplace\member\dto\AuthRequest.class
+com\gdn\marketplace\member\command\Command.class
+com\gdn\marketplace\member\service\MemberService.class
+com\gdn\marketplace\member\util\JwtUtil.class
 com\gdn\marketplace\member\controller\MemberController.class
 com\gdn\marketplace\member\repository\MemberRepository.class

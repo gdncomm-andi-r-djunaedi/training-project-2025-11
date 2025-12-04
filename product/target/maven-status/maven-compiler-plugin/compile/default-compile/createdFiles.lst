@@ -1,6 +1,15 @@
-com\gdn\marketplace\product\config\DataSeeder.class
 com\gdn\marketplace\product\repository\ProductRepository.class
+com\gdn\marketplace\product\command\CreateProductCommand.class
+com\gdn\marketplace\product\command\Command.class
 com\gdn\marketplace\product\controller\ProductController.class
+com\gdn\marketplace\product\command\GetProductsCommand$Request.class
+com\gdn\marketplace\product\command\DeleteProductCommand.class
 com\gdn\marketplace\product\entity\Product.class
-com\gdn\marketplace\product\service\ProductService.class
 com\gdn\marketplace\product\ProductApplication.class
+com\gdn\marketplace\product\config\DataSeeder.class
+com\gdn\marketplace\product\command\GetProductByIdCommand.class
+com\gdn\marketplace\product\command\SearchProductsCommand$Request.class
+com\gdn\marketplace\product\command\GetProductsCommand.class
+com\gdn\marketplace\product\service\ProductService.class
+com\gdn\marketplace\product\command\UpdateProductCommand.class
+com\gdn\marketplace\product\command\SearchProductsCommand.class

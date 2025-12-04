@@ -1,6 +1,9 @@
 package com.gdn.marketplace.member.controller;
 
 import com.gdn.marketplace.member.dto.AuthRequest;
+import com.gdn.marketplace.member.command.LoginMemberCommand;
+import com.gdn.marketplace.member.command.RegisterMemberCommand;
+import com.gdn.marketplace.member.command.ValidateTokenCommand;
 import com.gdn.marketplace.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -10,25 +13,26 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     @Autowired
-    private MemberService service;
+    private RegisterMemberCommand registerMemberCommand;
+
+    @Autowired
+    private LoginMemberCommand loginMemberCommand;
+
+    @Autowired
+    private ValidateTokenCommand validateTokenCommand;
 
     @PostMapping("/register")
     public String addNewUser(@RequestBody AuthRequest authRequest) {
-        return service.saveMember(authRequest);
+        return registerMemberCommand.execute(authRequest);
     }
 
     @PostMapping("/login")
     public String getToken(@RequestBody AuthRequest authRequest) {
-        if (service.validateUser(authRequest)) {
-            return service.generateToken(authRequest.getUsername());
-        } else {
-            throw new RuntimeException("invalid access");
-        }
+        return loginMemberCommand.execute(authRequest);
     }
 
     @GetMapping("/validate")
     public String validateToken(@RequestParam("token") String token) {
-        service.validateToken(token);
-        return "Token is valid";
+        return validateTokenCommand.execute(token);
     }
 }
