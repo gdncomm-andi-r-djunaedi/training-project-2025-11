@@ -2,6 +2,7 @@ package com.example.cart.utils;
 
 import com.example.cart.dto.CartDTO;
 import com.example.cart.dto.ProductDTO;
+import com.example.cart.dto.response.ProductServiceResponse;
 import com.example.cart.entity.Cart;
 import com.example.cart.entity.Product;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +26,10 @@ public final class DTOUtils {
         return targetDTO;
     }
 
-    public static Product getEntity(ProductDTO srcProductDTO) {
+    public static Product getEntity(ProductServiceResponse productServiceResponse) {
         Product targetEntity = new Product();
-        BeanUtils.copyProperties(srcProductDTO, targetEntity);
-        log.debug("getEntity():: srcProductDTO - {}, targetEntity - {}", srcProductDTO, targetEntity);
+        BeanUtils.copyProperties(productServiceResponse, targetEntity);
+        log.debug("getEntity():: productServiceResponse - {}, targetEntity - {}", productServiceResponse, targetEntity);
         return targetEntity;
     }
 
@@ -46,39 +47,5 @@ public final class DTOUtils {
         }
         log.debug("getDTO():: srcCart - {}, targetDTO - {}", srcCart, targetDTO);
         return targetDTO;
-    }
-
-    public static Cart getEntity(CartDTO srcCartDTO) {
-        Cart targetEntity = new Cart();
-        targetEntity.setId(srcCartDTO.getId());
-        targetEntity.setTotalPrice(srcCartDTO.getTotalPrice());
-        if (srcCartDTO.getCartItems() != null) {
-            List<Product> products = srcCartDTO.getCartItems().stream()
-                    .map(DTOUtils::getEntity)
-                    .toList();
-            targetEntity.setCartItems(products);
-        } else {
-            targetEntity.setCartItems(new ArrayList<>());
-        }
-        log.debug("getEntity():: srcCartDTO - {}, targetEntity - {}", srcCartDTO, targetEntity);
-        return targetEntity;
-    }
-
-    public static List<ProductDTO> getDTOList(List<Product> srcProducts) {
-        if (srcProducts == null) {
-            return new ArrayList<>();
-        }
-        return srcProducts.stream()
-                .map(DTOUtils::getDTO)
-                .toList();
-    }
-
-    public static List<Product> getEntityList(List<ProductDTO> srcProductDTOs) {
-        if (srcProductDTOs == null) {
-            return new ArrayList<>();
-        }
-        return srcProductDTOs.stream()
-                .map(DTOUtils::getEntity)
-                .toList();
     }
 }

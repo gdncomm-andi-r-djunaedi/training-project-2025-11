@@ -15,13 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -40,11 +34,11 @@ public class CartController {
     public GenericResponseSingleDTO<CartDTO> addProductToCart(
             @Parameter(description = "Cart ID (MongoDB ObjectId)", required = true, example = "507f1f77bcf86cd799439011")
             @PathVariable String cartId,
-            @Valid @RequestBody ProductDTO productDTO) {
+            @RequestParam String productId) {
 
-        log.debug("addProductToCart:: cartId - {}, productDTO - {}", cartId, productDTO);
+        log.debug("addProductToCart:: cartId - {}, productId - {}", cartId, productId);
         ObjectId objectId = new ObjectId(cartId);
-        CartDTO cart = cartService.addProductToCart(objectId, productDTO);
+        CartDTO cart = cartService.addProductToCart(objectId, productId);
         
         return new GenericResponseSingleDTO<>(
                 HttpStatus.OK.value(),

@@ -1,13 +1,17 @@
 package com.example.cart.service.impl;
 
 import com.example.cart.dto.CartDTO;
-import com.example.cart.dto.ProductDTO;
+import com.example.cart.dto.response.GenericResponseSingleDTO;
+import com.example.cart.dto.response.ProductServiceResponse;
 import com.example.cart.entity.Cart;
 import com.example.cart.entity.Product;
 import com.example.cart.exception.CartNotFoundException;
+import com.example.cart.exception.ProductNotFoundException;
+import com.example.cart.feign.ProductFeignClient;
 import com.example.cart.repository.CartRepository;
 import com.example.cart.service.CartService;
 import com.example.cart.utils.DTOUtils;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -24,16 +28,32 @@ import java.util.List;
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
+    private final ProductFeignClient productFeignClient;
     private static final String CART_CACHE = "cart";
 
     @Override
     @CachePut(value = CART_CACHE, key = "#cartId.toString()")
-    public CartDTO addProductToCart(ObjectId cartId, ProductDTO productDTO) {
-        log.debug("addProductToCart:: cartId - {}, productDTO - {}", cartId, productDTO);
+    public CartDTO addProductToCart(ObjectId cartId, String productId) {
+        log.debug("addProductToCart:: cartId - {}, productId - {}", cartId, productId);
         
         Cart cart = getCartFromCacheOrDB(cartId);
+        GenericResponseSingleDTO<ProductServiceResponse> productServiceResponse;
 
-        Product productToAdd = DTOUtils.getEntity(productDTO);
+        try {
+            productServiceResponse = productFeignClient.getProductById(productId);
+            log.info("Status Code - {}", productServiceResponse.getStatusCode().toString());
+            log.info("Status Message - {}", productServiceResponse.getStatusMessage());
+            log.info("Status Response - {}", productServiceResponse.getResponse());
+        } catch (FeignException feignException) {
+            throw new ProductNotFoundException(" FAILED - addProductToCart:: cartId - " + cartId + ", productId - " + productId);
+        }
+
+        Product productToAdd = DTOUtils.getEntity(productServiceResponse.getResponse());
+        // Set default quantity of 1 if quantity is null (product service doesn't provide quantity)
+        if (productToAdd.getQuantity() == null) {
+            productToAdd.setQuantity(1);
+        }
+        
         List<Product> cartItems = cart.getCartItems() != null ? cart.getCartItems() : new ArrayList<>();
 
         // Check if product already exists in cart
