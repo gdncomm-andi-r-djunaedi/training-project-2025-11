@@ -9,6 +9,7 @@
         <module name="api-gateway" />
         <module name="member" />
         <module name="product" />
+        <module name="cart" />
       </profile>
     </annotationProcessing>
   </component>
