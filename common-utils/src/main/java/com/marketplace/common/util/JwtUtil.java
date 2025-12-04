@@ -7,6 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.UUID;
+
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -37,10 +40,26 @@ public class JwtUtil {
     }
 
     /**
+     * Extract user ID from JWT token
+     */
+    public UUID extractUserId(String token) {
+        String userIdStr = extractClaim(token, claims -> claims.get("userId", String.class));
+        return userIdStr != null ? UUID.fromString(userIdStr) : null;
+    }
+
+    /**
      * Extract username from JWT token
      */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    /**
+     * Extract roles from JWT token
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> extractRoles(String token) {
+        return extractClaim(token, claims -> claims.get("roles", List.class));
     }
 
     /**
@@ -77,10 +96,20 @@ public class JwtUtil {
     }
 
     /**
-     * Generate JWT token for a username
+     * Generate JWT token for a username (backward compatibility)
      */
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username);
+    }
+
+    /**
+     * Generate JWT token with userId, username, and roles
+     */
+    public String generateToken(UUID userId, String username, List<String> roles) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId.toString());
+        claims.put("roles", roles);
         return createToken(claims, username);
     }
 

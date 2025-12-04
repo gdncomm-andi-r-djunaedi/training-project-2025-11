@@ -1,8 +1,8 @@
 package com.marketplace.member.controller;
 
 import com.marketplace.common.dto.ApiResponse;
-import com.marketplace.member.dto.LoginRequest;
-import com.marketplace.member.dto.LoginResponse;
+import com.marketplace.common.dto.UserDetailsResponse;
+import com.marketplace.common.dto.ValidateCredentialsRequest;
 import com.marketplace.member.dto.MemberResponse;
 import com.marketplace.member.dto.RegisterRequest;
 import com.marketplace.member.service.MemberService;
@@ -30,10 +30,14 @@ public class MemberController {
                 .body(ApiResponse.success("User registered successfully", response));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
-        log.info("Login request received for username: {}", request.getUsername());
-        LoginResponse response = memberService.login(request);
-        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+    /**
+     * Validate credentials endpoint (for internal use by API Gateway)
+     */
+    @PostMapping("/validate-credentials")
+    public ResponseEntity<ApiResponse<UserDetailsResponse>> validateCredentials(
+            @Valid @RequestBody ValidateCredentialsRequest request) {
+        log.info("Credential validation request for username: {}", request.getUsername());
+        UserDetailsResponse response = memberService.validateCredentials(request);
+        return ResponseEntity.ok(ApiResponse.success("Credentials validated", response));
     }
 }

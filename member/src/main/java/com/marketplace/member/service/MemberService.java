@@ -1,15 +1,13 @@
 package com.marketplace.member.service;
 
-import com.marketplace.member.dto.LoginRequest;
-import com.marketplace.member.dto.LoginResponse;
+import com.marketplace.common.dto.UserDetailsResponse;
+import com.marketplace.common.dto.ValidateCredentialsRequest;
 import com.marketplace.member.dto.MemberResponse;
 import com.marketplace.member.dto.RegisterRequest;
 import com.marketplace.member.entity.Member;
 import com.marketplace.member.exception.InvalidCredentialsException;
 import com.marketplace.member.exception.UserAlreadyExistsException;
-import com.marketplace.member.exception.UserNotFoundException;
 import com.marketplace.member.repository.MemberRepository;
-import com.marketplace.common.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +21,6 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
 
     @Transactional
     public MemberResponse register(RegisterRequest request) {
@@ -60,29 +57,33 @@ public class MemberService {
                 .build();
     }
 
-    public LoginResponse login(LoginRequest request) {
-        log.info("Login attempt for user: {}", request.getUsername());
+    /**
+     * Validate user credentials (called by API Gateway)
+     * Returns user details without generating JWT
+     */
+    public UserDetailsResponse validateCredentials(ValidateCredentialsRequest request) {
+        log.info("Validating credentials for user: {}", request.getUsername());
 
         Member member = memberRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> {
-                    log.warn("Login failed - user not found: {}", request.getUsername());
+                    log.warn("Credential validation failed - user not found: {}", request.getUsername());
                     return new InvalidCredentialsException();
                 });
 
         if (!passwordEncoder.matches(request.getPassword(), member.getPasswordHash())) {
-            log.warn("Login failed - invalid password for user: {}", request.getUsername());
+            log.warn("Credential validation failed - invalid password for user: {}", request.getUsername());
             throw new InvalidCredentialsException();
         }
 
-        String token = jwtUtil.generateToken(member.getUsername());
-        log.info("User logged in successfully: {}", member.getUsername());
+        log.info("Credentials validated successfully for user: {}", member.getUsername());
 
-        return LoginResponse.builder()
-                .token(token)
-                .type("Bearer")
+        // Return user details (Gateway will create JWT)
+        return UserDetailsResponse.builder()
                 .id(member.getId())
                 .username(member.getUsername())
                 .email(member.getEmail())
+                .fullName(member.getFullName())
+                .roles(new java.util.ArrayList<>(member.getRoles())) // Convert Set to List
                 .build();
     }
 }

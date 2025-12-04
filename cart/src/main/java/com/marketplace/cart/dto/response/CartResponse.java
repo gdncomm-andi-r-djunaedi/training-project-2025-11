@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Response DTO for cart information
@@ -19,8 +20,8 @@ import java.util.List;
 @AllArgsConstructor
 public class CartResponse {
 
-    private Long id;
-    private String username;
+    private UUID id;
+    private UUID userId; // Changed from username to userId
 
     @Builder.Default
     private List<CartItemResponse> items = new ArrayList<>();

@@ -22,7 +22,7 @@ public class CartMapper {
     public static CartResponse toCartResponse(Cart cart) {
         CartResponse response = CartResponse.builder()
                 .id(cart.getId())
-                .username(cart.getUsername())
+                .userId(cart.getUserId())
                 .items(cart.getItems().stream()
                         .map(CartMapper::toCartItemResponse)
                         .collect(Collectors.toList()))
