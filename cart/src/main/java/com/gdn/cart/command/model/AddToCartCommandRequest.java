@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -16,10 +14,6 @@ public class AddToCartCommandRequest {
   private String memberId;
 
   private String productId;
-
-  private String productName;
-
-  private BigDecimal price;
 
   private Integer quantity;
 }

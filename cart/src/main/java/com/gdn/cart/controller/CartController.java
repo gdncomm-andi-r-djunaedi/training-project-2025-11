@@ -46,15 +46,11 @@ public class CartController extends BaseCommandController {
       @RequestHeader("X-User-Id") String userId,
       @Valid @RequestBody AddToCartRequest request) {
 
-    log.info("User {} is adding product {} to cart", userId, request.getProductId());
-
     return ResponseEntity.ok(executor.execute(
         AddToCartCommand.class,
         AddToCartCommandRequest.builder()
             .memberId(userId)
             .productId(request.getProductId())
-            .productName(request.getProductName())
-            .price(request.getPrice())
             .quantity(request.getQuantity())
             .build()));
   }
@@ -63,8 +59,6 @@ public class CartController extends BaseCommandController {
   public ResponseEntity<CartResponse> removeFromCart(
       @RequestHeader("X-User-Id") String userId,
       @PathVariable String productId) {
-
-    log.info("User {} is removing product {} from cart", userId, productId);
 
     return ResponseEntity.ok(executor.execute(
         RemoveFromCartCommand.class,

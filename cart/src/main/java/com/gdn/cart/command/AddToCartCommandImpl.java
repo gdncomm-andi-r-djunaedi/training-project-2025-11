@@ -1,5 +1,7 @@
 package com.gdn.cart.command;
 
+import com.gdn.cart.client.ProductClient;
+import com.gdn.cart.client.model.ProductResponse;
 import com.gdn.cart.command.commandInterface.AddToCartCommand;
 import com.gdn.cart.command.model.AddToCartCommandRequest;
 import com.gdn.cart.controller.webmodel.response.CartItemResponse;
@@ -8,6 +10,7 @@ import com.gdn.cart.entity.Cart;
 import com.gdn.cart.entity.CartItem;
 import com.gdn.cart.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,12 +19,17 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AddToCartCommandImpl implements AddToCartCommand {
 
   private final CartRepository cartRepository;
+  private final ProductClient productClient;
 
   @Override
   public CartResponse execute(AddToCartCommandRequest request) {
+    // Fetch product details from Product Service
+    ProductResponse product = productClient.getProductById(request.getProductId());
+
     // Find existing cart or create new one
     Cart cart = cartRepository.findByMemberId(request.getMemberId())
         .orElseGet(() -> Cart.builder()
@@ -35,14 +43,16 @@ public class AddToCartCommandImpl implements AddToCartCommand {
         .findFirst();
 
     if (existingItem.isPresent()) {
-      // Update quantity
+      // Update quantity and price (price might have changed)
       existingItem.get().setQuantity(existingItem.get().getQuantity() + request.getQuantity());
+      existingItem.get().setPrice(product.getPrice());
+      existingItem.get().setProductName(product.getName());
     } else {
-      // Add new item
+      // Add new item with product details from Product Service
       CartItem newItem = CartItem.builder()
-          .productId(request.getProductId())
-          .productName(request.getProductName())
-          .price(request.getPrice())
+          .productId(product.getId())
+          .productName(product.getName())
+          .price(product.getPrice())
           .quantity(request.getQuantity())
           .build();
       cart.getItems().add(newItem);

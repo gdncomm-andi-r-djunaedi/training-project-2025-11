@@ -25,7 +25,11 @@ public class ErrorController {
     @ExceptionHandler(DataNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(DataNotFoundException dataNotFoundException) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("code", HttpStatus.NOT_FOUND.value(), "status", HttpStatus.NOT_FOUND.name()));
+                .body(Map.of(
+                    "code", HttpStatus.NOT_FOUND.value(),
+                    "status", HttpStatus.NOT_FOUND.name(),
+                    "message", dataNotFoundException.getMessage()
+                ));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
