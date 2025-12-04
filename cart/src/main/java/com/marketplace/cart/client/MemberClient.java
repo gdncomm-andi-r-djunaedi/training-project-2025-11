@@ -36,7 +36,7 @@ public class MemberClient {
         })
         .map(ApiResponse::getData)
         .onErrorResume(e -> {
-          log.error("Failed to fetch product {}: {}", customerId, e.getMessage(), e);
+          log.error("Failed to fetch member {}: {}", customerId, e.getMessage(), e);
           return Mono.empty();
         });
   }
