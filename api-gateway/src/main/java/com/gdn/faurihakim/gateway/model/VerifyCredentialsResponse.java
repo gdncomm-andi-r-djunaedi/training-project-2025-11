@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VerifyCredentialsResponse {
     private Data data;
+    private boolean success;
+    private String message;
 
     @lombok.Data
     @Builder

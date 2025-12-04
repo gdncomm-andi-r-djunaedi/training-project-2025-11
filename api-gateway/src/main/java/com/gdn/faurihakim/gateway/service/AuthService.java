@@ -17,7 +17,7 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public Mono<String> login(AuthRequest request) {
+    /*public Mono<String> login(AuthRequest request) {
         return webClientBuilder.build()
                 .post()
                 .uri("http://localhost:8081/api/members/verify")
@@ -30,5 +30,27 @@ public class AuthService {
                     }
                     return null;
                 });
+    }*/
+
+    public Mono<String> login(AuthRequest request) {
+
+        return webClientBuilder.build()
+                .post()
+                .uri("http://localhost:8081/api/members/verify")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(VerifyCredentialsResponse.class)
+                .flatMap(response -> {
+
+                    // If verification failed → return empty
+                    if (!response.isSuccess() || response.getData() == null) {
+                        return Mono.empty();
+                    }
+
+                    // Credentials valid → generate token
+                    String memberId = response.getData().getMemberId();
+                    return Mono.just(jwtUtil.generateToken(memberId));
+                })
+                .onErrorResume(e -> Mono.empty()); // Optional: hide external errors
     }
 }
