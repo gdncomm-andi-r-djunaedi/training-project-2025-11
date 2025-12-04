@@ -28,7 +28,10 @@ public class ProductController {
         Optional<Product> product = productService.viewDetailById(product_id);
 
         if (product.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "product not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
         Map<String, Object> response = new HashMap<>();

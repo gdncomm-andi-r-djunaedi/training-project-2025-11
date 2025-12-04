@@ -56,10 +56,6 @@ class ViewCartIntegrationTest {
         cartItemRepository.deleteAll();
         cartRepository.deleteAll();
 
-        // Generate a valid JWT token (mocking the behavior or using a utility if available)
-        // Since we are using a shared secret "testkey", we can generate one.
-        // However, for integration test, we might need to rely on the JwtFilter logic.
-        // Let's create a valid token manually using com.auth0.jwt.JWT
         validToken = com.auth0.jwt.JWT.create()
                 .withSubject("testuser")
                 .sign(com.auth0.jwt.algorithms.Algorithm.HMAC256("testkey"));
@@ -67,8 +63,6 @@ class ViewCartIntegrationTest {
 
     @Test
     void viewCart_HappyFlow() throws Exception {
-        // 1. Prepare Data: Add item to cart directly via repository or endpoint
-        // Using endpoint to simulate real flow and populate DB
         Mockito.when(restTemplate.getForEntity(anyString(), eq(Map.class)))
                 .thenReturn(new ResponseEntity<>(Map.of(
                         "product_id", "SKU-000001",
@@ -80,27 +74,25 @@ class ViewCartIntegrationTest {
         request.setProductId("SKU-000001");
         request.setQuantity(2);
 
-        mockMvc.perform(post("/api/carts/add")
+        mockMvc.perform(post("/api/carts/add-cart")
                         .header("Authorization", "Bearer " + validToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        // 2. View Cart
-        mockMvc.perform(get("/api/carts")
+        mockMvc.perform(get("/api/carts/view-cart")
                         .header("Authorization", "Bearer " + validToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.memberId").value("testuser"))
                 .andExpect(jsonPath("$.cartItems").isArray())
-                .andExpect(jsonPath("$.cartItems[0].productId").value("p-1"))
+                .andExpect(jsonPath("$.cartItems[0].productId").value("SKU-000001"))
                 .andExpect(jsonPath("$.cartItems[0].quantity").value(2))
                 .andExpect(jsonPath("$.cartItems[0].price").value(10000));
     }
 
     @Test
     void viewCart_Empty() throws Exception {
-        // 1. View Cart for user with no cart
-        mockMvc.perform(get("/api/carts")
+        mockMvc.perform(get("/api/carts/view-cart")
                         .header("Authorization", "Bearer " + validToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.memberId").value("testuser"))

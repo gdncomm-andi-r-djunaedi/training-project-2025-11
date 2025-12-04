@@ -41,7 +41,6 @@ public class LoginMemberIntegrationTest {
 
     @Test
     void login_HappyFlow() throws Exception {
-        // Setup: Create a user
         String username = "loginUser";
         String password = "password123";
         Member member = new Member(username, "login@example.com", passwordEncoder.encode(password));

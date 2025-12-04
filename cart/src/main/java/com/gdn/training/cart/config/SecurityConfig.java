@@ -17,10 +17,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/carts/hello").permitAll() // Keep hello endpoint public if needed, or secure it too
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(new JwtFilter(), UsernamePasswordAuthenticationFilter.class);
+                        .anyRequest().authenticated())
+                .addFilterBefore(new GatewayAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

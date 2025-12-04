@@ -29,7 +29,6 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Cart addToCart(String username, AddToCartRequest request) {
-        // 1. Validate Product
         String productUrl = "http://localhost:8081/api/products/product-detail?product_id=" + request.getProductId();
         ResponseEntity<Map> response;
         try {
@@ -55,7 +54,6 @@ public class CartServiceImpl implements CartService {
             price = new BigDecimal(priceObj.toString());
         }
 
-        // 2. Get or Create Cart
         Cart cart = cartRepository.findByMemberId(username)
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
@@ -63,7 +61,6 @@ public class CartServiceImpl implements CartService {
                     return cartRepository.save(newCart);
                 });
 
-        // 3. Add or Update Item
         Optional<CartItem> existingItem = cart.getCartItems().stream()
                 .filter(item -> item.getProductId().equals(request.getProductId()))
                 .findFirst();

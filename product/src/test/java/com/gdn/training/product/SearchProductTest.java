@@ -66,4 +66,32 @@ public class SearchProductTest {
         assertEquals(0, capturedPageable.getPageNumber());
         assertEquals(10, capturedPageable.getPageSize());
     }
+
+    @Test
+    @DisplayName("search product with invalid name should return empty result")
+    void searchProductWithInvalidNameTest() {
+        SearchProductRequest request = new SearchProductRequest();
+        request.setProductName("InvalidName");
+        request.setPage(0);
+        request.setSize(10);
+
+        Page<Product> emptyPage = new PageImpl<>(Collections.emptyList());
+
+        when(productRepository.searchByName(any(String.class), any(Pageable.class))).thenReturn(emptyPage);
+
+        Page<Product> result = productService.searchProduct(request);
+
+        assertNotNull(result);
+        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getContent().size());
+
+        ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(productRepository).searchByName(nameCaptor.capture(), pageableCaptor.capture());
+
+        assertEquals("InvalidName", nameCaptor.getValue());
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertEquals(0, capturedPageable.getPageNumber());
+        assertEquals(10, capturedPageable.getPageSize());
+    }
 }

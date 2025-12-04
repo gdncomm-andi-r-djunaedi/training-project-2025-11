@@ -33,7 +33,6 @@ public class ViewProductDetailTest {
     @Test
     @DisplayName("return valid product response test")
     public void returnValidProduct() {
-        // Arrange
         String productId = "SKU-000001";
         Product mockProduct = new Product();
         mockProduct.setProduct_id(productId);
@@ -42,13 +41,23 @@ public class ViewProductDetailTest {
 
         when(productRepository.viewProductDetail(productId)).thenReturn(Optional.of(mockProduct));
 
-        // Act
         Optional<Product> result = productService.viewDetailById(productId);
 
-        // Assert
         assertTrue(result.isPresent());
         assertEquals(productId, result.get().getProduct_id());
         assertEquals("Test Product", result.get().getProduct_name());
         assertEquals(new BigDecimal("10000"), result.get().getPrice());
+    }
+
+    @Test
+    @DisplayName("view product detail with invalid id should return empty optional")
+    public void viewProductDetailWithInvalidIdTest() {
+        String invalidProductId = "INVALID-ID";
+
+        when(productRepository.viewProductDetail(invalidProductId)).thenReturn(Optional.empty());
+
+        Optional<Product> result = productService.viewDetailById(invalidProductId);
+
+        assertTrue(result.isEmpty());
     }
 }

@@ -4,6 +4,15 @@ server:
 spring:
   application:
     name: api-gateway
+  datasource:
+    url: jdbc:postgresql://localhost:5432/members
+    username: testacc2
+    password: testacc2
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
   cloud:
     gateway:
       routes:
@@ -19,3 +28,5 @@ spring:
           uri: http://localhost:8083
           predicates:
             - Path=/api/carts/**
+          filters:
+            - JwtValidation

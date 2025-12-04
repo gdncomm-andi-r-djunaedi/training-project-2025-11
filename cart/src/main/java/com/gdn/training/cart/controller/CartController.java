@@ -25,11 +25,6 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "Hello from Cart Service";
-    }
-
     @GetMapping("/view-cart")
     public ResponseEntity<CartResponse> viewCart(Authentication authentication) {
         String username = authentication.getName();

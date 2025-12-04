@@ -37,7 +37,6 @@ class MemberServiceTest {
 
     @Test
     void registerSuccess() {
-        // Arrange
         String username = "testuser";
         String email = "test@example.com";
         String password = "password123";
@@ -47,10 +46,8 @@ class MemberServiceTest {
         when(memberRepository.existsByEmail(email)).thenReturn(false);
         when(passwordEncoder.encode(password)).thenReturn(encodedPassword);
 
-        // Act
         memberService.register(username, email, password);
 
-        // Assert
         ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
         verify(memberRepository).save(memberCaptor.capture());
         Member savedMember = memberCaptor.getValue();
@@ -62,14 +59,12 @@ class MemberServiceTest {
 
     @Test
     void registerDuplicateUsername() {
-        // Arrange
         String username = "testuser";
         String email = "test@example.com";
         String password = "password123";
 
         when(memberRepository.existsByUsername(username)).thenReturn(true);
 
-        // Act & Assert
         assertThrows(UserAlreadyExistsException.class, () -> memberService.register(username, email, password));
 
         verify(memberRepository, never()).save(any());
@@ -77,7 +72,6 @@ class MemberServiceTest {
 
     @Test
     void registerDuplicateEmail() {
-        // Arrange
         String username = "testuser";
         String email = "test@example.com";
         String password = "password123";
@@ -85,7 +79,6 @@ class MemberServiceTest {
         when(memberRepository.existsByUsername(username)).thenReturn(false);
         when(memberRepository.existsByEmail(email)).thenReturn(true);
 
-        // Act & Assert
         assertThrows(UserAlreadyExistsException.class, () -> memberService.register(username, email, password));
 
         verify(memberRepository, never()).save(any());

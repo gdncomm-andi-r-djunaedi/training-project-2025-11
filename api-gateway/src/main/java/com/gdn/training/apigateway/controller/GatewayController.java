@@ -8,8 +8,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/gateway")
 public class GatewayController {
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "Hello from API Gateway";
-    }
 }

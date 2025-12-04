@@ -57,7 +57,7 @@ public class ViewProductListIntegrationTest {
     @Test
     void viewProductList_ProductIdNotFound() throws Exception {
         ProductListRequest request = new ProductListRequest();
-        request.setProductId("non-existent-id");
+        request.setProductId("invalid-id");
         request.setPage(0);
         request.setSize(10);
 

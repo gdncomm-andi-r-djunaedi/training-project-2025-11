@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MemberController.class)
-@AutoConfigureMockMvc(addFilters = false) // Disable Security Filters for this test
+@AutoConfigureMockMvc(addFilters = false)
 class MemberControllerTest {
 
     @Autowired
@@ -48,7 +48,6 @@ class MemberControllerTest {
     @Test
     void register_ValidationFailure() throws Exception {
         RegisterMemberRequest request = new RegisterMemberRequest();
-        // Empty fields to trigger validation error
 
         mockMvc.perform(post("/api/members/register")
                         .contentType(MediaType.APPLICATION_JSON)

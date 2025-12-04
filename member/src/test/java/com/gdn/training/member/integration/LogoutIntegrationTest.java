@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -43,7 +44,6 @@ class LogoutIntegrationTest {
 
     @Test
     void logout_Success() throws Exception {
-        // 1. Login to get token
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("testuser");
         loginRequest.setPassword("password");
@@ -56,23 +56,14 @@ class LogoutIntegrationTest {
         String responseBody = loginResult.getResponse().getContentAsString();
         String token = objectMapper.readTree(responseBody).get("token").asText();
 
-        // 2. Access protected resource with token (should succeed)
-        // Assuming there is a protected endpoint, or we can use logout itself as a
-        // protected endpoint test
-        // Let's try to logout first
-        mockMvc.perform(post("/api/members/logout")
+        mockMvc.perform(put("/api/members/logout")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
 
-        // 3. Verify lastLogout is set
         Member member = memberRepository.findByUsername("testuser").orElseThrow();
         assert (member.getLastLogout() != null);
 
-        // 4. Access protected resource with blacklisted token (should fail)
-        // We can try to logout again, or access another protected endpoint if
-        // available.
-        // Let's try logout again, it requires authentication.
-        mockMvc.perform(post("/api/members/logout")
+        mockMvc.perform(put("/api/members/logout")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
     }

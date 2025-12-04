@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,7 +54,6 @@ public class AddToCartIntegrationTest {
     void setUp() {
         cartRepository.deleteAll();
         
-        // Generate a valid token
         validToken = JWT.create()
                 .withSubject("testuser")
                 .withIssuer("testingIssuer")
@@ -63,7 +64,6 @@ public class AddToCartIntegrationTest {
 
     @Test
     void addToCart_HappyFlow() throws Exception {
-        // Mock Product Service Response
         Map<String, Object> productResponse = new HashMap<>();
         productResponse.put("status", "success");
         productResponse.put("product_id", "SKU-000001");
@@ -78,20 +78,19 @@ public class AddToCartIntegrationTest {
         request.setProductId("SKU-000001");
         request.setQuantity(2);
 
-        mockMvc.perform(post("/api/carts/add")
+        mockMvc.perform(post("/api/carts/add-cart")
                         .header("Authorization", "Bearer " + validToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.memberId").value("testuser"))
                 .andExpect(jsonPath("$.cartItems", hasSize(1)))
-                .andExpect(jsonPath("$.cartItems[0].productId").value("p-1"))
+                .andExpect(jsonPath("$.cartItems[0].productId").value("SKU-000001"))
                 .andExpect(jsonPath("$.cartItems[0].quantity").value(2));
     }
 
     @Test
     void addToCart_InvalidProduct() {
-        // Mock Product Service Response for 404
         Mockito.when(restTemplate.getForEntity(anyString(), eq(Map.class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
@@ -100,13 +99,12 @@ public class AddToCartIntegrationTest {
         request.setQuantity(1);
 
         jakarta.servlet.ServletException exception = org.junit.jupiter.api.Assertions.assertThrows(jakarta.servlet.ServletException.class, () -> {
-            mockMvc.perform(post("/api/carts/add")
+            mockMvc.perform(post("/api/carts/add-cart")
                             .header("Authorization", "Bearer " + validToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)));
         });
 
-        org.junit.jupiter.api.Assertions.assertTrue(exception.getCause() instanceof RuntimeException);
-        org.junit.jupiter.api.Assertions.assertEquals("Product not found", exception.getCause().getMessage());
+        assertEquals("Product not found", exception.getCause().getMessage());
     }
 }
