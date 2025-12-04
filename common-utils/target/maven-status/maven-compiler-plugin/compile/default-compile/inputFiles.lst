@@ -1,5 +1,7 @@
 D:\code\blibli\training\project\training-project-2025-11\common-utils\src\main\java\com\marketplace\common\constant\CommonConstants.java
 D:\code\blibli\training\project\training-project-2025-11\common-utils\src\main\java\com\marketplace\common\dto\ApiResponse.java
 D:\code\blibli\training\project\training-project-2025-11\common-utils\src\main\java\com\marketplace\common\dto\ErrorResponse.java
+D:\code\blibli\training\project\training-project-2025-11\common-utils\src\main\java\com\marketplace\common\dto\UserDetailsResponse.java
+D:\code\blibli\training\project\training-project-2025-11\common-utils\src\main\java\com\marketplace\common\dto\ValidateCredentialsRequest.java
 D:\code\blibli\training\project\training-project-2025-11\common-utils\src\main\java\com\marketplace\common\exception\BaseException.java
 D:\code\blibli\training\project\training-project-2025-11\common-utils\src\main\java\com\marketplace\common\util\JwtUtil.java

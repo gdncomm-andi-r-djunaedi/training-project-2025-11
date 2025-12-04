@@ -23,4 +23,5 @@ com\marketplace\member\validation\ValidPassword.class
 com\marketplace\member\exception\InvalidCredentialsException.class
 com\marketplace\member\entity\Member$MemberBuilder.class
 com\marketplace\member\config\MemberConfigProperties$Security.class
+com\marketplace\member\config\SwaggerConfig.class
 com\marketplace\member\dto\LoginResponse.class

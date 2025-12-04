@@ -1,6 +1,12 @@
 D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\ApiGatewayApplication.java
+D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\client\MemberServiceClient.java
 D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\config\GatewayConfigProperties.java
 D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\constant\GatewayConstants.java
+D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\controller\AuthController.java
+D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\dto\LoginRequest.java
+D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\dto\LoginResponse.java
 D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\exception\GlobalExceptionHandler.java
 D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\exception\InvalidTokenException.java
 D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\filter\JwtAuthenticationFilter.java
+D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\service\AuthService.java
+D:\code\blibli\training\project\training-project-2025-11\api-gateway\src\main\java\com\marketplace\gateway\util\CookieUtil.java

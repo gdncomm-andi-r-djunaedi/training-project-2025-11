@@ -5,6 +5,7 @@ com\marketplace\product\exception\ProductNotFoundException.class
 com\marketplace\product\service\ProductService.class
 com\marketplace\product\dto\response\ProductResponse.class
 com\marketplace\product\config\ProductConfigProperties.class
+com\marketplace\product\config\SwaggerConfig.class
 com\marketplace\product\document\Product$ProductBuilder.class
 com\marketplace\product\constant\ProductConstants.class
 com\marketplace\product\exception\GlobalExceptionHandler.class

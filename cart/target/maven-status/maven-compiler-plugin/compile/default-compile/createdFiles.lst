@@ -1,5 +1,4 @@
 com\marketplace\cart\config\CartConfigProperties$Database.class
-com\marketplace\cart\mapper\CartMapper.class
 com\marketplace\cart\constant\CartConstants$ErrorMessages.class
 com\marketplace\cart\repository\CartRepository.class
 com\marketplace\cart\constant\CartConstants.class
@@ -18,6 +17,7 @@ com\marketplace\cart\exception\CartNotFoundException.class
 com\marketplace\cart\CartApplication.class
 com\marketplace\cart\dto\response\CartItemResponse.class
 com\marketplace\cart\entity\Cart.class
+com\marketplace\cart\config\SwaggerConfig.class
 com\marketplace\cart\entity\CartItem$CartItemBuilder.class
 com\marketplace\cart\config\CartConfigProperties.class
 com\marketplace\cart\service\CartService.class

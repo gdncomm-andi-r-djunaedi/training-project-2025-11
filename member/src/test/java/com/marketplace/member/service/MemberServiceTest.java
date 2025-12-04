@@ -1,8 +1,7 @@
 package com.marketplace.member.service;
 
-import com.marketplace.common.util.JwtUtil;
-import com.marketplace.member.dto.LoginRequest;
-import com.marketplace.member.dto.LoginResponse;
+import com.marketplace.common.dto.UserDetailsResponse;
+import com.marketplace.common.dto.ValidateCredentialsRequest;
 import com.marketplace.member.dto.MemberResponse;
 import com.marketplace.member.dto.RegisterRequest;
 import com.marketplace.member.entity.Member;
@@ -31,9 +30,6 @@ class MemberServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private JwtUtil jwtUtil;
 
     @InjectMocks
     private MemberService memberService;
@@ -78,8 +74,8 @@ class MemberServiceTest {
     }
 
     @Test
-    void login_Success() {
-        LoginRequest request = new LoginRequest();
+    void validateCredentials_Success() {
+        ValidateCredentialsRequest request = new ValidateCredentialsRequest();
         request.setUsername("testuser");
         request.setPassword("password");
 
@@ -92,18 +88,18 @@ class MemberServiceTest {
 
         when(memberRepository.findByUsername(request.getUsername())).thenReturn(Optional.of(member));
         when(passwordEncoder.matches(request.getPassword(), member.getPasswordHash())).thenReturn(true);
-        when(jwtUtil.generateToken(member.getUsername())).thenReturn("jwt-token");
 
-        LoginResponse response = memberService.login(request);
+        UserDetailsResponse response = memberService.validateCredentials(request);
 
         assertNotNull(response);
-        assertEquals("jwt-token", response.getToken());
+        assertEquals(member.getId(), response.getId());
         assertEquals(member.getUsername(), response.getUsername());
+        assertEquals(member.getEmail(), response.getEmail());
     }
 
     @Test
-    void login_InvalidPassword_ThrowsException() {
-        LoginRequest request = new LoginRequest();
+    void validateCredentials_InvalidPassword_ThrowsException() {
+        ValidateCredentialsRequest request = new ValidateCredentialsRequest();
         request.setUsername("testuser");
         request.setPassword("wrongpassword");
 
@@ -115,6 +111,6 @@ class MemberServiceTest {
         when(memberRepository.findByUsername(request.getUsername())).thenReturn(Optional.of(member));
         when(passwordEncoder.matches(request.getPassword(), member.getPasswordHash())).thenReturn(false);
 
-        assertThrows(InvalidCredentialsException.class, () -> memberService.login(request));
+        assertThrows(InvalidCredentialsException.class, () -> memberService.validateCredentials(request));
     }
 }

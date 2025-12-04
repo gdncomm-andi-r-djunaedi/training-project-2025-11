@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 /**
  * Response DTO for cart item information
@@ -16,7 +17,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class CartItemResponse {
 
-    private Long id;
+    private UUID id;
     private String productId;
     private String productName;
     private BigDecimal price;
