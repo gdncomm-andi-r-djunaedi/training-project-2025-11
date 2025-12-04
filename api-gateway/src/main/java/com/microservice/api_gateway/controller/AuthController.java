@@ -5,6 +5,7 @@ import com.microservice.api_gateway.dto.LogInUserResponseDto;
 import com.microservice.api_gateway.dto.LoginRequestDto;
 import com.microservice.api_gateway.dto.LoginResponseDto;
 import com.microservice.api_gateway.dto.MemberLogInResponseDto;
+import com.microservice.api_gateway.dto.MemberServiceResponseWrapper;
 import com.microservice.api_gateway.service.JWTService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,14 +25,20 @@ public class AuthController {
     @PostMapping("/logIn")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequest) {
         try {
-            MemberLogInResponseDto memberResponse = logInFeign.logIn(loginRequest);
+            MemberServiceResponseWrapper wrapper = logInFeign.logIn(loginRequest);
+            if (wrapper == null || wrapper.getData() == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid credentials or member not found");
+            }
 
-            // Check if member is valid
-            if (memberResponse != null && Boolean.TRUE.equals(memberResponse.getIsMember()) && memberResponse.getUserId() != null) {
-                // Generate JWT token with userId only
+            MemberLogInResponseDto memberResponse = wrapper.getData();
+
+            if (Boolean.TRUE.equals(wrapper.getSuccess()) &&
+                    Boolean.TRUE.equals(memberResponse.getIsMember()) &&
+                    memberResponse.getUserId() != null) {
+
                 String token = jwtService.generateToken(memberResponse.getUserId());
 
-                // Return response with JWT token and userId
                 LoginResponseDto response = new LoginResponseDto(
                         token,
                         memberResponse.getUserId(),
@@ -43,11 +50,12 @@ public class AuthController {
                 logInUserResponseDto.setMessage(response.getMessage());
                 return new ResponseEntity<>(logInUserResponseDto, HttpStatus.OK);
             } else {
-                // Member not found or invalid
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("Invalid credentials or member not found");
             }
         } catch (Exception e) {
+            System.err.println("Login error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Login failed: " + e.getMessage());
         }

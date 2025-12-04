@@ -24,41 +24,34 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        
-        // Skip JWT filter for public endpoints
-        // Member endpoints - no authentication required
+
         if (path.startsWith("/api/member/")) {
             System.out.println("JwtFilter - Skipping filter for member endpoint: " + path);
             return true;
         }
-        
-        // Product endpoints - no authentication required
+
         if (path.startsWith("/api/products/") || path.startsWith("/api/products")) {
             System.out.println("JwtFilter - Skipping filter for product endpoint: " + path);
             return true;
         }
-        
-        // Swagger/OpenAPI endpoints - no authentication required
+
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/api-docs")) {
             System.out.println("JwtFilter - Skipping filter for documentation endpoint: " + path);
             return true;
         }
-        
-        // Test endpoints - no authentication required
+
         if (path.startsWith("/api/test/")) {
             System.out.println("JwtFilter - Skipping filter for test endpoint: " + path);
             return true;
         }
-        
-        // Only process /api/cart/** endpoints - require JWT authentication
+
         if (path.startsWith("/api/cart/")) {
             System.out.println("JwtFilter - Processing JWT for cart endpoint: " + path);
             return false;
         }
-        
-        // Default: skip filter for any other endpoints
-        System.out.println("JwtFilter - Skipping filter for unknown endpoint: " + path);
-        return true;
+
+        System.out.println("JwtFilter - Processing JWT for endpoint: " + path);
+        return false;
     }
 
     @Override
@@ -69,14 +62,6 @@ public class JwtFilter extends OncePerRequestFilter {
         System.out.println("=== JwtFilter START ===");
         System.out.println("JwtFilter - Path: " + requestPath + ", AuthHeader: " + (authHeader != null ? "Present" : "Missing"));
 
-        // This should only be called for cart endpoints now
-        if (requestPath.startsWith("/api/cart/")) {
-            System.out.println("JwtFilter - Non-cart endpoint detected, continuing without JWT check");
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // Process JWT token for cart endpoints
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             System.out.println("JwtFilter - Token extracted, length: " + token.length());
@@ -93,7 +78,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                // Validate token expiration
                 boolean expired = jwtService.isTokenExpired(token);
                 System.out.println("JwtFilter - Token expired: " + expired);
 
@@ -105,20 +89,16 @@ public class JwtFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                // Set authentication context using userId as principal
-                // In Spring Security 6.x, when creating token with authorities, 
-                // DO NOT call setAuthenticated(true) - the constructor with authorities creates a trusted token
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                                String.valueOf(userId), // Use userId as principal
+                                String.valueOf(userId),
                                 null,
                                 Collections.singletonList(new SimpleGrantedAuthority("USER"))
                         );
-                // DO NOT call setAuthenticated(true) - it's already trusted when created with authorities
+
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 System.out.println("JwtFilter - Authentication set for userId: " + userId);
 
-                // Verify it's set
                 org.springframework.security.core.Authentication verify =
                         SecurityContextHolder.getContext().getAuthentication();
                 System.out.println("JwtFilter - Verification - Authentication: " + (verify != null ? verify.getPrincipal() : "NULL"));
@@ -133,7 +113,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
         } else {
-            System.err.println("JwtFilter - No Authorization header found for cart endpoint");
+            System.err.println("JwtFilter - No Authorization header found");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Authentication required. Please provide a valid JWT token.\"}");

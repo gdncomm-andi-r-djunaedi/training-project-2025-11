@@ -31,9 +31,9 @@ public class JWTService {
 
     public String generateToken(Long userId) {
         return Jwts.builder()
-                .subject(String.valueOf(userId)) // Store userId as subject
+                .subject(String.valueOf(userId))
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 30 * 1000)) // 30 hours in milliseconds
+                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 1 * 1000))
                 .signWith(getKey())
                 .compact();
     }

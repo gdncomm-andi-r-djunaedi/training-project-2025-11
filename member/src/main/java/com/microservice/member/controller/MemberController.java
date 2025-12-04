@@ -5,6 +5,8 @@ import com.microservice.member.dto.MemberLogInResponseDto;
 import com.microservice.member.dto.RegisterRequestDto;
 import com.microservice.member.dto.RegisterResponseDto;
 import com.microservice.member.service.MemberService;
+import com.microservice.member.wrapper.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,14 +25,24 @@ public class MemberController {
     MemberService memberService;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDto> registerUser(@RequestBody RegisterRequestDto registerRequestDto){
-        return new ResponseEntity<>(memberService.registerNewUser(registerRequestDto), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<RegisterResponseDto>> registerUser(@Valid @RequestBody RegisterRequestDto registerRequestDto){
+        log.info("Registration request for email: {}", registerRequestDto.getEmail());
+
+        RegisterResponseDto registerResponse = memberService.registerNewUser(registerRequestDto);
+        ApiResponse<RegisterResponseDto> response = ApiResponse.success(registerResponse, HttpStatus.CREATED);
+
+        log.info("User registered successfully with ID: {}", registerResponse.getId());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PostMapping("/logIn")
-    public ResponseEntity<MemberLogInResponseDto> logInUser(@RequestBody LoginRequestDto loginRequestDto){
-        return new ResponseEntity<>(memberService.validateUser(loginRequestDto), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<MemberLogInResponseDto>> logInUser(@Valid @RequestBody LoginRequestDto loginRequestDto){
+        log.info("Login request for email: {}", loginRequestDto.getEmail());
+
+        MemberLogInResponseDto loginResponse = memberService.validateUser(loginRequestDto);
+        ApiResponse<MemberLogInResponseDto> response = ApiResponse.success(loginResponse, HttpStatus.OK);
+
+        log.info("User logged in successfully with ID: {}", loginResponse.getUserId());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-
 }

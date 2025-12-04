@@ -6,12 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(
         name = "products",
         indexes = {
+                @Index(name = "idx_products_sku", columnList = "skuId"),
                 @Index(name = "idx_products_name", columnList = "name"),
                 @Index(name = "idx_products_category", columnList = "category"),
                 @Index(name = "idx_products_brand", columnList = "brand")
@@ -21,7 +23,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class Product {
+public class Product implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,7 +33,7 @@ public class Product {
     private Integer storeId = 10001;
 
     @Column(nullable = false, unique = true, length = 100)
-    private String sku;
+    private String skuId;
 
     @Column(nullable = false, length = 255)
     private String name;

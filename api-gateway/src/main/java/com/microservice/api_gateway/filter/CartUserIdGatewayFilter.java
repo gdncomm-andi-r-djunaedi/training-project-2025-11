@@ -17,11 +17,27 @@ import java.util.*;
 
 @Slf4j
 @Component
-@Order(2) // Run AFTER JwtFilter
+@Order(2)
 public class CartUserIdGatewayFilter extends OncePerRequestFilter {
 
     @Autowired
     private JWTService jwtService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        
+        // Only process cart endpoints - skip all others
+        boolean shouldSkip = !path.startsWith("/api/cart");
+        
+        if (shouldSkip) {
+            System.out.println("CartUserIdGatewayFilter - shouldNotFilter: SKIPPING for path: " + path);
+        } else {
+            System.out.println("CartUserIdGatewayFilter - shouldNotFilter: PROCESSING for path: " + path);
+        }
+        
+        return shouldSkip;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -29,13 +45,13 @@ public class CartUserIdGatewayFilter extends OncePerRequestFilter {
 
         String requestPath = request.getRequestURI();
         System.out.println("=== CartUserIdGatewayFilter START ===");
-        System.out.println("CartUserIdGatewayFilter - Path: " + requestPath);
+        System.out.println("CartUserIdGatewayFilter - doFilterInternal called for path: " + requestPath);
+        System.out.println("CartUserIdGatewayFilter - Request method: " + request.getMethod());
 
-        // Only process cart endpoints
+        // This should always be a cart endpoint due to shouldNotFilter
         if (requestPath != null && requestPath.startsWith("/api/cart")) {
-            System.out.println("CartUserIdGatewayFilter - Cart endpoint detected");
+            System.out.println("CartUserIdGatewayFilter - Cart endpoint detected: " + requestPath);
 
-            // Check if authentication is already set by JwtFilter
             org.springframework.security.core.Authentication auth =
                     org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
 
@@ -48,7 +64,6 @@ public class CartUserIdGatewayFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // Extract Authorization header
             String authHeader = request.getHeader("Authorization");
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -61,7 +76,6 @@ public class CartUserIdGatewayFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             try {
-                // Check if token is expired
                 if (jwtService.isTokenExpired(token)) {
                     System.err.println("CartUserIdGatewayFilter - ERROR: Token expired");
                     sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
@@ -69,7 +83,6 @@ public class CartUserIdGatewayFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                // Extract userId from token
                 Long userId = jwtService.extractUserId(token);
                 System.out.println("CartUserIdGatewayFilter - Extracted userId: " + userId);
 
@@ -80,8 +93,6 @@ public class CartUserIdGatewayFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                // Create a request wrapper to add the userId header
-                // This wrapper ensures X-User-Id header is available when gateway routes the request
                 HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
                     private final Map<String, String> customHeaders = new HashMap<>();
                     private final String userIdValue = String.valueOf(userId);
@@ -93,7 +104,6 @@ public class CartUserIdGatewayFilter extends OncePerRequestFilter {
 
                     @Override
                     public String getHeader(String name) {
-                        // Check custom headers first (case-insensitive)
                         String lowerName = name.toLowerCase();
                         if ("x-user-id".equals(lowerName)) {
                             System.out.println("CartUserIdGatewayFilter - getHeader('" + name + "') called, returning: " + userIdValue);
@@ -159,7 +169,6 @@ public class CartUserIdGatewayFilter extends OncePerRequestFilter {
                 return;
             }
         } else {
-            // For non-cart endpoints, just continue the filter chain
             System.out.println("CartUserIdGatewayFilter - Non-cart endpoint, passing through");
             filterChain.doFilter(request, response);
         }
