@@ -1,4 +1,5 @@
-C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\api-gateway\src\main\java\com\gdn\marketplace\gateway\filter\AuthenticationFilter.java
 C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\api-gateway\src\main\java\com\gdn\marketplace\gateway\util\JwtUtil.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\api-gateway\src\main\java\com\gdn\marketplace\gateway\config\SecurityConfig.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\api-gateway\src\main\java\com\gdn\marketplace\gateway\filter\AuthenticationGatewayFilterFactory.java
 C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\api-gateway\src\main\java\com\gdn\marketplace\gateway\filter\RouteValidator.java
 C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\api-gateway\src\main\java\com\gdn\marketplace\gateway\GatewayApplication.java

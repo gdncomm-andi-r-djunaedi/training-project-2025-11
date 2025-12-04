@@ -45,8 +45,8 @@ class MemberServiceTest {
     @Test
     void validateUser_Success() {
         AuthRequest request = new AuthRequest("user", "password", "email@test.com");
-        Member member = new Member(1L, "user", "encodedPassword", "email@test.com");
-        
+        Member member = new Member("1", "user", "encodedPassword", "email@test.com");
+
         when(repository.findByUsername("user")).thenReturn(Optional.of(member));
         when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
 
@@ -56,7 +56,7 @@ class MemberServiceTest {
     @Test
     void validateUser_Failure() {
         AuthRequest request = new AuthRequest("user", "wrongPassword", "email@test.com");
-        Member member = new Member(1L, "user", "encodedPassword", "email@test.com");
+        Member member = new Member("1", "user", "encodedPassword", "email@test.com");
 
         when(repository.findByUsername("user")).thenReturn(Optional.of(member));
         when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
