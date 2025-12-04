@@ -6,6 +6,7 @@ import com.blibli.search.entity.elasticsearch.ElasticsearchProductDocument;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.stereotype.Component;
@@ -17,12 +18,15 @@ public class ElasticsearchIndexInitializer {
 
     private final ElasticsearchOperations elasticsearchOperations;
     private final ElasticsearchClient elasticsearchClient;
-
+    @Value("${elasticsearch.index.name:products}")
+    private String indexName;
     @PostConstruct
     public void initializeIndex() {
         try {
             IndexOperations indexOps = elasticsearchOperations.indexOps(ElasticsearchProductDocument.class);
-            String indexName = "products";
+
+
+//            String indexName = "products";
             
             log.info("========== Initializing Elasticsearch index: {} ==========", indexName);
             boolean indexExists = elasticsearchClient.indices()

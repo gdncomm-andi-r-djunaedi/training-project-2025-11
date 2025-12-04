@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.retrytopic.DltStrategy;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -24,6 +27,11 @@ public class KafkaConsumer {
 //    private final SearchService searchService;
     private final ElasticsearchSearchService elasticsearchSearchService;
 
+    @RetryableTopic(
+            attempts = "3",
+            backoff = @Backoff(delay = 1000, multiplier = 2),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR
+    )
     @KafkaListener(topics = "product-events")
     public void consumeProductEvent(String message) {
         log.info("========== Kafka message received ==========");
