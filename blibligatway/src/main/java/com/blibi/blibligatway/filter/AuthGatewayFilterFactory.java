@@ -116,9 +116,6 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
         };
     }
 
-    /**
-     * Return a structured unauthorized error response
-     */
     private Mono<Void> unauthorized(ServerWebExchange exchange, String reason) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);

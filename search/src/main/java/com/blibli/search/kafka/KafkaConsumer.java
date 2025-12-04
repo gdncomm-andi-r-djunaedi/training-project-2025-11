@@ -34,44 +34,32 @@ public class KafkaConsumer {
 
             if ("CREATE".equals(eventType) || "UPDATE".equals(eventType)) {
                 log.info("Processing CREATE/UPDATE event for product: {}", productId);
-                // Index to both Solr and Elasticsearch
-//                try {
-//                    searchService.indexProduct(eventData);
-//                    log.info("Product indexed successfully in Solr: {}", eventData.get("id"));
-//                } catch (Exception e) {
-//                    log.error("Failed to index product in Solr: {}", e.getMessage(), e);
-//                }
+
                 
                 try {
                     elasticsearchSearchService.indexProduct(eventData);
-                    log.info("✅ Product indexed successfully in Elasticsearch: {}", productId);
+                    log.info("Product indexed successfully in Elasticsearch: {}", productId);
                 } catch (Exception e) {
-                    log.error("❌ Failed to index product in Elasticsearch: {}", productId, e);
+                    log.error("Failed to index product in Elasticsearch: {}", productId, e);
                     log.error("Error details: {}", e.getMessage(), e);
                 }
             } else if ("DELETE".equals(eventType)) {
                 log.info("Processing DELETE event for product: {}", productId);
-                // Delete from both Solr and Elasticsearch
-//                try {
-//                    searchService.deleteProduct((String) eventData.get("id"));
-//                    log.info("Product deleted from Solr: {}", eventData.get("id"));
-//                } catch (Exception e) {
-//                    log.error("Failed to delete product from Solr: {}", e.getMessage(), e);
-//                }
+
                 
                 try {
                     elasticsearchSearchService.deleteProduct(productId);
-                    log.info("✅ Product deleted from Elasticsearch: {}", productId);
+                    log.info(" Product deleted from Elasticsearch: {}", productId);
                 } catch (Exception e) {
-                    log.error("❌ Failed to delete product from Elasticsearch: {}", productId, e);
+                    log.error("Failed to delete product from Elasticsearch: {}", productId, e);
                     log.error("Error details: {}", e.getMessage(), e);
                 }
             } else {
-                log.warn("⚠️ Unknown event type: {}", eventType);
+                log.warn("Unknown event type: {}", eventType);
             }
             log.info("========== Kafka message processing completed ==========");
         } catch (Exception e) {
-            log.error("❌ Error processing Kafka message: {}", e.getMessage(), e);
+            log.error("Error processing Kafka message: {}", e.getMessage(), e);
             log.error("Message that failed: {}", message);
             e.printStackTrace();
         }

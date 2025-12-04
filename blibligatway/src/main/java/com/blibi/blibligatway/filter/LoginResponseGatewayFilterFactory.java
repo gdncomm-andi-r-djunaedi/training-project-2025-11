@@ -67,8 +67,12 @@ public class LoginResponseGatewayFilterFactory extends AbstractGatewayFilterFact
                     if (dataNode.has("roles") && dataNode.get("roles").isArray()) {
                         dataNode.get("roles").forEach(role -> roles.add(role.asText()));
                     }
+                    // Default to CUSTOMER role if no roles found
+                    if (roles.isEmpty()) {
+                        roles.add("CUSTOMER");
+                    }
                     
-                    if (userId != null && email != null && !roles.isEmpty()) {
+                    if (userId != null && email != null) {
                         String token = jwtUtil.generateToken(userId, email, roles);
                         String refreshToken = jwtUtil.generateRefreshToken(userId);
                         

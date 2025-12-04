@@ -1,7 +1,6 @@
 package com.blibli.member.service.impl;
 
 import com.blibli.member.dto.LoginRequest;
-import com.blibli.member.dto.LoginResponse;
 import com.blibli.member.dto.MemberResponse;
 import com.blibli.member.dto.RegisterRequest;
 import com.blibli.member.entity.Member;
@@ -10,7 +9,6 @@ import com.blibli.member.exception.BadRequestException;
 import com.blibli.member.exception.ResourceNotFoundException;
 import com.blibli.member.exception.UnauthorizedException;
 import com.blibli.member.repository.MemberRepository;
-import com.blibli.member.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,9 +37,6 @@ class MemberServiceImplTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private JwtUtil jwtUtil;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -144,24 +139,21 @@ class MemberServiceImplTest {
     @DisplayName("Should authenticate member successfully")
     void authenticate_Success() {
         // Given
-        String testToken = "test-jwt-token";
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member));
         when(passwordEncoder.matches(PASSWORD, HASHED_PASSWORD)).thenReturn(true);
-        when(jwtUtil.generateToken(anyString(), anyString(), anyList())).thenReturn(testToken);
 
         // When
-        LoginResponse response = memberService.authenticate(loginRequest);
+        MemberResponse response = memberService.authenticate(loginRequest);
 
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getEmail()).isEqualTo(EMAIL);
-        assertThat(response.isSuccess()).isTrue();
-        assertThat(response.getToken()).isEqualTo(testToken);
-        assertThat(response.getData()).isNotNull();
-        assertThat(response.getData().getEmail()).isEqualTo(EMAIL);
+        assertThat(response.getId()).isEqualTo(MEMBER_ID.toString());
+        assertThat(response.getFirstName()).isEqualTo(FIRST_NAME);
+        assertThat(response.getLastName()).isEqualTo(LAST_NAME);
+        assertThat(response.getRoles()).contains("CUSTOMER");
         verify(memberRepository).findByEmail(EMAIL);
         verify(passwordEncoder).matches(PASSWORD, HASHED_PASSWORD);
-        verify(jwtUtil).generateToken(anyString(), anyString(), anyList());
     }
 
     @Test

@@ -37,15 +37,15 @@ public class ElasticsearchIndexInitializer {
                 // Create index using Spring Data Elasticsearch
                 boolean created = indexOps.create();
                 if (created) {
-                    log.info("✅ Index '{}' created successfully", indexName);
+                    log.info("Index '{}' created successfully", indexName);
                 } else {
-                    log.warn("⚠️ Index '{}' creation returned false", indexName);
+                    log.warn("Index '{}' creation returned false", indexName);
                 }
                 
                 // Create mapping
                 boolean mappingCreated = indexOps.putMapping(indexOps.createMapping(ElasticsearchProductDocument.class));
                 if (mappingCreated) {
-                    log.info("✅ Mapping created successfully for index '{}'", indexName);
+                    log.info(" Mapping created successfully for index '{}'", indexName);
                 }
             } else {
                 log.info("Index '{}' already exists", indexName);
@@ -53,12 +53,11 @@ public class ElasticsearchIndexInitializer {
             
             // Refresh the index to make sure it's ready
             indexOps.refresh();
-            log.info("✅ Index '{}' is ready", indexName);
+            log.info("Index '{}' is ready", indexName);
             
         } catch (Exception e) {
-            log.error("❌ Failed to initialize Elasticsearch index: {}", e.getMessage(), e);
-            // Don't throw exception - allow application to start even if index creation fails
-            // The index will be created automatically when first document is saved
+            log.error(" Failed to initialize Elasticsearch index: {}", e.getMessage(), e);
+
         }
     }
 }

@@ -123,9 +123,6 @@ public class LogoutGatewayFilterFactory extends AbstractGatewayFilterFactory<Log
         };
     }
 
-    /**
-     * Extract JWT token from request (header or cookie)
-     */
     private String extractJwtFromRequest(ServerHttpRequest request) {
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {

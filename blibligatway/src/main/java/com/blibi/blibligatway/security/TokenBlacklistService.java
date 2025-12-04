@@ -7,10 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Service to manage blacklisted tokens.
- * Uses Caffeine cache to store blacklisted tokens until their expiration time.
- */
+
 @Slf4j
 @Service
 public class TokenBlacklistService {
@@ -26,11 +23,6 @@ public class TokenBlacklistService {
                 .build();
     }
 
-    /**
-     * Blacklist a token until its expiration time
-     * @param token The JWT token to blacklist
-     * @param expirationTimeMillis Time until token expires (in milliseconds)
-     */
     public void blacklistToken(String token, long expirationTimeMillis) {
         if (token == null || token.isEmpty()) {
             return;
@@ -47,11 +39,6 @@ public class TokenBlacklistService {
         }
     }
 
-    /**
-     * Check if a token is blacklisted
-     * @param token The JWT token to check
-     * @return true if token is blacklisted, false otherwise
-     */
     public boolean isBlacklisted(String token) {
         if (token == null || token.isEmpty()) {
             return false;
@@ -59,10 +46,6 @@ public class TokenBlacklistService {
         return blacklist.getIfPresent(token) != null;
     }
 
-    /**
-     * Remove a token from blacklist (if needed for manual cleanup)
-     * @param token The JWT token to remove
-     */
     public void removeFromBlacklist(String token) {
         if (token != null && !token.isEmpty()) {
             blacklist.invalidate(token);

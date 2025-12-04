@@ -5,7 +5,6 @@ package com.blibli.member.controller;
 
 import com.blibli.member.dto.ApiResponse;
 import com.blibli.member.dto.LoginRequest;
-import com.blibli.member.dto.LoginResponse;
 import com.blibli.member.dto.MemberResponse;
 import com.blibli.member.dto.RegisterRequest;
 import com.blibli.member.exception.BadRequestException;
@@ -33,9 +32,9 @@ public class MemberController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(
+    public ResponseEntity<ApiResponse<MemberResponse>> login(
             @Valid @RequestBody LoginRequest request) {
-        LoginResponse response = memberService.authenticate(request);
+        MemberResponse response = memberService.authenticate(request);
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 

@@ -49,11 +49,6 @@ public class JwtUtil {
         return generateToken(String.valueOf(userId), null, roles);
     }
 
-    /**
-     * Generate a refresh token (longer expiration, minimal claims)
-     * @param userId User ID
-     * @return Refresh token string
-     */
     public String generateRefreshToken(String userId) {
         Claims claims = Jwts.claims().setSubject(userId);
         claims.put("type", "refresh"); // Mark as refresh token
@@ -69,11 +64,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    /**
-     * Check if token is a refresh token
-     * @param token Token to check
-     * @return true if it's a refresh token
-     */
+
     public boolean isRefreshToken(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);

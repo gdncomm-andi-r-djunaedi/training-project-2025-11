@@ -28,10 +28,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Filter factory for refreshing access tokens using refresh tokens.
- * Validates refresh token and issues new access + refresh token pair.
- */
 @Slf4j
 @Component
 public class RefreshTokenGatewayFilterFactory extends AbstractGatewayFilterFactory<RefreshTokenGatewayFilterFactory.Config> {
@@ -174,9 +170,6 @@ public class RefreshTokenGatewayFilterFactory extends AbstractGatewayFilterFacto
         };
     }
 
-    /**
-     * Extract refresh token from request (header or cookie)
-     */
     private String extractRefreshTokenFromRequest(ServerHttpRequest request) {
         // Try Authorization header first
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -193,9 +186,6 @@ public class RefreshTokenGatewayFilterFactory extends AbstractGatewayFilterFacto
         return null;
     }
 
-    /**
-     * Return error response
-     */
     private Mono<Void> errorResponse(ServerWebExchange exchange, HttpStatus status, String message) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(status);

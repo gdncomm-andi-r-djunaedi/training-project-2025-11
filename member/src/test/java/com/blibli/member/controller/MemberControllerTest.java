@@ -1,7 +1,6 @@
 package com.blibli.member.controller;
 
 import com.blibli.member.dto.LoginRequest;
-import com.blibli.member.dto.LoginResponse;
 import com.blibli.member.dto.MemberResponse;
 import com.blibli.member.dto.RegisterRequest;
 import com.blibli.member.exception.BadRequestException;
@@ -106,23 +105,13 @@ class MemberControllerTest {
                 .password(PASSWORD)
                 .build();
 
-        MemberResponse memberData = MemberResponse.builder()
+        MemberResponse response = MemberResponse.builder()
                 .id(MEMBER_ID.toString())
                 .email(EMAIL)
                 .firstName(FIRST_NAME)
                 .lastName(LAST_NAME)
                 .roles(Set.of("CUSTOMER"))
                 .createdAt(LocalDateTime.now())
-                .build();
-
-        LoginResponse response = LoginResponse.builder()
-                .success(true)
-                .message("Login successful")
-                .token("test-token")
-                .userId(MEMBER_ID.toString())
-                .email(EMAIL)
-                .roles(java.util.List.of("CUSTOMER"))
-                .data(memberData)
                 .build();
 
         when(memberService.authenticate(any(LoginRequest.class))).thenReturn(response);
@@ -133,7 +122,9 @@ class MemberControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.email").value(EMAIL));
+                .andExpect(jsonPath("$.message").value("Login successful"))
+                .andExpect(jsonPath("$.data.email").value(EMAIL))
+                .andExpect(jsonPath("$.data.id").value(MEMBER_ID.toString()));
 
         verify(memberService).authenticate(any(LoginRequest.class));
     }

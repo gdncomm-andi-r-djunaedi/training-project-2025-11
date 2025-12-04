@@ -44,13 +44,13 @@ public class ElasticsearchSearchService {
                     doc.getId(), doc.getName(), doc.getPrice(), doc.getCategory());
 
             elasticsearchProductRepository.save(doc);
-            log.info("✅ Product indexed successfully in Elasticsearch: {}", doc.getId());
+            log.info("Product indexed successfully in Elasticsearch: {}", doc.getId());
             
             // Verify the document was saved
             boolean exists = elasticsearchProductRepository.existsById(productId);
             log.info("Document exists check: {}", exists);
         } catch (Exception e) {
-            log.error("❌ Failed to index product {}: {}", productId, e.getMessage(), e);
+            log.error("Failed to index product {}: {}", productId, e.getMessage(), e);
             log.error("Exception type: {}", e.getClass().getName());
             e.printStackTrace();
             throw new com.blibli.search.exception.ElasticsearchException("Failed to index product in Elasticsearch: " + e.getMessage(), e);
@@ -119,7 +119,7 @@ public class ElasticsearchSearchService {
             log.info("Wildcard search completed: {} results", results.size());
             return results;
         } catch (Exception e) {
-            log.error("❌ Wildcard search failed: query={}", query, e);
+            log.error("Wildcard search failed: query={}", query, e);
             log.error("Exception type: {}", e.getClass().getName());
             log.error("Exception message: {}", e.getMessage());
             if (e.getCause() != null) {
@@ -172,7 +172,7 @@ public class ElasticsearchSearchService {
             log.info("Advanced search completed: {} results", results.size());
             return results;
         } catch (Exception e) {
-            log.error("❌ Advanced search failed: query={}", query, e);
+            log.error("Advanced search failed: query={}", query, e);
             log.error("Exception type: {}", e.getClass().getName());
             log.error("Exception message: {}", e.getMessage());
             if (e.getCause() != null) {
