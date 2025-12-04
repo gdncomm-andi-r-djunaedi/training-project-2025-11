@@ -27,7 +27,7 @@ public class CartService {
 
     private static final String CART_KEY_PREFIX = "cart:";
     private static final String PRODUCT_KEY_SUFFIX = ":product";
-    private static final String PRODUCT_SERVICE_URL = "http://localhost:8080/products/detail/";
+    private static final String PRODUCT_SERVICE_URL = "http://localhost:8082/products/detail/";
 
     public CartResponse addToCart(String userEmail, AddToCartRequest request) {
         String cartKey = CART_KEY_PREFIX + userEmail;
@@ -60,12 +60,12 @@ public class CartService {
 
         if (cartItems.isEmpty()) {
             return CartResponse.builder()
-            .message("OK")
-                .userEmail(userEmail)
-                .cartItems(new ArrayList<>())
-                .total(0.0)
-                .itemCount(0)
-                .build();
+                    .message("OK")
+                    .userEmail(userEmail)
+                    .cartItems(new ArrayList<>())
+                    .total(0.0)
+                    .itemCount(0)
+                    .build();
         }
 
         Map<Object, Object> productDetails = redisTemplate.opsForHash().entries(productKey);
@@ -77,7 +77,7 @@ public class CartService {
             String productId = (String) entry.getKey();
             Integer quantity = (Integer) entry.getValue();
             ProductDetail productDetail = (ProductDetail) productDetails.get(productId);
-            
+
             if (productDetail == null) {
                 throw new IllegalArgumentException("Product not found");
             }
@@ -88,19 +88,19 @@ public class CartService {
                     .productName(productDetail.getName())
                     .price(productDetail.getPrice())
                     .build();
-            
+
             items.add(cartItem);
             totalAmount += cartItem.getSubtotal();
         }
 
         return CartResponse.builder()
-        .message("OK")
-        .userEmail(userEmail)
+                .message("OK")
+                .userEmail(userEmail)
                 .cartItems(items)
                 .total(totalAmount)
                 .itemCount(items.size())
                 .build();
-        
+
     }
 
     public CartResponse removeFromCart(String userEmail, String productId) {
@@ -115,11 +115,11 @@ public class CartService {
             redisTemplate.delete(productKey);
 
             return CartResponse.builder()
-            .userEmail(userEmail)
-            .cartItems(new ArrayList<>())
-            .total(0.0)
-            .itemCount(0)
-            .build();
+                    .userEmail(userEmail)
+                    .cartItems(new ArrayList<>())
+                    .total(0.0)
+                    .itemCount(0)
+                    .build();
         }
 
         CartResponse response = getCart(userEmail);
@@ -129,6 +129,7 @@ public class CartService {
 
     private ProductDetail fetchProductDetail(String productId) {
         try {
+            System.out.println(PRODUCT_SERVICE_URL + productId);
             return restTemplate.getForObject(PRODUCT_SERVICE_URL + productId, ProductDetail.class);
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch product detail");
@@ -141,7 +142,5 @@ public class CartService {
         private String name;
         private double price;
     }
-    
-    
-    
+
 }
