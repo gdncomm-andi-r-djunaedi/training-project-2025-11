@@ -54,6 +54,16 @@ public class CartControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testuser")
     void getCart_ShouldReturnCart() throws Exception {
+        AddToCartRequest request = new AddToCartRequest();
+        request.setProductId("p1");
+        request.setProductName("Test Product");
+        request.setPrice(100.0);
+        request.setQuantity(1);
+
+        mockMvc.perform(post("/api/cart")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
         mockMvc.perform(get("/api/cart"))
                 .andExpect(status().isOk());
     }
