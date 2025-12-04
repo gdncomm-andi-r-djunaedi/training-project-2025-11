@@ -56,7 +56,9 @@ public class CartServiceImpl implements CartService {
             throw new BadRequestException("Quantity must be greater than zero");
         }
 
+        // feign call from product service
         ProductResponse product = fetchProductById(request.getProductId());
+        //checking price and quantity in product service
         validateProduct(product, request.getQuantity());
 
         Cart cart = getCartFromCache(userId);
