@@ -1,5 +1,6 @@
 package com.marketplace.product.command;
 
+import com.marketplace.product.command.impl.SeedProductsCommandImpl;
 import com.marketplace.product.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +18,7 @@ class SeedProductsCommandTest {
     private ProductRepository productRepository;
 
     @InjectMocks
-    private SeedProductsCommand command;
+    private SeedProductsCommandImpl command;
 
     @Test
     void seedProducts_WhenEmpty_Success() {

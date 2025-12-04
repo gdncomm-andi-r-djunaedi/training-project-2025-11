@@ -2,6 +2,8 @@ package com.marketplace.member.command;
 
 import com.marketplace.common.dto.UserDetailsResponse;
 import com.marketplace.common.dto.ValidateCredentialsRequest;
+import com.marketplace.member.command.impl.RegisterMemberCommandImpl;
+import com.marketplace.member.command.impl.ValidateCredentialsCommandImpl;
 import com.marketplace.member.dto.MemberResponse;
 import com.marketplace.member.dto.RegisterRequest;
 import com.marketplace.member.entity.Member;
@@ -32,10 +34,10 @@ class MemberCommandTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private RegisterMemberCommand registerMemberCommand;
+    private RegisterMemberCommandImpl registerMemberCommand;
 
     @InjectMocks
-    private ValidateCredentialsCommand validateCredentialsCommand;
+    private ValidateCredentialsCommandImpl validateCredentialsCommand;
 
     @Test
     void register_Success() {
@@ -117,4 +119,3 @@ class MemberCommandTest {
         assertThrows(InvalidCredentialsException.class, () -> validateCredentialsCommand.execute(request));
     }
 }
-

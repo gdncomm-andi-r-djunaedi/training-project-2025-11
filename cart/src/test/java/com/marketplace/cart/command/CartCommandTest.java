@@ -1,5 +1,8 @@
 package com.marketplace.cart.command;
 
+import com.marketplace.cart.command.impl.AddToCartCommandImpl;
+import com.marketplace.cart.command.impl.GetCartCommandImpl;
+import com.marketplace.cart.command.impl.RemoveFromCartCommandImpl;
 import com.marketplace.cart.dto.AddToCartRequest;
 import com.marketplace.cart.dto.request.AddToCartCommandRequest;
 import com.marketplace.cart.dto.request.GetCartRequest;
@@ -31,13 +34,13 @@ class CartCommandTest {
     private CartRepository cartRepository;
 
     @InjectMocks
-    private AddToCartCommand addToCartCommand;
+    private AddToCartCommandImpl addToCartCommand;
 
     @InjectMocks
-    private GetCartCommand getCartCommand;
+    private GetCartCommandImpl getCartCommand;
 
     @InjectMocks
-    private RemoveFromCartCommand removeFromCartCommand;
+    private RemoveFromCartCommandImpl removeFromCartCommand;
 
     @Test
     void addToCart_NewCart_Success() {
