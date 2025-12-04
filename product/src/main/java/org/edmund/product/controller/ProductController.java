@@ -41,7 +41,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/search/product/sku")
+    @GetMapping("/search/product")
     @Operation(summary = "Get Product by SKU")
     public GenericResponse<ProductDetailResponse> getProductList(@RequestParam String sku)
     {
