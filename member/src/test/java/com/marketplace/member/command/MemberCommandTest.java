@@ -42,18 +42,15 @@ class MemberCommandTest {
     @Test
     void register_Success() {
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("testuser");
-        request.setPassword("password");
         request.setEmail("test@example.com");
+        request.setPassword("password");
         request.setFullName("Test User");
 
-        when(memberRepository.existsByUsername(request.getUsername())).thenReturn(false);
         when(memberRepository.existsByEmail(request.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(request.getPassword())).thenReturn("encodedPassword");
 
         Member savedMember = Member.builder()
                 .id(UUID.randomUUID())
-                .username(request.getUsername())
                 .email(request.getEmail())
                 .fullName(request.getFullName())
                 .build();
@@ -63,16 +60,16 @@ class MemberCommandTest {
 
         assertNotNull(response);
         assertEquals(savedMember.getId(), response.getId());
-        assertEquals(savedMember.getUsername(), response.getUsername());
+        assertEquals(savedMember.getEmail(), response.getEmail());
         verify(memberRepository).save(any(Member.class));
     }
 
     @Test
-    void register_UsernameExists_ThrowsException() {
+    void register_EmailExists_ThrowsException() {
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("existinguser");
+        request.setEmail("existing@example.com");
 
-        when(memberRepository.existsByUsername(request.getUsername())).thenReturn(true);
+        when(memberRepository.existsByEmail(request.getEmail())).thenReturn(true);
 
         assertThrows(UserAlreadyExistsException.class, () -> registerMemberCommand.execute(request));
         verify(memberRepository, never()).save(any(Member.class));
@@ -81,39 +78,38 @@ class MemberCommandTest {
     @Test
     void validateCredentials_Success() {
         ValidateCredentialsRequest request = new ValidateCredentialsRequest();
-        request.setUsername("testuser");
+        request.setEmail("test@example.com");
         request.setPassword("password");
 
         Member member = Member.builder()
                 .id(UUID.randomUUID())
-                .username("testuser")
-                .passwordHash("encodedPassword")
                 .email("test@example.com")
+                .passwordHash("encodedPassword")
+                .fullName("Test User")
                 .build();
 
-        when(memberRepository.findByUsername(request.getUsername())).thenReturn(Optional.of(member));
+        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
         when(passwordEncoder.matches(request.getPassword(), member.getPasswordHash())).thenReturn(true);
 
         UserDetailsResponse response = validateCredentialsCommand.execute(request);
 
         assertNotNull(response);
         assertEquals(member.getId(), response.getId());
-        assertEquals(member.getUsername(), response.getUsername());
         assertEquals(member.getEmail(), response.getEmail());
     }
 
     @Test
     void validateCredentials_InvalidPassword_ThrowsException() {
         ValidateCredentialsRequest request = new ValidateCredentialsRequest();
-        request.setUsername("testuser");
+        request.setEmail("test@example.com");
         request.setPassword("wrongpassword");
 
         Member member = Member.builder()
-                .username("testuser")
+                .email("test@example.com")
                 .passwordHash("encodedPassword")
                 .build();
 
-        when(memberRepository.findByUsername(request.getUsername())).thenReturn(Optional.of(member));
+        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
         when(passwordEncoder.matches(request.getPassword(), member.getPasswordHash())).thenReturn(false);
 
         assertThrows(InvalidCredentialsException.class, () -> validateCredentialsCommand.execute(request));

@@ -23,19 +23,19 @@ public class RegisterMemberCommandImpl implements RegisterMemberCommand {
     @Override
     @Transactional
     public MemberResponse execute(RegisterRequest request) {
-        log.info("Registering new user: {}", request.getUsername());
+        log.info("Registering new user with email: {}", request.getEmail());
 
-        if (memberRepository.existsByUsername(request.getUsername())) {
-            log.warn("Registration failed - username already exists: {}", request.getUsername());
-            throw UserAlreadyExistsException.username(request.getUsername());
-        }
         if (memberRepository.existsByEmail(request.getEmail())) {
             log.warn("Registration failed - email already exists: {}", request.getEmail());
             throw UserAlreadyExistsException.email(request.getEmail());
         }
 
+        if (request.getPhoneNumber() != null && memberRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            log.warn("Registration failed - phone number already exists: {}", request.getPhoneNumber());
+            throw UserAlreadyExistsException.phoneNumber(request.getPhoneNumber());
+        }
+
         Member member = Member.builder()
-                .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .fullName(request.getFullName())
@@ -44,11 +44,10 @@ public class RegisterMemberCommandImpl implements RegisterMemberCommand {
                 .build();
 
         Member savedMember = memberRepository.save(member);
-        log.info("User registered successfully: {}", savedMember.getUsername());
+        log.info("User registered successfully: {}", savedMember.getEmail());
 
         return MemberResponse.builder()
                 .id(savedMember.getId())
-                .username(savedMember.getUsername())
                 .email(savedMember.getEmail())
                 .fullName(savedMember.getFullName())
                 .address(savedMember.getAddress())
@@ -56,4 +55,3 @@ public class RegisterMemberCommandImpl implements RegisterMemberCommand {
                 .build();
     }
 }
-

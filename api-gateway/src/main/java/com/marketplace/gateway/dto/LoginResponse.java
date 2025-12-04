@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 /**
- * Login response DTO from API Gateway
+ * Login response DTO from API Gateway.
  */
 @Data
 @Builder
@@ -19,6 +19,5 @@ public class LoginResponse {
     private String token;
     private String type;
     private UUID id;
-    private String username;
     private String email;
 }

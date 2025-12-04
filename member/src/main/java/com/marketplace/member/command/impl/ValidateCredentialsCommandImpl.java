@@ -23,28 +23,26 @@ public class ValidateCredentialsCommandImpl implements ValidateCredentialsComman
 
     @Override
     public UserDetailsResponse execute(ValidateCredentialsRequest request) {
-        log.info("Validating credentials for user: {}", request.getUsername());
+        log.info("Validating credentials for email: {}", request.getEmail());
 
-        Member member = memberRepository.findByUsername(request.getUsername())
+        Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
-                    log.warn("Credential validation failed - user not found: {}", request.getUsername());
+                    log.warn("Credential validation failed - user not found: {}", request.getEmail());
                     return new InvalidCredentialsException();
                 });
 
         if (!passwordEncoder.matches(request.getPassword(), member.getPasswordHash())) {
-            log.warn("Credential validation failed - invalid password for user: {}", request.getUsername());
+            log.warn("Credential validation failed - invalid password for email: {}", request.getEmail());
             throw new InvalidCredentialsException();
         }
 
-        log.info("Credentials validated successfully for user: {}", member.getUsername());
+        log.info("Credentials validated successfully for email: {}", member.getEmail());
 
         return UserDetailsResponse.builder()
                 .id(member.getId())
-                .username(member.getUsername())
                 .email(member.getEmail())
                 .fullName(member.getFullName())
                 .roles(new ArrayList<>(member.getRoles()))
                 .build();
     }
 }
-

@@ -9,9 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Response DTO containing validated user details
- * Returned by Member Service to API Gateway after successful credential
- * validation
+ * Response DTO containing validated user details.
+ * Email is used as the user identifier.
  */
 @Data
 @Builder
@@ -20,7 +19,6 @@ import java.util.UUID;
 public class UserDetailsResponse {
 
     private UUID id;
-    private String username;
     private String email;
     private String fullName;
     private List<String> roles;

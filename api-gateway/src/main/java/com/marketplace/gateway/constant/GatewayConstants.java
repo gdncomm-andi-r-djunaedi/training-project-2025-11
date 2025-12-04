@@ -1,7 +1,7 @@
 package com.marketplace.gateway.constant;
 
 /**
- * Constants for API Gateway
+ * Constants for API Gateway.
  */
 public final class GatewayConstants {
 
@@ -10,7 +10,7 @@ public final class GatewayConstants {
     }
 
     /**
-     * Error messages
+     * Error messages.
      */
     public static final class ErrorMessages {
         public static final String INVALID_TOKEN = "Invalid or expired JWT token";
@@ -22,7 +22,7 @@ public final class GatewayConstants {
     }
 
     /**
-     * Route paths
+     * Route paths.
      */
     public static final class Routes {
         public static final String MEMBER_SERVICE = "lb://member-service";
@@ -34,10 +34,10 @@ public final class GatewayConstants {
     }
 
     /**
-     * Headers
+     * Headers passed to downstream services.
      */
     public static final class Headers {
-        public static final String USERNAME = "X-User-Name";
+        public static final String USER_EMAIL = "X-User-Email";
         public static final String USER_ID = "X-User-Id";
 
         private Headers() {

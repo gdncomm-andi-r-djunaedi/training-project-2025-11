@@ -52,15 +52,15 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
 
                 // Extract user information from token
                 UUID userId = jwtUtil.extractUserId(token);
-                String username = jwtUtil.extractUsername(token);
+                String email = jwtUtil.extractEmail(token);
 
-                log.debug("Authenticated user: {} (ID: {})", username, userId);
+                log.debug("Authenticated user: {} (ID: {})", email, userId);
 
                 // Add user information to request headers for downstream services
                 ServerWebExchange modifiedExchange = exchange.mutate()
                         .request(r -> r
                                 .header(GatewayConstants.Headers.USER_ID, userId.toString())
-                                .header(GatewayConstants.Headers.USERNAME, username))
+                                .header(GatewayConstants.Headers.USER_EMAIL, email))
                         .build();
 
                 return chain.filter(modifiedExchange);

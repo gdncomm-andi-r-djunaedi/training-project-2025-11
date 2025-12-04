@@ -25,7 +25,7 @@ public class MemberController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<MemberResponse>> register(@Valid @RequestBody RegisterRequest request) {
-        log.info("Registration request received for username: {}", request.getUsername());
+        log.info("Registration request received for email: {}", request.getEmail());
 
         MemberResponse response = commandExecutor.execute(RegisterMemberCommand.class, request);
 
@@ -35,12 +35,12 @@ public class MemberController {
     }
 
     /**
-     * Validate credentials endpoint (for internal use by API Gateway)
+     * Validate credentials endpoint (for internal use by API Gateway).
      */
     @PostMapping("/validate-credentials")
     public ResponseEntity<ApiResponse<UserDetailsResponse>> validateCredentials(
             @Valid @RequestBody ValidateCredentialsRequest request) {
-        log.info("Credential validation request for username: {}", request.getUsername());
+        log.info("Credential validation request for email: {}", request.getEmail());
 
         UserDetailsResponse response = commandExecutor.execute(ValidateCredentialsCommand.class, request);
 

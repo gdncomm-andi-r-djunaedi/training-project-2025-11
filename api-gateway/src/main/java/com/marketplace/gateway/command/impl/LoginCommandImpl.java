@@ -16,35 +16,34 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class LoginCommandImpl implements LoginCommand {
 
-    private final MemberServiceClient memberServiceClient;
-    private final JwtUtil jwtUtil;
+        private final MemberServiceClient memberServiceClient;
+        private final JwtUtil jwtUtil;
 
-    @Override
-    public Mono<LoginResponse> execute(LoginRequest request) {
-        log.info("Processing login request for user: {}", request.getUsername());
+        @Override
+        public Mono<LoginResponse> execute(LoginRequest request) {
+                log.info("Processing login request for email: {}", request.getEmail());
 
-        ValidateCredentialsRequest validateRequest = ValidateCredentialsRequest.builder()
-                .username(request.getUsername())
-                .password(request.getPassword())
-                .build();
+                ValidateCredentialsRequest validateRequest = ValidateCredentialsRequest.builder()
+                                .email(request.getEmail())
+                                .password(request.getPassword())
+                                .build();
 
-        return memberServiceClient.validateCredentials(validateRequest)
-                .map(userDetails -> {
-                    String token = jwtUtil.generateToken(
-                            userDetails.getId(),
-                            userDetails.getUsername(),
-                            userDetails.getRoles());
+                return memberServiceClient.validateCredentials(validateRequest)
+                                .map(userDetails -> {
+                                        String token = jwtUtil.generateToken(
+                                                        userDetails.getId(),
+                                                        userDetails.getEmail(),
+                                                        userDetails.getRoles());
 
-                    log.info("JWT token generated successfully for user: {}", userDetails.getUsername());
+                                        log.info("JWT token generated successfully for email: {}",
+                                                        userDetails.getEmail());
 
-                    return LoginResponse.builder()
-                            .token(token)
-                            .type("Bearer")
-                            .id(userDetails.getId())
-                            .username(userDetails.getUsername())
-                            .email(userDetails.getEmail())
-                            .build();
-                });
-    }
+                                        return LoginResponse.builder()
+                                                        .token(token)
+                                                        .type("Bearer")
+                                                        .id(userDetails.getId())
+                                                        .email(userDetails.getEmail())
+                                                        .build();
+                                });
+        }
 }
-

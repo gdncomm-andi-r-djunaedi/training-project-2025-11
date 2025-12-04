@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 /**
- * HTTP client for communicating with Member Service
+ * HTTP client for communicating with Member Service.
  */
 @Slf4j
 @Component
@@ -24,10 +24,10 @@ public class MemberServiceClient {
     private String memberServiceUrl;
 
     /**
-     * Validate user credentials via Member Service
+     * Validate user credentials via Member Service.
      */
     public Mono<UserDetailsResponse> validateCredentials(ValidateCredentialsRequest request) {
-        log.info("Validating credentials for user: {}", request.getUsername());
+        log.info("Validating credentials for email: {}", request.getEmail());
 
         return webClientBuilder.build()
                 .post()
@@ -44,7 +44,7 @@ public class MemberServiceClient {
                     // Handle LinkedHashMap case (Jackson deserialization)
                     return convertToUserDetailsResponse(data);
                 })
-                .doOnSuccess(user -> log.info("Credentials validated successfully for user: {}", user.getUsername()))
+                .doOnSuccess(user -> log.info("Credentials validated successfully for email: {}", user.getEmail()))
                 .doOnError(error -> log.error("Credential validation failed: {}", error.getMessage()));
     }
 
@@ -54,7 +54,6 @@ public class MemberServiceClient {
             java.util.Map<String, Object> map = (java.util.Map<String, Object>) data;
             return UserDetailsResponse.builder()
                     .id(java.util.UUID.fromString((String) map.get("id")))
-                    .username((String) map.get("username"))
                     .email((String) map.get("email"))
                     .fullName((String) map.get("fullName"))
                     .roles((java.util.List<String>) map.get("roles"))
