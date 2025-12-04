@@ -5,9 +5,11 @@ import com.blibi.apigateway.dto.LoginRequest;
 import com.blibi.apigateway.dto.LoginResponse;
 import com.blibi.apigateway.dto.MemberValidationRequest;
 import com.blibi.apigateway.dto.MemberValidationResponse;
+import com.blibi.apigateway.dto.TokenValidationResponse;
 import com.blibi.apigateway.exception.UnauthorizedException;
 import com.blibi.apigateway.service.AuthService;
 import com.blibi.apigateway.util.JwtUtil;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -99,28 +102,83 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * Logout user and invalidate JWT token
-     * Token is added to Redis blacklist with TTL matching token expiration
-     * 
+     * Logout - invalidate JWT token by adding to Redis blacklist
+     *
      * @param token JWT token to invalidate
      */
     @Override
     public void logout(String token) {
-        log.info("Processing logout request");
+        log.info("Invalidating token");
+
+        // Calculate TTL based on token expiration
+        try {
+            Claims claims = jwtUtil.validateAndGetClaims(token);
+            Date expiration = claims.getExpiration();
+            long ttlSeconds = (expiration.getTime() - System.currentTimeMillis()) / 1000;
+
+            if (ttlSeconds > 0) {
+                // Add token to blacklist with TTL matching token expiration
+                redisTemplate.opsForValue().set("invalid:" + token, "true", ttlSeconds, TimeUnit.SECONDS);
+                log.info("Token blacklisted with TTL: {} seconds", ttlSeconds);
+            }
+        } catch (Exception e) {
+            log.error("Error calculating token TTL, using default", e);
+            redisTemplate.opsForValue().set("invalid:" + token, "true");
+        }
+    }
+
+    /**
+     * Validate JWT token
+     *
+     * @param token JWT token to validate
+     * @return TokenValidationResponse with validation status and claims
+     */
+    @Override
+    public TokenValidationResponse validateToken(String token) {
+        log.info("Validating token");
 
         try {
-            // Add token to blacklist in Redis
-            // Set TTL to 24 hours (matching token expiration)
-            redisTemplate.opsForValue().set(
-                    "invalid:" + token,
-                    "true",
-                    24,
-                    TimeUnit.HOURS);
+            // Check if token is blacklisted
+            Boolean isBlacklisted = redisTemplate.hasKey("invalid:" + token);
+            if (Boolean.TRUE.equals(isBlacklisted)) {
+                log.warn("Token is blacklisted");
+                return TokenValidationResponse.builder()
+                        .valid(false)
+                        .message("Token has been invalidated")
+                        .build();
+            }
 
-            log.info("Token invalidated successfully");
+            // Validate token and extract claims
+            Claims claims = jwtUtil.validateAndGetClaims(token);
+            String username = jwtUtil.extractUsername(token);
+
+            // Check if token is expired
+            if (jwtUtil.isTokenExpired(token)) {
+                log.warn("Token is expired");
+                return TokenValidationResponse.builder()
+                        .valid(false)
+                        .message("Token has expired")
+                        .build();
+            }
+
+            // Convert claims to Map
+            Map<String, Object> claimsMap = new HashMap<>();
+            claims.forEach((key, value) -> claimsMap.put(key, value));
+
+            log.info("Token is valid for user: {}", username);
+            return TokenValidationResponse.builder()
+                    .valid(true)
+                    .username(username)
+                    .claims(claimsMap)
+                    .message("Token is valid")
+                    .build();
+
         } catch (Exception e) {
-            log.error("Failed to invalidate token", e);
-            // Don't throw exception, logout should succeed even if Redis fails
+            log.error("Token validation failed", e);
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .message("Invalid token: " + e.getMessage())
+                    .build();
         }
     }
 }

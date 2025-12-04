@@ -4,6 +4,7 @@ import com.blibi.apigateway.configuration.JwtProperties;
 import com.blibi.apigateway.dto.GenericResponse;
 import com.blibi.apigateway.dto.LoginRequest;
 import com.blibi.apigateway.dto.LoginResponse;
+import com.blibi.apigateway.dto.TokenValidationResponse;
 import com.blibi.apigateway.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +77,68 @@ public class AuthController {
                             .build();
                     return Mono.just(ResponseEntity.ok(errorResponse));
                 });
+    }
+
+    /**
+     * Validate token endpoint - checks if JWT token is valid
+     * Supports both Authorization header and cookie
+     *
+     * @param exchange Server web exchange for accessing headers and cookies
+     * @return Generic response with token validation result
+     */
+    @GetMapping("/validate")
+    public ResponseEntity<GenericResponse<TokenValidationResponse>> validateToken(ServerWebExchange exchange) {
+        log.info("Token validation request received");
+
+        try {
+            // Extract token from Authorization header or cookie
+            String token = null;
+
+            // Try Authorization header first
+            String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+            }
+
+            // If not in header, try cookie
+            if (token == null) {
+                var cookies = exchange.getRequest().getCookies();
+                var jwtCookie = cookies.getFirst(jwtProperties.getCookieName());
+                if (jwtCookie != null) {
+                    token = jwtCookie.getValue();
+                }
+            }
+
+            if (token == null) {
+                return ResponseEntity.ok(GenericResponse.<TokenValidationResponse>builder()
+                        .status("ERROR")
+                        .message("No token provided")
+                        .data(TokenValidationResponse.builder()
+                                .valid(false)
+                                .message("No token found in request")
+                                .build())
+                        .build());
+            }
+
+            TokenValidationResponse validationResponse = authService.validateToken(token);
+
+            return ResponseEntity.ok(GenericResponse.<TokenValidationResponse>builder()
+                    .status(validationResponse.isValid() ? "SUCCESS" : "ERROR")
+                    .message(validationResponse.getMessage())
+                    .data(validationResponse)
+                    .build());
+
+        } catch (Exception e) {
+            log.error("Token validation failed", e);
+            return ResponseEntity.ok(GenericResponse.<TokenValidationResponse>builder()
+                    .status("ERROR")
+                    .message("Token validation failed")
+                    .data(TokenValidationResponse.builder()
+                            .valid(false)
+                            .message(e.getMessage())
+                            .build())
+                    .build());
+        }
     }
 
     /**
