@@ -1,0 +1,106 @@
+version: "3.9"
+
+services:
+
+  # ============================
+  # POSTGRES DATABASE
+  # ============================
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: memberdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d memberdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - network-service
+
+  # ============================
+  # REDIS CACHE
+  # ============================
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - network-service
+
+  # ============================
+  # MEMBER SERVICE
+  # ============================
+  member-service:
+    build:
+      context: ./member
+      dockerfile: Dockerfile
+    container_name: member-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://member-postgres:5432/memberdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      SPRING_REDIS_HOST: member-redis
+
+    ports:
+      - "9095:9095"   # gRPC
+      - "8081:8081"   # Actuator / REST admin
+    networks:
+      - network-service
+
+  # ============================
+  # API GATEWAY
+  # ============================
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    depends_on:
+      member-service:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      # gRPC config (important!)
+      grpc.member.host: member-service
+      grpc.member.port: 9095
+
+      # JWT secret
+      security.jwt.hmac.secret: replace-with-very-long-secret-32bytes-min!!!!
+
+      # Profile
+      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      - network-service
+
+# ============================
+# NETWORK & VOLUME
+# ============================
+networks:
+  network-service:
+
+volumes:
+  postgresdata:
