@@ -11,4 +11,7 @@ public interface ProductFeignClient {
 
     @GetMapping("/api/v1/internal/products/sku/{sku}")
     GdnResponseData<ProductDTO> getProductBySku(@PathVariable("sku") String sku);
+
+    @GetMapping("/api/v1/products/{productId}")
+    GdnResponseData<ProductDTO> getProductById(@PathVariable("productId") String productId);
 }

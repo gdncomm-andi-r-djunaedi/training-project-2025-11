@@ -42,13 +42,12 @@ public class CartController {
 
         log.info("Received request to add to cart for member: {}, traceId: {}", memberId, traceId);
 
-        CartItem item = cartService.addToCart(memberId, request);
-        Cart cart = cartService.getCart(memberId);
+        Cart cart = cartService.addToCart(memberId, request);
 
         CartResponseDTOs.AddToCartResponse data = CartResponseDTOs.AddToCartResponse.builder()
                 .message("Item added")
-                .sku(item.getSku())
-                .qty(item.getQty())
+                .sku(request.getSku())
+                .qty(request.getQty())
                 .cart(cart)
                 .build();
 
@@ -93,13 +92,12 @@ public class CartController {
         log.info("Received request to update quantity for member: {}, sku: {}, traceId: {}",
                 memberId, sku, traceId);
 
-        CartItem item = cartService.updateQuantity(memberId, sku, request);
-        Cart cart = cartService.getCart(memberId);
+        Cart cart = cartService.updateQuantity(memberId, sku, request);
 
         CartResponseDTOs.UpdateQuantityResponse data = CartResponseDTOs.UpdateQuantityResponse.builder()
                 .message("Quantity updated")
                 .sku(sku)
-                .qty(item.getQty())
+                .qty(request.getQty())
                 .cart(cart)
                 .build();
 

@@ -6,11 +6,11 @@ import com.blibli.gdn.cartService.web.model.AddToCartRequest;
 import com.blibli.gdn.cartService.web.model.UpdateQuantityRequest;
 
 public interface CartService {
-    CartItem addToCart(String memberId, AddToCartRequest request);
+    Cart addToCart(String memberId, AddToCartRequest request);
 
     Cart getCart(String memberId);
 
-    CartItem updateQuantity(String memberId, String sku, UpdateQuantityRequest request);
+    Cart updateQuantity(String memberId, String sku, UpdateQuantityRequest request);
 
     void removeItem(String memberId, String sku);
 

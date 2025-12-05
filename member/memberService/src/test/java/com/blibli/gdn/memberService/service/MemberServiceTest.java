@@ -144,5 +144,51 @@ class MemberServiceTest {
         verify(memberRepository, times(1)).findById(testMemberId);
         verify(memberRepository, never()).delete(any(Member.class));
     }
+
+    @Test
+    @DisplayName("Should map member with ADMIN role correctly")
+    void testGetMemberById_AdminRole() {
+        // Given
+        Member adminMember = Member.builder()
+                .memberId(testMemberId)
+                .email("admin@example.com")
+                .passwordHash("hashedPassword")
+                .name("Admin User")
+                .role(Role.ADMIN)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        when(memberRepository.findById(testMemberId)).thenReturn(Optional.of(adminMember));
+
+        // When
+        MemberResponse response = memberService.getMemberById(testMemberId);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(Role.ADMIN, response.getRole());
+        assertEquals("admin@example.com", response.getEmail());
+        assertEquals("Admin User", response.getName());
+    }
+
+    @Test
+    @DisplayName("Should update member with special characters in name")
+    void testUpdateMember_SpecialCharacters() {
+        // Given
+        String specialName = "O'Brien-Smith";
+        when(memberRepository.findById(testMemberId)).thenReturn(Optional.of(testMember));
+        when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> {
+            Member member = invocation.getArgument(0);
+            member.setName(specialName);
+            return member;
+        });
+
+        // When
+        MemberResponse response = memberService.updateMember(testMemberId, specialName);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(specialName, response.getName());
+        verify(memberRepository, times(1)).save(any(Member.class));
+    }
 }
 

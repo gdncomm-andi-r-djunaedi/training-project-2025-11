@@ -1,7 +1,9 @@
 package com.blibli.gdn.cartService.web.error;
 
 import com.blibli.gdn.cartService.exception.CartException;
+import com.blibli.gdn.cartService.exception.CartNotFoundException;
 import com.blibli.gdn.cartService.exception.InvalidQuantityException;
+import com.blibli.gdn.cartService.exception.ItemNotFoundInCartException;
 import com.blibli.gdn.cartService.exception.ProductNotFoundException;
 import com.blibli.gdn.cartService.exception.ProductServiceUnavailableException;
 import com.blibli.gdn.cartService.exception.SkuMismatchException;
@@ -25,6 +27,22 @@ public class GlobalExceptionHandler {
             ProductNotFoundException ex, HttpServletRequest request) {
 
         log.error("Product not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(CartNotFoundException.class)
+    public ResponseEntity<GdnResponseData<Object>> handleCartNotFoundException(
+            CartNotFoundException ex, HttpServletRequest request) {
+
+        log.error("Cart not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(ItemNotFoundInCartException.class)
+    public ResponseEntity<GdnResponseData<Object>> handleItemNotFoundInCartException(
+            ItemNotFoundInCartException ex, HttpServletRequest request) {
+
+        log.error("Item not found in cart: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 

@@ -3,7 +3,9 @@ package com.blibli.gdn.cartService.service.impl;
 import com.blibli.gdn.cartService.client.ProductServiceClient;
 import com.blibli.gdn.cartService.client.dto.ProductDTO;
 import com.blibli.gdn.cartService.client.dto.VariantDTO;
+import com.blibli.gdn.cartService.exception.CartNotFoundException;
 import com.blibli.gdn.cartService.exception.InvalidQuantityException;
+import com.blibli.gdn.cartService.exception.ItemNotFoundInCartException;
 import com.blibli.gdn.cartService.exception.ProductNotFoundException;
 import com.blibli.gdn.cartService.model.Cart;
 import com.blibli.gdn.cartService.model.CartItem;
@@ -35,7 +37,7 @@ public class CartServiceImpl implements CartService {
     private static final int CART_EXPIRY_DAYS = 30;
 
     @Override
-    public CartItem addToCart(String memberId, AddToCartRequest request) {
+    public Cart addToCart(String memberId, AddToCartRequest request) {
         log.info("Adding item to cart for member: {}, sku: {}", memberId, request.getSku());
 
         if (request.getQty() == null || request.getQty() < 1) {
@@ -94,10 +96,10 @@ public class CartServiceImpl implements CartService {
         cart.setExpireAt(Instant.now().plus(CART_EXPIRY_DAYS, ChronoUnit.DAYS));
 
         // Save cart
-        cartRepository.save(cart);
+        Cart savedCart = cartRepository.save(cart);
 
         log.info("Cart updated successfully for member: {}", memberId);
-        return cartItem;
+        return savedCart;
     }
 
     @Override
@@ -150,7 +152,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartItem updateQuantity(String memberId, String sku, UpdateQuantityRequest request) {
+    public Cart updateQuantity(String memberId, String sku, UpdateQuantityRequest request) {
         log.info("Updating quantity for member: {}, sku: {}, qty: {}", memberId, sku, request.getQty());
 
         if (request.getQty() == null || request.getQty() < 1) {
@@ -158,12 +160,12 @@ public class CartServiceImpl implements CartService {
         }
 
         Cart cart = cartRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new ProductNotFoundException(sku));
+                .orElseThrow(() -> new CartNotFoundException(memberId));
 
         CartItem item = cart.getItems().stream()
                 .filter(i -> i.getSku().equals(sku))
                 .findFirst()
-                .orElseThrow(() -> new ProductNotFoundException(sku));
+                .orElseThrow(() -> new ItemNotFoundInCartException(sku));
 
         item.setQty(request.getQty());
 
@@ -171,10 +173,10 @@ public class CartServiceImpl implements CartService {
         cart.setUpdatedAt(Instant.now());
         cart.setExpireAt(Instant.now().plus(CART_EXPIRY_DAYS, ChronoUnit.DAYS));
 
-        cartRepository.save(cart);
+        Cart savedCart = cartRepository.save(cart);
 
         log.info("Quantity updated successfully");
-        return item;
+        return savedCart;
     }
 
     @Override
@@ -182,12 +184,12 @@ public class CartServiceImpl implements CartService {
         log.info("Removing item from cart for member: {}, sku: {}", memberId, sku);
 
         Cart cart = cartRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new ProductNotFoundException(sku));
+                .orElseThrow(() -> new CartNotFoundException(memberId));
 
         boolean removed = cart.getItems().removeIf(item -> item.getSku().equals(sku));
 
         if (!removed) {
-            throw new ProductNotFoundException(sku);
+            log.info("Item already removed from cart");
         }
 
         recalculateTotals(cart);

@@ -8,7 +8,6 @@ import com.blibli.gdn.cartService.web.model.GdnResponseData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -17,44 +16,51 @@ import org.springframework.stereotype.Component;
 public class ProductServiceClient {
 
     private final ProductFeignClient productFeignClient;
-    private final CircuitBreakerFactory circuitBreakerFactory;
 
     @Cacheable(value = "products", key = "#sku")
     public ProductDTO getProductBySku(String sku) {
         log.info("Fetching product from Product Service for SKU: {}", sku);
+        
+        try {
+            String productId = extractProductId(sku);
+            log.info("Extracted Product ID: {} from SKU: {}", productId, sku);
+            
+            GdnResponseData<ProductDTO> response = productFeignClient.getProductById(productId);
 
-        return circuitBreakerFactory.create("productService").run(() -> {
-            try {
-                GdnResponseData<ProductDTO> response = productFeignClient.getProductBySku(sku);
-
-                if (response != null) {
-                    log.info("Product Service response: success={}, message={}, data={}",
-                            response.isSuccess(), response.getMessage(), response.getData());
-                } else {
-                    log.warn("Product Service response is null");
-                }
-
-                if (response != null && response.isSuccess() && response.getData() != null) {
-                    return response.getData();
-                }
-
-                log.error("Product Service returned unsuccessful response or null data for SKU: {}", sku);
-                throw new ProductNotFoundException(sku);
-
-            } catch (ProductNotFoundException e) {
-                log.error("Product not found for SKU: {}", sku);
-                throw e;
-            } catch (Exception e) {
-                log.error("Error calling Product Service for SKU: {}", sku, e);
-                throw new RuntimeException(e);
+            if (response != null) {
+                log.info("Product Service response: success={}, message={}, data={}", 
+                        response.isSuccess(), response.getMessage(), response.getData());
+            } else {
+                log.warn("Product Service response is null");
             }
-        }, throwable -> {
-            log.error("Error fetching product from Product Service: {}", throwable.getMessage());
-            if (throwable instanceof ProductNotFoundException) {
-                throw (ProductNotFoundException) throwable;
+
+            if (response != null && response.isSuccess() && response.getData() != null) {
+                return response.getData();
             }
-            throw new ProductServiceUnavailableException("Product Service is unavailable");
-        });
+            
+            log.error("Product Service returned unsuccessful response or null data for SKU: {}", sku);
+            throw new ProductNotFoundException(sku);
+            
+        } catch (ProductNotFoundException e) {
+            log.error("Product not found for SKU: {}", sku);
+            throw e;
+        } catch (Exception e) {
+            log.error("Error calling Product Service for SKU: {}", sku, e);
+            throw new ProductServiceUnavailableException("Product Service is unavailable: " + e.getMessage());
+        }
+    }
+
+    private String extractProductId(String sku) {
+        if (sku == null || sku.length() <= 6) {
+            log.warn("Invalid SKU format for extraction: {}", sku);
+            return sku; // Fallback to original SKU if too short
+        }
+        
+        String productId = sku.substring(0, sku.length() - 6);
+        if (productId.endsWith("-")) {
+            productId = productId.substring(0, productId.length() - 1);
+        }
+        return productId;
     }
 
     public VariantDTO getVariantBySku(ProductDTO product, String sku) {

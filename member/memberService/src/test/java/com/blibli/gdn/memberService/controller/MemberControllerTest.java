@@ -165,5 +165,61 @@ class MemberControllerTest {
 
         verify(memberService, times(1)).deleteMember(testMemberId);
     }
+
+    @Test
+    @DisplayName("Should return 400 when update request body is missing")
+    void testUpdateMember_MissingBody() throws Exception {
+        // When & Then
+        mockMvc.perform(put("/api/v1/members/{id}", testMemberId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(memberService, never()).updateMember(any(), any());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when update request has name too short")
+    void testUpdateMember_NameTooShort() throws Exception {
+        // Given
+        UpdateMemberRequest request = UpdateMemberRequest.builder()
+                .name("A") // Invalid: too short
+                .build();
+
+        // When & Then
+        mockMvc.perform(put("/api/v1/members/{id}", testMemberId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        verify(memberService, never()).updateMember(any(), any());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when update request has name too long")
+    void testUpdateMember_NameTooLong() throws Exception {
+        // Given
+        String longName = "A".repeat(256);
+        UpdateMemberRequest request = UpdateMemberRequest.builder()
+                .name(longName) // Invalid: too long
+                .build();
+
+        // When & Then
+        mockMvc.perform(put("/api/v1/members/{id}", testMemberId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        verify(memberService, never()).updateMember(any(), any());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when invalid UUID format")
+    void testGetMemberById_InvalidUUID() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/v1/members/{id}", "invalid-uuid"))
+                .andExpect(status().isBadRequest());
+
+        verify(memberService, never()).getMemberById(any());
+    }
 }
 
