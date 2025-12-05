@@ -1,0 +1,3 @@
+com/example/marketplace/common/dto/ErrorResponse.class
+com/example/marketplace/common/dto/JwtPayloadDTO.class
+com/example/marketplace/common/dto/ApiResponse.class
