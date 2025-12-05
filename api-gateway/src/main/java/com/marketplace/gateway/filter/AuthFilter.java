@@ -77,7 +77,8 @@ public class AuthFilter implements GlobalFilter, Ordered {
         return path.startsWith("/api/member/register") 
             || path.startsWith("/api/member/login")
             || path.startsWith("/api/auth/login")
-            || path.startsWith("/api/auth/logout");
+            || path.startsWith("/api/auth/logout")
+            || path.startsWith("/api/product/");  // Product browsing is public
     }
 
     /**

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -61,6 +62,29 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
+            MissingRequestHeaderException ex,
+            HttpServletRequest request) {
+
+        log.warn("Missing required header: {}", ex.getHeaderName());
+
+        String message = "Missing required header: " + ex.getHeaderName();
+        if ("X-User-Id".equals(ex.getHeaderName())) {
+            message = "Authentication required. Please login first.";
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                HttpStatus.UNAUTHORIZED.value(),
+                "MISSING_AUTH_HEADER",
+                message,
+                request.getRequestURI());
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(errorResponse);
     }
 

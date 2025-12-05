@@ -4,6 +4,7 @@ import com.marketplace.cart.command.RemoveFromCartCommand;
 import com.marketplace.cart.dto.request.RemoveFromCartRequest;
 import com.marketplace.cart.dto.response.CartResponse;
 import com.marketplace.cart.entity.Cart;
+import com.marketplace.cart.exception.CartItemNotFoundException;
 import com.marketplace.cart.exception.CartNotFoundException;
 import com.marketplace.cart.mapper.CartMapper;
 import com.marketplace.cart.repository.CartRepository;
@@ -35,9 +36,10 @@ public class RemoveFromCartCommandImpl implements RemoveFromCartCommand {
 
         if (cart.getItems().size() == initialSize) {
             log.warn("Product {} not found in cart for user: {}", productId, userId);
-        } else {
-            log.info("Removed product {} from cart for user: {}", productId, userId);
+            throw new CartItemNotFoundException(productId);
         }
+        
+        log.info("Removed product {} from cart for user: {}", productId, userId);
 
         Cart savedCart = cartRepository.save(cart);
         log.info("Cart updated successfully for user: {}", userId);

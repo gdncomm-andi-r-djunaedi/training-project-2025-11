@@ -157,16 +157,17 @@ class CartControllerIntegrationTest {
     }
 
     @Test
-    void addToCart_MissingUserIdHeader_ReturnsError() throws Exception {
+    void addToCart_MissingUserIdHeader_ReturnsUnauthorized() throws Exception {
         AddToCartRequest request = new AddToCartRequest();
         request.setProductId("prod-123");
         request.setQuantity(1);
 
-        // Missing required header causes internal error (header is required by controller)
+        // Missing required header now returns 401 Unauthorized
         mockMvc.perform(post("/api/cart/add")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("MISSING_AUTH_HEADER"));
     }
 
     @Test
@@ -298,6 +299,29 @@ class CartControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void removeFromCart_ProductNotInCart_ReturnsNotFound() throws Exception {
+        // Create a cart with one product
+        Cart cart = Cart.builder()
+                .userId(testUserId)
+                .items(new ArrayList<>())
+                .build();
+        cart.addItem(CartItem.builder()
+                .productId("prod-1")
+                .productName("Product 1")
+                .price(new BigDecimal("19.99"))
+                .quantity(1)
+                .build());
+        cartRepository.save(cart);
+
+        // Try to remove a different product that's not in the cart
+        mockMvc.perform(delete("/api/cart/{productId}", "non-existent-product")
+                        .header(USER_ID_HEADER, testUserId.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("CART_ITEM_NOT_FOUND"));
     }
 }
 
