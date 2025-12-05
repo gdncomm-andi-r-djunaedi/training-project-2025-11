@@ -19,6 +19,7 @@ public class AuthService {
 
   @Autowired
   private JwtService jwtService;
+
   public AuthResponse register(RegisterRequest request) {
     if (customerRepository.existsByEmail(request.getEmail())) {
       throw new RuntimeException("Email already exists");
