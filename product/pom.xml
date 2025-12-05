@@ -169,6 +169,7 @@
 		<repository>
 			<id>local-libs</id>
 			<url>file://${project.basedir}/libs</url>
+			<layout>flat</layout>
 			<releases>
 				<enabled>true</enabled>
 			</releases>

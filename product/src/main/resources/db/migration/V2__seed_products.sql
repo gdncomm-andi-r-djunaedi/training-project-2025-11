@@ -1,28 +1,4 @@
--- Insert 1 fixed product for reliable gRPC testing
-INSERT INTO products (
-    product_id,
-    seller_id,
-    name,
-    description,
-    category,
-    price,
-    stock,
-    status,
-    created_at
-) VALUES (
-    '00000000-0000-0000-0000-000000000001'::uuid,
-    '11111111-1111-1111-1111-111111111111'::uuid,
-    'Test Product',
-    'This is a fixed dummy product for gRPC testing.',
-    'electronics',
-    12345.67,
-    99,
-    'ACTIVE',
-    NOW()
-)
-ON CONFLICT (product_id) DO NOTHING;
-
--- Insert 50 random dummy products for development
+-- Insert deterministic sequential SKU-like products
 INSERT INTO products (
     product_id,
     seller_id,
@@ -35,7 +11,7 @@ INSERT INTO products (
     created_at
 )
 SELECT
-    gen_random_uuid(),
+    ('00000000-0000-0000-0000-' || lpad(seq::text, 12, '0'))::uuid AS product_id,
     gen_random_uuid(),
     'Product ' || seq,
     'This is dummy product #' || seq,
@@ -50,5 +26,5 @@ SELECT
     (random() * 100)::int,
     'ACTIVE',
     NOW()
-FROM generate_series(1, 50) AS t(seq)
+FROM generate_series(1, 1000) AS t(seq)
 ON CONFLICT (product_id) DO NOTHING;

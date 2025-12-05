@@ -107,30 +107,6 @@ services:
       retries: 3
       start_period: 60s
 
-  # ============================
-  # pgAdmin (optional)
-  # ============================
-  pgadmin:
-    image: dpage/pgadmin4:8
-    container_name: product-pgadmin
-    restart: always
-    ports:
-      - "8091:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gdn.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    depends_on:
-      product-postgres:
-        condition: service_healthy
-    networks:
-      - product-net
-    healthcheck:
-      test: ["CMD", "wget", "-O", "-", "http://localhost:80/misc/ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
 networks:
   product-net:
     driver: bridge

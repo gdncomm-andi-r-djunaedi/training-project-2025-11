@@ -5,22 +5,43 @@ FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# copy pom + source
+# Copy POM early to leverage Docker cache
 COPY pom.xml .
+
+###############################################
+# 1️⃣ Copy common-proto jar to Docker
+###############################################
+COPY libs/common-proto-0.0.1-SNAPSHOT.jar /tmp/common-proto.jar
+
+# 1.1 Validate file exists (prevent silent failures)
+RUN if [ ! -f /tmp/common-proto.jar ]; then \
+    echo "❌ ERROR: common-proto.jar not found in /tmp"; \
+    ls -lah /tmp; \
+    exit 1; \
+    else \
+    echo "✅ common-proto.jar found:"; \
+    ls -lah /tmp/common-proto.jar; \
+    fi
+
+###############################################
+# 2️⃣ Install jar into local Maven repo
+###############################################
+RUN mvn install:install-file \
+    -Dfile=/tmp/common-proto.jar \
+    -DgroupId=com.gdn.training \
+    -DartifactId=common-proto \
+    -Dversion=0.0.1-SNAPSHOT \
+    -Dpackaging=jar
+
+###############################################
+# 3️⃣ Copy project source
+###############################################
 COPY src ./src
 
-# COPY local dependency (common-proto)
-COPY libs ./libs
-
+###############################################
+# 4️⃣ Build project
+###############################################
 RUN mvn clean package -DskipTests
-
-# ------------------------------------------------
-# Copy full project and build JAR
-# ------------------------------------------------
-COPY src ./src
-
-RUN mvn -DskipTests clean package
-
 
 ###########################################
 # 2. RUNTIME STAGE (Slim JRE 21)

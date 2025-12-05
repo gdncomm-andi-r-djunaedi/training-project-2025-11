@@ -5,13 +5,43 @@ FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# Copy pom & source
+# Copy POM early to leverage Docker cache
 COPY pom.xml .
-COPY libs ./libs
+
+###############################################
+# 1️⃣ Copy common-proto jar to Docker
+###############################################
+COPY libs/common-proto-0.0.1-SNAPSHOT.jar /tmp/common-proto.jar
+
+# 1.1 Validate file exists (prevent silent failures)
+RUN if [ ! -f /tmp/common-proto.jar ]; then \
+    echo "❌ ERROR: common-proto.jar not found in /tmp"; \
+    ls -lah /tmp; \
+    exit 1; \
+    else \
+    echo "✅ common-proto.jar found:"; \
+    ls -lah /tmp/common-proto.jar; \
+    fi
+
+###############################################
+# 2️⃣ Install jar into local Maven repo
+###############################################
+RUN mvn install:install-file \
+    -Dfile=/tmp/common-proto.jar \
+    -DgroupId=com.gdn.training \
+    -DartifactId=common-proto \
+    -Dversion=0.0.1-SNAPSHOT \
+    -Dpackaging=jar
+
+###############################################
+# 3️⃣ Copy project source
+###############################################
 COPY src ./src
 
-RUN mvn -Dmaven.repo.local=/root/.m2/repository clean package -DskipTests
-
+###############################################
+# 4️⃣ Build project
+###############################################
+RUN mvn clean package -DskipTests
 
 ###########################################
 # 2. RUNTIME STAGE (Slim JRE 21)
@@ -22,14 +52,6 @@ WORKDIR /app
 
 # Copy JAR from builder
 COPY --from=builder /app/target/*.jar app.jar
-
-# Install wget and grpc_health_probe
-RUN apt-get update && \
-    apt-get install -y wget && \
-    wget -qO /bin/grpc_health_probe \
-    https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.24/grpc_health_probe-linux-amd64 && \
-    chmod +x /bin/grpc_health_probe && \
-    rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN groupadd -r appuser && \
@@ -42,10 +64,6 @@ EXPOSE 9096 8080
 # Environment variables
 ENV SPRING_PROFILES_ACTIVE=prod \
     JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 -XX:+UseG1GC"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD ["/bin/grpc_health_probe", "-addr=:9096"]
 
 # Run as non-root
 USER appuser
