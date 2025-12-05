@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: member-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/members/register
+        - id: member-service-authenticated
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/members/**
+        - id: product-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/products/**
+        - id: cart-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/cart/**
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # We will use a public key to verify the signature. 
+          # For now, let's assume we have the public key or a JWK Set URI.
+          # Since the Member service issues tokens, we can point to it or use a local key.
+          # For simplicity in this phase, I'll configure it to use a local public key file or just placeholder for now.
+          # Ideally: jwk-set-uri: http://localhost:8081/.well-known/jwks.json
+          # But since Member service isn't up yet, let's prepare the config.
+          # I'll generate a key pair for the project and use the public key here.
+          public-key-location: classpath:public.pem
+
+jwt:
+  private-key-location: classpath:private.pem
