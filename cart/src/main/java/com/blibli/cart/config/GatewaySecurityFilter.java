@@ -36,7 +36,7 @@ public class GatewaySecurityFilter implements Filter {
         String userId = httpRequest.getHeader(USER_ID_HEADER);
         String gatewaySignature = httpRequest.getHeader(GATEWAY_SIGNATURE_HEADER);
 
-        log.info("🔒 GatewaySecurityFilter executing - Path: {}, Method: {}, UserId: {}, HasSignature: {}", 
+        log.info("GatewaySecurityFilter executing - Path: {}, Method: {}, UserId: {}, HasSignature: {}",
             path, httpRequest.getMethod(), userId != null ? userId : "null", gatewaySignature != null ? "yes" : "no");
 
         // Skip validation for health check endpoints
@@ -59,6 +59,7 @@ public class GatewaySecurityFilter implements Filter {
             }
 
             // Verify signature matches
+            // checking gateway signature
             String expectedSignature = generateGatewaySignature(userId, path);
             if (!gatewaySignature.equals(expectedSignature)) {
                 log.error("SECURITY: Request rejected - Invalid gateway signature. Path: {}, IP: {}, Expected: {}, Received: {}", 
