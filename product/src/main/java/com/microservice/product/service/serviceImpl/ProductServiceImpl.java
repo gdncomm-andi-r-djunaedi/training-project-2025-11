@@ -9,6 +9,7 @@ import com.microservice.product.entity.Product;
 import com.microservice.product.exception.ResourceNotFoundException;
 import com.microservice.product.exception.ValidationException;
 import com.microservice.product.repository.ProductRepository;
+import com.microservice.product.service.ProductEventPublisher;
 import com.microservice.product.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +32,12 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     ProductRepository productRepository;
 
+    @Autowired
+    ProductEventPublisher productEventPublisher;
+
     @Override
     @Transactional
     public Page<ProductResponseDto> getProducts(Pageable pageable) {
-        log.info("Getting products with pagination - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
         Page<Product> productEntities = productRepository.findAll(pageable);
         log.info("Retrieved {} products from database (total: {})",
                 productEntities.getNumberOfElements(), productEntities.getTotalElements());
@@ -45,8 +48,6 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @Cacheable(value = "products", key = "'search:' + #searchTerm + ':page:' + #pageable.pageNumber + ':size:' + #pageable.pageSize")
     public Page<ProductResponseDto> getProductsBySearch(String searchTerm, Pageable pageable) {
-        log.info("Searching products with term: '{}', page: {}, size: {}",
-                searchTerm, pageable.getPageNumber(), pageable.getPageSize());
         Page<Product> productEntities = productRepository.findBySearchTerm(searchTerm, pageable);
         log.info("Found {} products matching search term '{}' (total: {})",
                 productEntities.getNumberOfElements(), searchTerm, productEntities.getTotalElements());
@@ -57,7 +58,6 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @Cacheable(value = "product", key = "#skuId")
     public ProductResponseDto getProductsById(String skuId) {
-        log.info("Getting product by SKU ID: {}", skuId);
         if(!productRepository.existsBySkuId(skuId)){
             log.warn("Product with SKU ID {} not found", skuId);
             throw new ResourceNotFoundException("Product", skuId);
@@ -71,15 +71,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductResponseDto addProduct(ProductDto productDto) {
-        log.info("Adding new product with SKU: {}, name: {}",
-                productDto.getSkuId(), productDto.getName());
-
         Product product = convertToEntity(productDto);
 
         Product savedProduct = productRepository.save(product);
         log.info("Successfully added product with ID: {}, SKU: {}",
                 savedProduct.getId(), savedProduct.getSkuId());
-        return convertToDto(savedProduct);
+        ProductResponseDto responseDto = convertToDto(savedProduct);
+        try {
+            productEventPublisher.publishProductCreated(responseDto);
+        } catch (Exception e) {
+            log.error("Failed to publish product created event for SKU: {}", savedProduct.getSkuId(), e);
+        }
+        return responseDto;
     }
 
     @Override
@@ -94,8 +97,6 @@ public class ProductServiceImpl implements ProductService {
             }
     )
     public ProductResponseDto updateProduct(String skuId, ProductDto productDto) {
-        log.info("Updating product with SKU ID: {}, new SKU: {}, new name: {}",
-                skuId, productDto.getSkuId(), productDto.getName());
         Product product = productRepository.findBySkuId(skuId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", skuId));
 
@@ -115,7 +116,14 @@ public class ProductServiceImpl implements ProductService {
 
         Product updatedProduct = productRepository.save(product);
         log.info("Successfully updated product with SKU ID: {}", updatedProduct.getSkuId());
-        return convertToDto(updatedProduct);
+        
+        ProductResponseDto responseDto = convertToDto(updatedProduct);
+        try {
+            productEventPublisher.publishProductUpdated(responseDto);
+        } catch (Exception e) {
+            log.error("Failed to publish product updated event for SKU: {}", updatedProduct.getSkuId(), e);
+        }
+        return responseDto;
     }
 
     @Override
@@ -123,18 +131,26 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = "product", key = "#skuId")
     public void deleteById(String skuId) {
         log.info("Deleting product with SKU ID: {}", skuId);
+
+        // Check if product exists before attempting to delete
         if (!productRepository.existsBySkuId(skuId)) {
             log.warn("Attempted to delete non-existent product with SKU ID: {}", skuId);
+            throw new ResourceNotFoundException("Product", skuId);
         }
+
         productRepository.deleteBySkuId(skuId);
         log.info("Successfully deleted product with SKU ID: {}", skuId);
+        try {
+            productEventPublisher.publishProductDeleted(skuId);
+        } catch (Exception e) {
+            log.error("Failed to publish product deleted event for SKU: {}", skuId, e);
+        }
     }
 
     @Override
     @Transactional
     @Cacheable(value = "product", key = "#skuId")
     public Boolean isProductIdPresent(String skuId) {
-        log.debug("Checking if product exists with SKU ID: {}", skuId);
         Boolean exists = productRepository.existsBySkuId(skuId);
         log.debug("Product with SKU ID {} exists: {}", skuId, exists);
         return exists;
@@ -143,8 +159,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public List<ProductResponseDto> getProductsBySkuIds(List<String> skuIds) {
-        log.info("Getting products by SKU IDs. Count: {}, SKUs: {}",
-                skuIds != null ? skuIds.size() : 0, skuIds);
         if (skuIds == null || skuIds.isEmpty()) {
             log.error("SKU IDs list is null or empty");
             throw new ValidationException("SKU IDs list cannot be null or empty");

@@ -46,7 +46,6 @@ public class ProductController {
         log.info("GET /api/products/searchByTerm - Request received. SearchTerm: '{}', Page: {}, Size: {}",
                 searchTerm, page, size);
         if(searchTerm == null || searchTerm.trim().isEmpty()){
-            log.error("GET /api/products/searchByTerm - Validation failed: Search term is empty");
             throw new ValidationException("Search term is required and cannot be empty");
         }
         Pageable pageable = PageRequest.of(page, size);
@@ -76,7 +75,6 @@ public class ProductController {
         log.info("POST /api/products/getSkusById - Request received. SKU IDs count: {}, SKUs: {}",
                 skuIds != null ? skuIds.size() : 0, skuIds);
         if (skuIds == null || skuIds.isEmpty()) {
-            log.error("POST /api/products/getSkusById - Validation failed: SKU IDs list is null or empty");
             throw new ValidationException("SKU IDs list cannot be null or empty");
         }
         List<ProductResponseDto> products = productService.getProductsBySkuIds(skuIds);
@@ -104,46 +102,37 @@ public class ProductController {
         log.info("POST /api/products/addProduct - Request received. SKU: {}, Name: {}",
                 productDto.getSkuId(), productDto.getName());
         if(productDto.getSkuId() == null || productDto.getSkuId().isBlank() || productDto.getSkuId().isEmpty()){
-            log.error("POST /api/products/addProduct - Validation failed: SKU ID is required");
             throw new ValidationException("skuId is required");
         }
         else if(productDto.getName() == null || productDto.getName().isEmpty() || productDto.getName().isBlank()) {
-            log.error("POST /api/products/addProduct - Validation failed: Name is required");
             throw new ValidationException("skuId Name is required");
         }
 
         else if(productDto.getPrice() == null || productDto.getPrice() <= 0 || productDto.getPrice().toString().isBlank() || productDto.getPrice().toString().isEmpty()) {
-            log.error("POST /api/products/addProduct - Validation failed: Price is invalid");
             throw new ValidationException("Price is required");
         }
 
         if (productDto.getItemCode() == null || productDto.getItemCode() <= 0) {
-            log.error("POST /api/products/addProduct - Validation failed: Item code is invalid");
             throw new ValidationException("Item code is required and must be > 0");
         }
 
         if (productDto.getLength() == null || productDto.getLength() <= 0) {
-            log.error("POST /api/products/addProduct - Validation failed: Length is invalid");
             throw new ValidationException("Length must be greater than 0");
         }
 
         if (productDto.getHeight() == null || productDto.getHeight() <= 0) {
-            log.error("POST /api/products/addProduct - Validation failed: Height is invalid");
             throw new ValidationException("Height must be greater than 0");
         }
 
         if (productDto.getWidth() == null || productDto.getWidth() <= 0) {
-            log.error("POST /api/products/addProduct - Validation failed: Width is invalid");
             throw new ValidationException("Width must be greater than 0");
         }
 
         if (productDto.getWeight() == null || productDto.getWeight() <= 0) {
-            log.error("POST /api/products/addProduct - Validation failed: Weight is invalid");
             throw new ValidationException("Weight must be greater than 0");
         }
 
         if (productDto.getDangerousLevel() == null) {
-            log.error("POST /api/products/addProduct - Validation failed: Dangerous level is null");
             throw new ValidationException("Dangerous level cannot be null");
         }
 
@@ -162,46 +151,37 @@ public class ProductController {
         log.info("POST /api/products/update/{} - Request received. New SKU: {}, New Name: {}",
                 skuId, productDto.getSkuId(), productDto.getName());
         if(productDto.getSkuId() == null || productDto.getSkuId().isBlank() || productDto.getSkuId().isEmpty()){
-            log.error("POST /api/products/update/{} - Validation failed: SKU ID is required", skuId);
             throw new ValidationException("skuId is required");
         }
         else if(productDto.getName() == null || productDto.getName().isEmpty() || productDto.getName().isBlank()) {
-            log.error("POST /api/products/update/{} - Validation failed: Name is required", skuId);
             throw new ValidationException("skuId Name is required");
         }
 
         else if(productDto.getPrice() == null || productDto.getPrice() <= 0 || productDto.getPrice().toString().isBlank() || productDto.getPrice().toString().isEmpty()) {
-            log.error("POST /api/products/update/{} - Validation failed: Price is invalid", skuId);
             throw new ValidationException("Price is required");
         }
 
         else if (productDto.getItemCode() == null || productDto.getItemCode() <= 0) {
-            log.error("POST /api/products/update/{} - Validation failed: Item code is invalid", skuId);
             throw new ValidationException("Item code is required and must be > 0");
         }
 
         else if (productDto.getLength() == null || productDto.getLength() <= 0) {
-            log.error("POST /api/products/update/{} - Validation failed: Length is invalid", skuId);
             throw new ValidationException("Length must be greater than 0");
         }
 
         else if (productDto.getHeight() == null || productDto.getHeight() <= 0) {
-            log.error("POST /api/products/update/{} - Validation failed: Height is invalid", skuId);
             throw new ValidationException("Height must be greater than 0");
         }
 
         else if (productDto.getWidth() == null || productDto.getWidth() <= 0) {
-            log.error("POST /api/products/update/{} - Validation failed: Width is invalid", skuId);
             throw new ValidationException("Width must be greater than 0");
         }
 
         else if (productDto.getWeight() == null || productDto.getWeight() <= 0) {
-            log.error("POST /api/products/update/{} - Validation failed: Weight is invalid", skuId);
             throw new ValidationException("Weight must be greater than 0");
         }
 
         else if (productDto.getDangerousLevel() == null) {
-            log.error("POST /api/products/update/{} - Validation failed: Dangerous level is null", skuId);
             throw new ValidationException("Dangerous level cannot be null");
         }
 
@@ -214,7 +194,7 @@ public class ProductController {
 
     @DeleteMapping("/delete/{skuId}")
     public ResponseEntity<ApiResponse<Boolean>> deleteById(
-            @PathVariable String skuId  // Changed from Long to String
+            @PathVariable String skuId
     ){
         log.info("DELETE /api/products/delete/{} - Request received", skuId);
         productService.deleteById(skuId);

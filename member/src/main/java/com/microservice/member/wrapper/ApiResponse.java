@@ -40,29 +40,6 @@ public class ApiResponse<T> implements Serializable {
         );
     }
 
-    public static <T> ApiResponse<T> success(T data) {
-        return success(data, HttpStatus.OK);
-    }
-
-    public static <T> ApiResponse<T> error(String errorMessage,
-                                           String errorCode,
-                                           HttpStatus httpStatus) {
-        return new ApiResponse<>(
-                false,
-                errorMessage,
-                errorCode,
-                httpStatus.value(),
-                httpStatus.getReasonPhrase(),
-                Instant.now(),
-                null
-        );
-    }
-
-    public static <T> ApiResponse<T> error(String errorMessage,
-                                           String errorCode) {
-        return error(errorMessage, errorCode, HttpStatus.BAD_REQUEST);
-    }
-
     @Override
     public String toString() {
         return String.format(

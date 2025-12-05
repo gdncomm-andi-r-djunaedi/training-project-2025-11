@@ -49,7 +49,9 @@ public class MemberServiceImpl implements MemberService {
 
             Member member = new Member();
             member.setName(registerRequestDto.getName().trim());
-            member.setAddress(registerRequestDto.getAddress() != null ? registerRequestDto.getAddress().trim() : null);
+            member.setAddress(registerRequestDto.getAddress() != null && !registerRequestDto.getAddress().trim().isEmpty()
+                    ? registerRequestDto.getAddress().trim()
+                    : null);
             member.setPhoneNumber(registerRequestDto.getPhoneNumber().trim());
             member.setEmail(registerRequestDto.getEmail().trim().toLowerCase()); // Normalize email
             member.setCreatedAt(new Date());
@@ -89,22 +91,31 @@ public class MemberServiceImpl implements MemberService {
     public MemberLogInResponseDto validateUser(LoginRequestDto loginRequestDto) {
         log.info("Validating login for email: {}", loginRequestDto.getEmail());
 
-        Member member = memberRepository.findByEmail(loginRequestDto.getEmail());
+        try {
+            Member member = memberRepository.findByEmail(loginRequestDto.getEmail());
 
-        if (member == null) {
-            log.warn("Login failed: User not found with email: {}", loginRequestDto.getEmail());
-            throw new ValidationException("User Not Found");
+            if (member == null) {
+                log.warn("Login failed: User not found with email: {}", loginRequestDto.getEmail());
+                throw new ValidationException("User Not Found");
+            }
+
+            if (!encoder.matches(loginRequestDto.getPassword(), member.getPasswordHash())) {
+                log.warn("Login failed: Incorrect password for email: {}", loginRequestDto.getEmail());
+                throw new ValidationException("Incorrect Password");
+            }
+
+            log.info("User logged in successfully with ID: {}", member.getId());
+            MemberLogInResponseDto memberLogInResponseDto = new MemberLogInResponseDto();
+            memberLogInResponseDto.setIsMember(Boolean.TRUE);
+            memberLogInResponseDto.setUserId(member.getId());
+            return memberLogInResponseDto;
+
+        } catch (ValidationException e) {
+            log.error("Login validation failed: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during login validation for email: {}", loginRequestDto.getEmail(), e);
+            throw new ValidationException("Login failed due to an unexpected error. Please try again later.");
         }
-
-        if (!encoder.matches(loginRequestDto.getPassword(), member.getPasswordHash())) {
-            log.warn("Login failed: Incorrect password for email: {}", loginRequestDto.getEmail());
-            throw new ValidationException("Incorrect Password");
-        }
-
-        log.info("User logged in successfully with ID: {}", member.getId());
-        MemberLogInResponseDto memberLogInResponseDto = new MemberLogInResponseDto();
-        memberLogInResponseDto.setIsMember(Boolean.TRUE);
-        memberLogInResponseDto.setUserId(member.getId());
-        return memberLogInResponseDto;
     }
 }
