@@ -1,0 +1,40 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /product-service
+
+spring:
+  application:
+    name: product-service
+  data:
+    mongodb:
+      uri: mongodb://mongo_admin:%211Password@homelab.gosoft.web.id:27017/product?authSource=admin
+      database: product
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Spring Boot Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# JavaMelody Monitoring Configuration
+javamelody:
+  enabled: true
+  excluded-datasources: none
+  spring-monitoring-enabled: true
+  init-parameters:
+    monitoring-path: /monitoring
+    storage-directory: /tmp/javamelody/product-service
+    resolution-seconds: 60
+    log: true
+    url-exclude-pattern: (/webjars/.*|/css/.*|/js/.*|/images/.*|/favicon\.ico|/actuator/.*)

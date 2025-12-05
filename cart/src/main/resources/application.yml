@@ -1,0 +1,43 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: cart-service
+  datasource:
+    url: jdbc:postgresql://homelab.gosoft.web.id:5432/order
+    driverClassName: org.postgresql.Driver
+    username: admin_db
+    password: Password
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Spring Boot Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# JavaMelody Monitoring Configuration
+javamelody:
+  enabled: true
+  excluded-datasources: none
+  spring-monitoring-enabled: true
+  init-parameters:
+    monitoring-path: /monitoring
+    storage-directory: /tmp/javamelody/cart-service
+    resolution-seconds: 60
+    log: true
+    url-exclude-pattern: (/webjars/.*|/css/.*|/js/.*|/images/.*|/favicon\.ico|/actuator/.*)
