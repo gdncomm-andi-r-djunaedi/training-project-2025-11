@@ -29,18 +29,14 @@ class GetMemberDetailCommandTest {
 
   @Test
   void testExecute_MemberFound() {
-    // Arrange
     Member member = new Member();
     member.setId(1L);
     member.setUsername("user1");
     member.setEmail("user1@example.com");
 
     when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
-
-    // Act
     Member result = getMemberDetailCommand.execute(1L);
 
-    // Assert
     assertNotNull(result);
     assertEquals(1L, result.getId());
     assertEquals("user1", result.getUsername());
@@ -51,10 +47,8 @@ class GetMemberDetailCommandTest {
 
   @Test
   void testExecute_MemberNotFound() {
-    // Arrange
     when(memberRepository.findById(2L)).thenReturn(Optional.empty());
 
-    // Act & Assert
     MemberNotFoundException exception = assertThrows(MemberNotFoundException.class,
         () -> getMemberDetailCommand.execute(2L));
     assertEquals("Member not found with id: 2", exception.getMessage());

@@ -65,8 +65,8 @@ class AuthControllerIntegrationTest {
   @Test
   void testRegister_UsernameExists_ShouldReturnError() throws Exception {
     RegisterRequest request = new RegisterRequest();
-    request.setUsername("cart");
-    request.setEmail("cart@mail.com");
+    request.setUsername("user");
+    request.setEmail("user@mail.com");
     request.setPassword("password");
 
     doThrow(new UsernameAlreadyExistsException("Username already exists")).when(
@@ -82,8 +82,8 @@ class AuthControllerIntegrationTest {
   @Test
   void testRegister_EmailExists_ShouldReturnError() throws Exception {
     RegisterRequest request = new RegisterRequest();
-    request.setUsername("cart");
-    request.setEmail("cart@mail.com");
+    request.setUsername("user");
+    request.setEmail("user@mail.com");
     request.setPassword("password");
 
     doThrow(new EmailAlreadyExistsException("Email already exists")).when(registerMemberCommand)
@@ -99,8 +99,8 @@ class AuthControllerIntegrationTest {
   @Test
   void testRegister_Success() throws Exception {
     RegisterRequest request = new RegisterRequest();
-    request.setUsername("cart");
-    request.setEmail("cart@mail.com");
+    request.setUsername("user");
+    request.setEmail("user@mail.com");
     request.setPassword("password");
 
     mockMvc.perform(post("/register").contentType(MediaType.APPLICATION_JSON)
@@ -113,12 +113,12 @@ class AuthControllerIntegrationTest {
   @Test
   void testLogin_Success() throws Exception {
     LoginRequest request = new LoginRequest();
-    request.setUsername("cart");
+    request.setUsername("user");
     request.setPassword("password");
 
     UserResponse userResponse = new UserResponse();
     userResponse.setId(1L);
-    userResponse.setUsername("cart");
+    userResponse.setUsername("user");
 
     ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
         .success(true)
@@ -135,7 +135,7 @@ class AuthControllerIntegrationTest {
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.message").value("Login successful"))
         .andExpect(jsonPath("$.data.id").value(1))
-        .andExpect(jsonPath("$.data.username").value("cart"));
+        .andExpect(jsonPath("$.data.username").value("user"));
   }
 
   @Test
@@ -158,7 +158,7 @@ class AuthControllerIntegrationTest {
   @Test
   void testLogin_InvalidPassword() throws Exception {
     LoginRequest request = new LoginRequest();
-    request.setUsername("cart");
+    request.setUsername("user");
     request.setPassword("wrongpassword");
 
     when(loginMemberCommand.execute(any(LoginRequest.class))).thenThrow(new InvalidPasswordException());

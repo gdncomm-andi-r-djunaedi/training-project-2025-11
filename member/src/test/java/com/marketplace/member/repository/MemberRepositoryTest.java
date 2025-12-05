@@ -22,10 +22,8 @@ class MemberRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Clear repository before each test
         memberRepository.deleteAll();
 
-        // Prepare a sample member
         member1 = new Member();
         member1.setUsername("user1");
         member1.setEmail("user1@example.com");

@@ -36,7 +36,6 @@ class LoginMemberCommandTest {
 
   @Test
   void testExecute_LoginSuccess() {
-    // Arrange
     LoginRequest request = new LoginRequest();
     request.setUsername("user1");
     request.setPassword("password123");
@@ -49,10 +48,8 @@ class LoginMemberCommandTest {
     when(memberRepository.findByUsername("user1")).thenReturn(Optional.of(member));
     when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
 
-    // Act
     ApiResponse<UserResponse> response = loginMemberCommand.execute(request);
 
-    // Assert
     assertTrue(response.isSuccess());
     assertEquals("Login success", response.getMessage());
     assertNotNull(response.getData());
@@ -65,14 +62,11 @@ class LoginMemberCommandTest {
 
   @Test
   void testExecute_UserNotFound() {
-    // Arrange
     LoginRequest request = new LoginRequest();
     request.setUsername("nonexistent");
     request.setPassword("password123");
 
     when(memberRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
-
-    // Act & Assert
     UserNotFoundException exception =
         assertThrows(UserNotFoundException.class, () -> loginMemberCommand.execute(request));
 
@@ -85,7 +79,6 @@ class LoginMemberCommandTest {
 
   @Test
   void testExecute_InvalidPassword() {
-    // Arrange
     LoginRequest request = new LoginRequest();
     request.setUsername("user1");
     request.setPassword("wrongPassword");
@@ -98,7 +91,6 @@ class LoginMemberCommandTest {
     when(memberRepository.findByUsername("user1")).thenReturn(Optional.of(member));
     when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
 
-    // Act & Assert
     RuntimeException exception =
         assertThrows(RuntimeException.class, () -> loginMemberCommand.execute(request));
     assertEquals("Invalid password", exception.getMessage());

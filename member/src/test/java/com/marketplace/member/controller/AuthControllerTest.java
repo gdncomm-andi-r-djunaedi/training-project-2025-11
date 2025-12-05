@@ -40,18 +40,14 @@ class AuthControllerTest {
 
   @Test
   void testRegister_Success() {
-    // Arrange
     RegisterRequest request = new RegisterRequest();
     request.setUsername("user1");
     request.setEmail("user1@example.com");
     request.setPassword("password123");
 
     when(registerMemberCommand.execute(request)).thenReturn("User registered successfully");
-
-    // Act
     ResponseEntity<Map<String, Object>> response = authController.register(request);
 
-    // Assert
     assertNotNull(response);
     assertEquals(201, response.getStatusCodeValue());
     assertTrue((Boolean) response.getBody().get("success"));
@@ -63,7 +59,6 @@ class AuthControllerTest {
 
   @Test
   void testLogin_Success() {
-    // Arrange
     LoginRequest request = new LoginRequest();
     request.setUsername("user1");
     request.setPassword("password123");
@@ -77,10 +72,8 @@ class AuthControllerTest {
 
     when(loginMemberCommand.execute(request)).thenReturn(apiResponse);
 
-    // Act
     ApiResponse<UserResponse> response = authController.login(request);
 
-    // Assert
     assertNotNull(response);
     assertTrue(response.isSuccess());
     assertEquals("Login success", response.getMessage());
@@ -92,14 +85,11 @@ class AuthControllerTest {
 
   @Test
   void testLogin_Failure() {
-    // Arrange
     LoginRequest request = new LoginRequest();
     request.setUsername("user1");
     request.setPassword("wrongPassword");
 
     when(loginMemberCommand.execute(request)).thenThrow(new RuntimeException("Invalid password"));
-
-    // Act & Assert
     RuntimeException exception =
         assertThrows(RuntimeException.class, () -> authController.login(request));
     assertEquals("Invalid password", exception.getMessage());
