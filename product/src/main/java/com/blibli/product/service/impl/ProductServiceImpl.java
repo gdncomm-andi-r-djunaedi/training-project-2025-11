@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Caching(
             put = {
-                    @CachePut(value = "productById", key = "#result.id"),
+                    @CachePut(value = "productById", key = "'product:id:' + #result.id"),
                     @CachePut(value = "productBySku", key = "'product:sku:' + #result.sku.toUpperCase()")
             },
             evict = {
@@ -83,13 +83,23 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(saved);
     }
 
+//    @Caching(
+//            put = {
+//                    @CachePut(value = "productById", key = "#id"),
+//                    @CachePut(value = "productBySku", key = "'product:sku:' + #result.sku.toUpperCase()")
+//            },
+//            evict = {
+//                    @CacheEvict(value = {"productBySku", "productList", "productByCategory"}, allEntries = true)
+//            }
+//    )
+
     @Caching(
             put = {
-                    @CachePut(value = "productById", key = "#id"),
+                    @CachePut(value = "productById", key = "'product:id:' + #id"),
                     @CachePut(value = "productBySku", key = "'product:sku:' + #result.sku.toUpperCase()")
             },
             evict = {
-                    @CacheEvict(value = {"productBySku", "productList", "productByCategory"}, allEntries = true)
+                    @CacheEvict(value = {"productList", "productByCategory"}, allEntries = true)
             }
     )
     public ProductResponse updateProduct(String id, ProductRequest request) {

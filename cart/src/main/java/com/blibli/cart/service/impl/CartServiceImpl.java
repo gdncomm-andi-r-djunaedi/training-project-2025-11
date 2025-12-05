@@ -18,6 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Iterator;
@@ -59,6 +60,33 @@ public class CartServiceImpl implements CartService {
         // feign call from product service
         ProductResponse product = fetchProductById(request.getProductId());
         //checking price and quantity in product service
+
+
+
+        // fix cart issue with invalid sku
+
+
+        if (request.getSku() != null && !request.getSku().trim().isEmpty()) {
+            String providedSku = request.getSku().trim().toUpperCase();
+            String productSku = product.getSku() != null ? product.getSku().trim().toUpperCase() : null;
+
+            if (productSku == null) {
+                log.warn("Product {} does not have a SKU", product.getId());
+                throw new BadRequestException("Product does not have a SKU assigned");
+            }
+
+            if (!providedSku.equals(productSku)) {
+                log.warn("SKU mismatch for product {}: provided SKU '{}' does not match product SKU '{}'",
+                        product.getId(), providedSku, productSku);
+                throw new BadRequestException(
+                        String.format("Invalid SKU. Provided SKU '%s' does not match product SKU '%s'",
+                                providedSku, productSku));
+            }
+
+            log.debug("SKU validated successfully for product {}: {}", product.getId(), providedSku);
+        }
+
+
         validateProduct(product, request.getQuantity());
 
         Cart cart = getCartFromCache(userId);
@@ -105,27 +133,98 @@ public class CartServiceImpl implements CartService {
         Cart cart = getCartFromCache(userId);
         boolean updated = false;
 
-        for (CartItem item : cart.getItems()) {
-            ProductResponse product = productClient.getProductById(item.getProductId()).getData();
-            if (product != null) {
-                boolean itemUpdated = false;
-                if (!item.getPrice().equals(product.getPrice())) {
-                    item.setPrice(product.getPrice());
-                    itemUpdated = true;
-                }
-                if (itemUpdated) {
+//        for (CartItem item : cart.getItems()) {
+//            ProductResponse product = productClient.getProductById(item.getProductId()).getData();
+//            if (product != null) {
+//                boolean itemUpdated = false;
+//                if (!item.getPrice().equals(product.getPrice())) {
+//                    item.setPrice(product.getPrice());
+//                    itemUpdated = true;
+//                }
+//                if (itemUpdated) {
+//                    updated = true;
+//                    item.setAddedAt(new Date());
+//                }
+//
+//            }
+//            }
+
+        // Use iterator to safely remove items during iteration
+        Iterator<CartItem> iterator = cart.getItems().iterator();
+
+        while (iterator.hasNext()) {
+            CartItem item = iterator.next();
+
+            try {
+                ProductResponse product = productClient.getProductById(item.getProductId()).getData();
+
+                if (product == null) {
+                    // Product deleted - remove from cart
+                    log.warn("Product {} not found, removing from cart", item.getProductId());
+                    iterator.remove();
                     updated = true;
+                    continue;
+                }
+
+                // heck stock availability
+                if (product.getStockQuantity() != null && product.getStockQuantity() <= 0) {
+                    // Product out of stock - remove from cart
+                    log.warn("Product {} out of stock, removing from cart", item.getProductId());
+                    iterator.remove();
+                    updated = true;
+                    continue;
+                }
+
+                // just quantity if exceeds available stock
+                if (product.getStockQuantity() != null && item.getQuantity() > product.getStockQuantity()) {
+                    log.warn("Cart quantity {} exceeds available stock {} for product {}, adjusting quantity",
+                            item.getQuantity(), product.getStockQuantity(), item.getProductId());
+                    item.setQuantity(product.getStockQuantity());
+                    updated = true;
+                }
+
+                //Update price if changed
+                if (product.getPrice() != null) {
+                    if (item.getPrice() == null ||
+                            item.getPrice().compareTo(product.getPrice()) != 0) {
+                        log.info("Price updated for product {}: {} -> {}",
+                                item.getProductId(), item.getPrice(), product.getPrice());
+                        item.setPrice(product.getPrice());
+                        updated = true;
+                    }
+                }
+
+                //Update product metadata (name, SKU)
+                if (product.getName() != null && !product.getName().equals(item.getName())) {
+                    item.setName(product.getName());
+                    updated = true;
+                }
+
+                if (product.getSku() != null && !product.getSku().equals(item.getSku())) {
+                    item.setSku(product.getSku());
+                    updated = true;
+                }
+
+                // Update addedAt timestamp if any changes were made
+                if (updated) {
                     item.setAddedAt(new Date());
                 }
 
+            } catch (Exception e) {
+                log.error("Failed to fetch product {} for cart sync: {}",
+                        item.getProductId(), e.getMessage());
             }
-            }
+        }
 
         if (updated) {
             cart.setUpdatedAt(new Date());
             cartRepository.save(cart);
             cacheCartInRedis(userId, cart);
         }
+        else {
+            refreshCartTTL(userId);
+        }
+
 
 
         return mapToResponse(cart);
@@ -243,6 +342,11 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    private void refreshCartTTL(String userId) {
+        String key = CART_KEY_PREFIX + userId;
+        redisTemplate.expire(key, Duration.ofHours(24));
+    }
+
     private CartResponseDTO mapToResponse(Cart cart) {
         List<CartItemResponseDTO> items = cart.getItems().stream()
                 .map(this::mapItemToResponse)
@@ -268,7 +372,7 @@ public class CartServiceImpl implements CartService {
     public CartResponseDTO mapToResponse(Cart cart, CartItem onlyThisItem) {
         // Return only the added/updated item (not the entire cart)
         CartItemResponseDTO itemResponse = mapItemToResponse(onlyThisItem);
-        
+
         List<CartItemResponseDTO> items = List.of(itemResponse);
 
         // Calculate totals from the single item
