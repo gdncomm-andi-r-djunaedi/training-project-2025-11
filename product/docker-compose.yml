@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongodb6_trainingDev
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis_trainingDev
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongo_data:
+  pgdata13:
+  redis_data:
+
+
