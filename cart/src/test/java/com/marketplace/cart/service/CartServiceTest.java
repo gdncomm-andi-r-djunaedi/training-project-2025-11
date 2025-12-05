@@ -1,8 +1,10 @@
 package com.marketplace.cart.service;
 
 import com.marketplace.cart.cache.CartCache;
+import com.marketplace.cart.client.ProductClient;
 import com.marketplace.cart.dto.AddToCartRequest;
 import com.marketplace.cart.dto.CartResponse;
+import com.marketplace.cart.dto.ProductDTO;
 import com.marketplace.cart.dto.UpdateCartItemRequest;
 import com.marketplace.cart.mapper.CartMapper;
 import com.marketplace.cart.repository.CartRepository;
@@ -20,12 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,12 +44,16 @@ class CartServiceTest {
     @Mock
     private CartMapper cartMapper;
 
+    @Mock
+    private ProductClient productClient;
+
     @InjectMocks
     private CartService cartService;
 
     private CartCache cartCache;
     private CartResponse cartResponse;
     private AddToCartRequest addToCartRequest;
+    private ProductDTO productDTO;
 
     @BeforeEach
     void setUp() {
@@ -67,9 +75,15 @@ class CartServiceTest {
 
         addToCartRequest = AddToCartRequest.builder()
                 .productId("prod-001")
-                .productName("Test Product")
-                .price(BigDecimal.valueOf(99.99))
                 .quantity(2)
+                .build();
+
+        productDTO = ProductDTO.builder()
+                .id("prod-001")
+                .name("Test Product")
+                .price(BigDecimal.valueOf(99.99))
+                .images(List.of("https://example.com/image.jpg"))
+                .active(true)
                 .build();
     }
 
@@ -111,6 +125,7 @@ class CartServiceTest {
         void shouldAddNewItemToCart() {
             // Given
             UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+            when(productClient.getProductByIdOrThrow(anyString())).thenReturn(productDTO);
             when(cartCacheService.getCart(any(UUID.class))).thenReturn(Optional.of(cartCache));
             when(cartMapper.mapCacheToResponse(any(CartCache.class))).thenReturn(cartResponse);
 
@@ -119,6 +134,7 @@ class CartServiceTest {
 
             // Then
             assertThat(result).isNotNull();
+            verify(productClient).getProductByIdOrThrow("prod-001");
             verify(cartCacheService).saveCart(any(CartCache.class));
         }
 
@@ -135,6 +151,7 @@ class CartServiceTest {
             cartCache.getItems().add(existingItem);
             UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
+            when(productClient.getProductByIdOrThrow(anyString())).thenReturn(productDTO);
             when(cartCacheService.getCart(any(UUID.class))).thenReturn(Optional.of(cartCache));
             when(cartMapper.mapCacheToResponse(any(CartCache.class))).thenReturn(cartResponse);
 
@@ -144,6 +161,33 @@ class CartServiceTest {
             // Then
             assertThat(existingItem.getQuantity()).isEqualTo(3); // 1 + 2
             verify(cartCacheService).saveCart(any(CartCache.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when product not found")
+        void shouldThrowExceptionWhenProductNotFound() {
+            // Given
+            UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+            when(productClient.getProductByIdOrThrow(anyString()))
+                    .thenThrow(ResourceNotFoundException.of("Product", "prod-001"));
+
+            // When/Then
+            assertThatThrownBy(() -> cartService.addToCart(memberId, addToCartRequest))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when product is inactive")
+        void shouldThrowExceptionWhenProductInactive() {
+            // Given
+            UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+            productDTO.setActive(false);
+            when(productClient.getProductByIdOrThrow(anyString())).thenReturn(productDTO);
+
+            // When/Then
+            assertThatThrownBy(() -> cartService.addToCart(memberId, addToCartRequest))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("not available");
         }
     }
 
@@ -168,6 +212,7 @@ class CartServiceTest {
                     .build();
             UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
+            when(productClient.getProductByIdOrThrow(anyString())).thenReturn(productDTO);
             when(cartCacheService.getCart(any(UUID.class))).thenReturn(Optional.of(cartCache));
             when(cartMapper.mapCacheToResponse(any(CartCache.class))).thenReturn(cartResponse);
 
@@ -188,6 +233,7 @@ class CartServiceTest {
                     .build();
             UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
+            when(productClient.getProductByIdOrThrow(anyString())).thenReturn(productDTO);
             when(cartCacheService.getCart(any(UUID.class))).thenReturn(Optional.empty());
 
             // When/Then
@@ -222,6 +268,7 @@ class CartServiceTest {
             cartCache.getItems().add(item2);
             UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
+            when(productClient.productExists(anyString())).thenReturn(true);
             when(cartCacheService.getCart(any(UUID.class))).thenReturn(Optional.of(cartCache));
             when(cartMapper.mapCacheToResponse(any(CartCache.class))).thenReturn(cartResponse);
 
@@ -238,6 +285,7 @@ class CartServiceTest {
         void shouldThrowExceptionWhenItemNotFound() {
             // Given
             UUID memberId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+            when(productClient.productExists(anyString())).thenReturn(true);
             when(cartCacheService.getCart(any(UUID.class))).thenReturn(Optional.of(cartCache));
 
             // When/Then
@@ -246,4 +294,3 @@ class CartServiceTest {
         }
     }
 }
-

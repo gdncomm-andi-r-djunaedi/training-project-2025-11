@@ -42,6 +42,9 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
 
+product-service:
+  url: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+
 logging:
   level:
     com.marketplace: DEBUG

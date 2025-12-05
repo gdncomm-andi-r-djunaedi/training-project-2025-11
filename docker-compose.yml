@@ -134,11 +134,14 @@ services:
       - POSTGRES_PASSWORD=postgres
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://product-service:8082
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      product-service:
+        condition: service_started
     networks:
       - marketplace-network
 

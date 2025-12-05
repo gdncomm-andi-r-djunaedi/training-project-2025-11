@@ -1,6 +1,7 @@
 package com.marketplace.cart.service;
 
 import com.marketplace.cart.cache.CartCache;
+import com.marketplace.cart.client.ProductClient;
 import com.marketplace.cart.dto.*;
 import com.marketplace.cart.entity.Cart;
 import com.marketplace.cart.entity.CartItem;
@@ -26,6 +27,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartCacheService cartCacheService;
     private final CartMapper cartMapper;
+    private final ProductClient productClient;
 
     public CartResponse getCart(UUID memberId) {
         validateMemberId(memberId);
@@ -62,6 +64,15 @@ public class CartService {
         validateMemberId(memberId);
         log.info("Adding product {} to cart for member: {}", request.getProductId(), memberId);
 
+        // Validate product exists and get product details from product-service
+        ProductDTO product = productClient.getProductByIdOrThrow(request.getProductId());
+        log.debug("Product validated: {} - {}", product.getId(), product.getName());
+
+        // Check if product is active
+        if (product.getActive() != null && !product.getActive()) {
+            throw new IllegalArgumentException("Product is not available: " + request.getProductId());
+        }
+
         // Get or create cart cache
         CartCache cache = cartCacheService.getCart(memberId)
                 .orElse(CartCache.builder()
@@ -78,14 +89,18 @@ public class CartService {
         if (existingItem.isPresent()) {
             // Update quantity
             existingItem.get().setQuantity(existingItem.get().getQuantity() + request.getQuantity());
+            // Update price in case it changed
+            existingItem.get().setPrice(product.getPrice());
+            existingItem.get().setProductName(product.getName());
+            existingItem.get().setProductImage(product.getFirstImage());
         } else {
-            // Add new item
+            // Add new item with product details from product-service
             CartCache.CartItemCache newItem = CartCache.CartItemCache.builder()
-                    .productId(request.getProductId())
-                    .productName(request.getProductName())
-                    .price(request.getPrice())
+                    .productId(product.getId())
+                    .productName(product.getName())
+                    .price(product.getPrice())
                     .quantity(request.getQuantity())
-                    .productImage(request.getProductImage())
+                    .productImage(product.getFirstImage())
                     .build();
             cache.getItems().add(newItem);
         }
@@ -103,6 +118,9 @@ public class CartService {
         validateMemberId(memberId);
         log.info("Updating cart item {} for member: {}", productId, memberId);
 
+        // Validate product exists in product-service
+        ProductDTO product = productClient.getProductByIdOrThrow(productId);
+
         CartCache cache = cartCacheService.getCart(memberId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Cart", memberId));
 
@@ -119,6 +137,10 @@ public class CartService {
             cache.getItems().remove(existingItem.get());
         } else {
             existingItem.get().setQuantity(request.getQuantity());
+            // Update price in case it changed
+            existingItem.get().setPrice(product.getPrice());
+            existingItem.get().setProductName(product.getName());
+            existingItem.get().setProductImage(product.getFirstImage());
         }
 
         cache.setDirty(true);
@@ -144,11 +166,16 @@ public class CartService {
         validateMemberId(memberId);
         log.info("Removing product {} from cart for member: {}", productId, memberId);
 
+        // Validate product exists in product-service (optional, can skip for delete)
+        if (!productClient.productExists(productId)) {
+            log.warn("Product {} does not exist in product-service, but proceeding with removal from cart", productId);
+        }
+
         CartCache cache = cartCacheService.getCart(memberId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Cart", memberId));
 
         boolean removed = cache.getItems().removeIf(item -> item.getProductId().equals(productId));
-        
+
         if (!removed) {
             throw ResourceNotFoundException.of("Cart item", productId);
         }
@@ -180,9 +207,7 @@ public class CartService {
         log.info("Deleting cart for member: {}", memberId);
 
         // Delete from database
-        cartRepository.findByMemberId(memberId).ifPresent(cart -> {
-            cartRepository.delete(cart);
-        });
+        cartRepository.findByMemberId(memberId).ifPresent(cartRepository::delete);
 
         // Delete from cache
         cartCacheService.deleteCart(memberId);
@@ -253,4 +278,3 @@ public class CartService {
         }
     }
 }
-

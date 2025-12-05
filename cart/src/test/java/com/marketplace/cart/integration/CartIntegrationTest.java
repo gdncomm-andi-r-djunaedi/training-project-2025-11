@@ -1,13 +1,16 @@
 package com.marketplace.cart.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.marketplace.cart.client.ProductClient;
 import com.marketplace.cart.dto.AddToCartRequest;
+import com.marketplace.cart.dto.ProductDTO;
 import com.marketplace.cart.dto.UpdateCartItemRequest;
 import com.marketplace.cart.repository.CartRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -19,7 +22,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -58,12 +64,34 @@ class CartIntegrationTest {
     @Autowired
     private CartRepository cartRepository;
 
+    @MockBean
+    private ProductClient productClient;
+
     private static final String TEST_MEMBER_ID = "550e8400-e29b-41d4-a716-446655440000";
     private static final String TEST_PRODUCT_ID = "prod-001";
 
     @BeforeEach
     void setUp() {
-        // Clean up before each test
+        // Setup mock product client
+        ProductDTO product1 = ProductDTO.builder()
+                .id(TEST_PRODUCT_ID)
+                .name("Test Product")
+                .price(BigDecimal.valueOf(99.99))
+                .images(List.of("https://example.com/image.jpg"))
+                .active(true)
+                .build();
+
+        ProductDTO product2 = ProductDTO.builder()
+                .id("prod-002")
+                .name("Another Product")
+                .price(BigDecimal.valueOf(49.99))
+                .images(List.of("https://example.com/image2.jpg"))
+                .active(true)
+                .build();
+
+        when(productClient.getProductByIdOrThrow(TEST_PRODUCT_ID)).thenReturn(product1);
+        when(productClient.getProductByIdOrThrow("prod-002")).thenReturn(product2);
+        when(productClient.productExists(anyString())).thenReturn(true);
     }
 
     @Test
@@ -84,8 +112,6 @@ class CartIntegrationTest {
     void shouldAddItemToCart() throws Exception {
         AddToCartRequest request = AddToCartRequest.builder()
                 .productId(TEST_PRODUCT_ID)
-                .productName("Test Product")
-                .price(BigDecimal.valueOf(99.99))
                 .quantity(2)
                 .build();
 
@@ -133,8 +159,6 @@ class CartIntegrationTest {
     void shouldAddAnotherItemToCart() throws Exception {
         AddToCartRequest request = AddToCartRequest.builder()
                 .productId("prod-002")
-                .productName("Another Product")
-                .price(BigDecimal.valueOf(49.99))
                 .quantity(1)
                 .build();
 
@@ -177,4 +201,3 @@ class CartIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Cart cleared"));
     }
 }
-
