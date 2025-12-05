@@ -1,0 +1,40 @@
+package com.marketplace.member.controller;
+
+import com.marketplace.member.command.GetMemberDetailCommand;
+import com.marketplace.member.command.LoginMemberCommand;
+import com.marketplace.member.command.RegisterMemberCommand;
+import com.marketplace.member.model.ApiResponse;
+import com.marketplace.member.model.LoginRequest;
+import com.marketplace.member.model.RegisterRequest;
+import com.marketplace.member.model.UserResponse;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+public class AuthController {
+  @Autowired
+  private RegisterMemberCommand registerMemberCommand;
+
+  @Autowired
+  LoginMemberCommand loginMemberCommand;
+
+  @Autowired
+  GetMemberDetailCommand getMemberDetailCommand;
+
+  @PostMapping("/register")
+  public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request) {
+    registerMemberCommand.execute(request);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(Map.of("success", true, "message", "User registered successfully"));
+  }
+
+  @PostMapping("/login")
+  public ApiResponse<UserResponse> login(@RequestBody LoginRequest request) {
+    return loginMemberCommand.execute(request);
+  }
+}
