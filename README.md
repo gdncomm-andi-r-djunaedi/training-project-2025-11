@@ -2,6 +2,8 @@
 
 A comprehensive microservices-based online marketplace platform built with Java and Spring Boot, featuring authentication, product search, and shopping cart functionality.
 
+https://gdncomm.atlassian.net/wiki/pages/resumedraft.action?draftId=1803812923&draftShareId=af4eda1c-c07e-4bbe-ae3e-80d2cd1c13cd
+
 ## Architecture Overview
 
 The platform consists of 4 microservices:
@@ -16,8 +18,8 @@ The platform consists of 4 microservices:
 - **Framework**: Spring Boot 3.4.12
 - **Language**: Java 21
 - **Databases**:
-  - PostgreSQL (Member & Cart services)
-  - MongoDB (Product service)
+  - PostgreSQL (Member)
+  - MongoDB (Product service & cart Service)
   - Redis (Caching & Token blacklist)
 - **Security**: Spring Security with JWT (JWS)
 - **API Gateway**: Spring Cloud Gateway
@@ -300,11 +302,11 @@ training-project-2025-11/
 
 ## Database Design
 
-### PostgreSQL (Member & Cart)
+### PostgreSQL (Member)
 - **members**: User accounts with hashed passwords
 - **cart_items**: Shopping cart items linked to members
 
-### MongoDB (Product)
+### MongoDB (Product & Cart)
 - **products**: Product catalog with text indexes for search
 
 ### Redis
