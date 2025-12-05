@@ -17,21 +17,19 @@
     </properties>
 
     <dependencies>
-        <!-- Needed for @Generated on Java 21 -->
+        <!-- required for javax.annotation.Generated -->
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
         </dependency>
 
-        <!-- Protobuf runtime -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.version}</version>
         </dependency>
 
-        <!-- gRPC runtime -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
@@ -43,12 +41,9 @@
             <artifactId>grpc-protobuf</artifactId>
             <version>${grpc.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/java</sourceDirectory>
-
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>
@@ -59,25 +54,19 @@
 
         <plugins>
 
-            <!-- Protobuf / gRPC -->
-
+            <!-- Protobuf + gRPC Codegen -->
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
                 <configuration>
-
                     <protocArtifact>
                         com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}
                     </protocArtifact>
-
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>
                         io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
                     </pluginArtifact>
-
-                    <protoSourceRoot>${project.basedir}/src/main/proto</protoSourceRoot>
-
                 </configuration>
                 <executions>
                     <execution>
@@ -85,29 +74,6 @@
                             <goal>compile</goal>
                             <goal>compile-custom</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Add generated source directory -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <id>add-proto-sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.build.directory}/generated-sources/protobuf/java</source>
-                                <source>
-                                    ${project.build.directory}/generated-sources/protobuf/grpc-java</source>
-                            </sources>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

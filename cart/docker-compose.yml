@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+
+  # ==========================================================
+  # POSTGRES DATABASE FOR CART-SERVICE
+  # ==========================================================
+  cart-postgres:
+    image: postgres:16
+    container_name: cart-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: cartdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - cart_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cartdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # # ==========================================================
+  # # CART-SERVICE
+  # # ==========================================================
+  # cart-service:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: cart-service
+  #   restart: always
+  #   depends_on:
+  #     cart-postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     SPRING_APPLICATION_NAME: cart-service
+
+  #     # DATABASE CONNECTION
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://cart-postgres:5432/cartdb
+  #     SPRING_DATASOURCE_USERNAME: postgres
+  #     SPRING_DATASOURCE_PASSWORD: postgres
+
+  #     # JPA settings
+  #     SPRING_JPA_HIBERNATE_DDL_AUTO: none
+  #     SPRING_JPA_SHOW_SQL: "false"
+
+  #     # Flyway
+  #     SPRING_FLYWAY_ENABLED: "true"
+  #     SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+
+  #     # GRPC PORT
+  #     GRPC_SERVER_PORT: 9095
+
+  #   ports:
+  #     - "9095:9095" # expose gRPC port for testing or via gateway
+
+volumes:
+  cart_pg_data:
