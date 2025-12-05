@@ -102,7 +102,7 @@ public class JwtUtil {
                     .claims(claims)
                     .subject(subject)
                     .issuedAt(new Date(System.currentTimeMillis()))
-                    .expiration(new Date(System.currentTimeMillis() + 100 * 60 * 60 * 10))
+                    .expiration(new Date(System.currentTimeMillis() + 20000))
                     .signWith(getSecretKey())
                     .compact();
         } catch (Exception e) {

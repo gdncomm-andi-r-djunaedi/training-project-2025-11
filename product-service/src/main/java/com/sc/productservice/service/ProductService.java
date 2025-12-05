@@ -21,8 +21,16 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    @Cacheable(key = "#p0.productCode", value = "products")
     public ApiResponse<ProductDto> createProduct(ProductDto dto) {
+        Optional<Product> existingProduct = productRepository.findByProductCode(dto.getProductCode());
+
+        if (existingProduct.isPresent()) {
+            return ApiResponse.failure(
+                    "PRODUCT_ALREADY_EXISTS",
+                    "Product already exists with code: " + dto.getProductCode()
+            );
+        }
+
         Product product = new Product();
         BeanUtils.copyProperties(dto, product);
 
@@ -90,5 +98,7 @@ public class ProductService {
         }
         return ApiResponse.success("Product deleted successfully: " + productCode);
     }
+
+
 }
 

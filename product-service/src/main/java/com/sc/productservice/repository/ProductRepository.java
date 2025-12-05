@@ -15,4 +15,5 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     Page<Product> findByProductNameContainingIgnoreCase(String keyword, Pageable pageable);
 
     Product deleteProductByProductCode(String productCode);
+
 }
