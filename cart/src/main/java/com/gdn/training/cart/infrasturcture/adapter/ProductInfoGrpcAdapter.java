@@ -10,10 +10,9 @@ import org.springframework.stereotype.Component;
 
 import io.grpc.Channel;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
-public class ProductInfoGrpcAdapter {
+public class ProductInfoGrpcAdapter implements ProductInfoPort { // Add implements ProductInfoPort
     private final ProductServiceGrpc.ProductServiceBlockingStub stub;
 
     public ProductInfoGrpcAdapter(@GrpcClient("product-service") Channel channel) {

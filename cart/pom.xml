@@ -5,7 +5,6 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- Spring Boot Parent -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -17,16 +16,18 @@
 	<artifactId>cart</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>cart-service</name>
-	<description>Cart Service - Clean Architecture + GRPC</description>
+	<description>Cart Service</description>
 
-	<!-- GLOBAL PROPERTIES -->
 	<properties>
 		<java.version>21</java.version>
-		<grpc.version>1.59.0</grpc.version>
-		<protobuf.version>3.25.1</protobuf.version>
+
+		<protobuf.version>4.28.2</protobuf.version>
+		<grpc.version>1.68.0</grpc.version>
+
+		<!-- Testcontainers -->
+		<testcontainers.version>1.19.0</testcontainers.version>
 	</properties>
 
-	<!-- DEPENDENCIES -->
 	<dependencies>
 
 		<!-- Spring Core -->
@@ -41,13 +42,11 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-		<!-- JPA (Infrastructure layer only) -->
+		<!-- JPA + Postgres -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-
-		<!-- PostgreSQL -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -59,45 +58,43 @@
 			<artifactId>grpc-netty-shaded</artifactId>
 			<version>${grpc.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-protobuf</artifactId>
 			<version>${grpc.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-stub</artifactId>
 			<version>${grpc.version}</version>
 		</dependency>
 
-
-		<!-- GRPC Spring Boot Starter -->
+		<!-- gRPC Server -->
 		<dependency>
 			<groupId>net.devh</groupId>
 			<artifactId>grpc-server-spring-boot-starter</artifactId>
 			<version>3.1.0.RELEASE</version>
 		</dependency>
-		<!-- GRPC Spring Boot Client -->
+
+		<!-- gRPC Client -->
 		<dependency>
 			<groupId>net.devh</groupId>
 			<artifactId>grpc-client-spring-boot-starter</artifactId>
 			<version>3.1.0.RELEASE</version>
 		</dependency>
 
-		<!-- Protobuf Runtime -->
+		<!-- Protobuf -->
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
 			<version>${protobuf.version}</version>
 		</dependency>
 
-		<!-- Lombok (ONLY infra layer uses this) -->
+		<!-- Lombok (Infra only) -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- MapStruct -->
@@ -119,13 +116,12 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
-		<!-- TESTING -->
+		<!-- Testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -133,104 +129,242 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- Testcontainers for Postgres -->
-		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>1.19.0</version>
+			<version>${testcontainers.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<version>1.19.0</version>
+			<version>${testcontainers.version}</version>
 			<scope>test</scope>
 		</dependency>
 
-		<!-- H2 database (testing only) -->
+		<!-- H2 runtime -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- common-proto -->
+		<dependency>
+			<groupId>com.gdn.training</groupId>
+			<artifactId>common-proto</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 	</dependencies>
 
-	<!-- BUILD SETUP -->
+	<repositories>
+		<repository>
+			<id>local-lib</id>
+			<url>file:${project.basedir}/libs</url>
+		</repository>
+		<repository>
+			<id>libs-releases-local.gar</id>
+			<url>artifactregistry://asia-southeast1-maven.pkg.dev/nonprod-utility-233414/libs-release</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>libs-snapshots-local.gar</id>
+			<url>artifactregistry://asia-southeast1-maven.pkg.dev/nonprod-utility-233414/libs-snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>libs-releases-remote.gar</id>
+			<name>libs-releases-remote.gar</name>
+			<url>artifactregistry://asia-southeast1-maven.pkg.dev/nonprod-utility-233414/libs-releases-remote</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>maven-central</id>
+			<name>maven</name>
+			<url>https://repo.maven.apache.org/maven2/</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>atlassian-public2</id>
+			<name>atlassian</name>
+			<url>https://packages.atlassian.com/maven/repository/public</url>
+		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+		<repository>
+			<id>badak-qa-repository</id>
+			<name>badak-qa-repository</name>
+			<url>https://badak-repository.gdn-app.com/repository/badak-qa-repository/</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>libs-releases-local.gar</id>
+			<url>artifactregistry://asia-southeast1-maven.pkg.dev/nonprod-utility-233414/libs-release</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>libs-snapshots-local.gar</id>
+			<url>artifactregistry://asia-southeast1-maven.pkg.dev/nonprod-utility-233414/libs-snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>maven-central</id>
+			<name>maven</name>
+			<url>https://repo.maven.apache.org/maven2/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>atlassian-public2</id>
+			<name>atlassian</name>
+			<url>https://packages.atlassian.com/maven/repository/public</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>badak-qa-repository</id>
+			<name>badak-qa-repository</name>
+			<url>https://badak-repository.gdn-app.com/repository/badak-qa-repository/</url>
+			<layout>default</layout>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<build>
+
+		<sourceDirectory>src/main/java</sourceDirectory>
+
 		<extensions>
-			<!-- OS detection for protoc -->
 			<extension>
 				<groupId>kr.motd.maven</groupId>
 				<artifactId>os-maven-plugin</artifactId>
-				<version>1.7.0</version>
+				<version>1.7.1</version>
 			</extension>
 		</extensions>
 
 		<plugins>
 
-			<!-- Maven Compiler -->
+			<!-- Annotation processors -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
+				<version>3.13.0</version>
 				<configuration>
-					<release>${java.version}</release>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+
+					<generatedSourcesDirectory>
+						${project.build.directory}/generated-sources/annotations
+					</generatedSourcesDirectory>
+
 					<annotationProcessorPaths>
-
-						<!-- Lombok FIRST -->
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-							<version>1.18.30</version>
-						</path>
-
-						<!-- MapStruct -->
 						<path>
 							<groupId>org.mapstruct</groupId>
 							<artifactId>mapstruct-processor</artifactId>
 							<version>1.5.5.Final</version>
 						</path>
-
-						<!-- Lombok + MapStruct Binding -->
 						<path>
 							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok-mapstruct-binding</artifactId>
-							<version>0.2.0</version>
+							<artifactId>lombok</artifactId>
+							<version>1.18.34</version>
 						</path>
-
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 
-			<!-- Spring Boot Build -->
+			<!-- Add annotation sources -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<id>add-annotations-sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/annotations</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<includeSystemScope>true</includeSystemScope>
-				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
-			<!-- gRPC / Protobuf Codegen -->
+			<!-- gRPC / Protobuf -->
 			<plugin>
 				<groupId>org.xolstice.maven.plugins</groupId>
 				<artifactId>protobuf-maven-plugin</artifactId>
 				<version>0.6.1</version>
 				<configuration>
+					<!-- Update to use your protobuf version -->
 					<protocArtifact>
-						com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}
-					</protocArtifact>
+						com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
 					<pluginId>grpc-java</pluginId>
+					<!-- Update to use your grpc version -->
 					<pluginArtifact>
-						io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
-					</pluginArtifact>
+						io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+					<protoSourceRoot>${project.basedir}/src/main/proto</protoSourceRoot>
 				</configuration>
 				<executions>
 					<execution>
@@ -240,6 +374,7 @@
 						</goals>
 					</execution>
 				</executions>
+
 			</plugin>
 
 		</plugins>

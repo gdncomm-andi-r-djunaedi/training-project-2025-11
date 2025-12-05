@@ -9,9 +9,9 @@ import com.gdn.training.cart.domain.model.Cart;
 import com.gdn.training.cart.domain.model.CartItem;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GetCartUseCase {
+
     private final CartRepositoryPort cartRepository;
     private final ProductInfoPort productInfoPort;
 
@@ -21,10 +21,12 @@ public class GetCartUseCase {
     }
 
     public CartResponse execute(UUID memberId) {
+
         Optional<Cart> cartOptional = cartRepository.findByMemberId(memberId);
         if (cartOptional.isEmpty()) {
             return CartResponse.emptyForMember(memberId);
         }
+
         Cart cart = cartOptional.get();
 
         List<UUID> productIds = cart.getItems()
@@ -33,11 +35,10 @@ public class GetCartUseCase {
                 .distinct()
                 .toList();
 
-        // fecth product info
-        Map<UUID, ProductInfoResponse> productInfoMap = Map.of();
-        if (productInfoPort != null && !productIds.isEmpty()) {
-            productInfoMap = productInfoPort.fetchProductInfo(productIds);
-        }
+        // FIX: productInfoMap must be effectively final
+        Map<UUID, ProductInfoResponse> productInfoMap = (productInfoPort != null && !productIds.isEmpty())
+                ? productInfoPort.fetchProductInfo(productIds)
+                : Collections.emptyMap();
 
         List<CartItemResponse> cartItemResponses = cart.getItems()
                 .stream()
@@ -45,20 +46,15 @@ public class GetCartUseCase {
                         ci.getId(),
                         ci.getProductId(),
                         ci.getQuantity(),
-                        productInfoMap.get(ci.getProductId())))
+                        productInfoMap.get(ci.getProductId()) // ← Now allowed
+                ))
                 .toList();
+
         return new CartResponse(
                 cart.getId(),
                 cart.getMemberId(),
                 cart.getCreatedAt(),
                 cart.getUpdatedAt(),
                 cartItemResponses);
-    }
-
-    private CartItemResponse mapItem(CartItem cartItem) {
-        return new CartItemResponse(
-                cartItem.getId(),
-                cartItem.getProductId(),
-                cartItem.getQuantity());
     }
 }

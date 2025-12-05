@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import com.gdn.training.cart.application.port.out.CartRepositoryPort;
 import com.gdn.training.cart.domain.model.Cart;
-import com.gdn.training.cart.infrasturcture.entity.CartEntity;
 import com.gdn.training.cart.infrasturcture.mapper.CartEntityMapper;
 import com.gdn.training.cart.infrasturcture.repository.CartJpaRepository;
 

@@ -5,13 +5,14 @@ FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# ------------------------------------------------
-# Copy pom.xml first for dependency caching
-# ------------------------------------------------
+# copy pom + source
 COPY pom.xml .
+COPY src ./src
 
-# Download dependencies (can be cached if pom.xml unchanged)
-RUN mvn -DskipTests dependency:go-offline
+# COPY local dependency (common-proto)
+COPY libs ./libs
+
+RUN mvn clean package -DskipTests
 
 # ------------------------------------------------
 # Copy full project and build JAR

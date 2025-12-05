@@ -5,10 +5,14 @@ FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# Copy project and build
+# copy pom + source
 COPY pom.xml .
 COPY src ./src
 
+# COPY local dependency (common-proto)
+COPY libs ./libs
+
+# Build project
 RUN mvn clean package -DskipTests
 
 
