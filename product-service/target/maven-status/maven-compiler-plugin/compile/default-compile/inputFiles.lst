@@ -1,0 +1,7 @@
+/Users/anupama/devproject/training-project-2025-11/product-service/src/main/java/com/example/marketplace/product/dto/ProductResponseDTO.java
+/Users/anupama/devproject/training-project-2025-11/product-service/src/main/java/com/example/marketplace/product/dto/ProductRequestDTO.java
+/Users/anupama/devproject/training-project-2025-11/product-service/src/main/java/com/example/marketplace/product/repo/ProductRepository.java
+/Users/anupama/devproject/training-project-2025-11/product-service/src/main/java/com/example/marketplace/product/mapper/ProductMapper.java
+/Users/anupama/devproject/training-project-2025-11/product-service/src/main/java/com/example/marketplace/product/domain/Product.java
+/Users/anupama/devproject/training-project-2025-11/product-service/src/main/java/com/example/marketplace/product/controller/ProductController.java
+/Users/anupama/devproject/training-project-2025-11/product-service/src/main/java/com/example/marketplace/product/ProductServiceApplication.java

@@ -1,0 +1,7 @@
+com/example/marketplace/product/repo/ProductRepository.class
+com/example/marketplace/product/domain/Product.class
+com/example/marketplace/product/dto/ProductResponseDTO.class
+com/example/marketplace/product/dto/ProductRequestDTO.class
+com/example/marketplace/product/controller/ProductController.class
+com/example/marketplace/product/mapper/ProductMapper.class
+com/example/marketplace/product/ProductServiceApplication.class

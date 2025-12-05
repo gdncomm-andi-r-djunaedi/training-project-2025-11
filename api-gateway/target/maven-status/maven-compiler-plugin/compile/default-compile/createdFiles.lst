@@ -1,0 +1,3 @@
+com/example/marketplace/gateway/controller/GatewayController.class
+com/example/marketplace/gateway/config/SecurityConfig.class
+com/example/marketplace/gateway/ApiGatewayApplication.class

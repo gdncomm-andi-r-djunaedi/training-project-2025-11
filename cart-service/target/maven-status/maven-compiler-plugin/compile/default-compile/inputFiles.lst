@@ -1,0 +1,12 @@
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/entity/CartItem.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/dto/CartItemDTO.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/dto/CartResponseDTO.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/client/ProductClient.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/CartServiceApplication.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/service/JwtParserService.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/controller/CartController.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/dto/CartDto.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/service/CartService.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/dto/AddToCartRequestDTO.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/client/MemberClient.java
+/Users/anupama/devproject/training-project-2025-11/cart-service/src/main/java/com/example/marketplace/cart/repository/CartRepository.java
