@@ -1,17 +1,15 @@
 package com.gdn.training.cart.application.usecase;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import com.gdn.training.cart.application.dto.CartItemResponse;
 import com.gdn.training.cart.application.dto.CartResponse;
+import com.gdn.training.cart.application.dto.ProductInfoResponse;
 import com.gdn.training.cart.application.port.out.CartRepositoryPort;
 import com.gdn.training.cart.application.port.out.ProductInfoPort;
 import com.gdn.training.cart.domain.model.Cart;
 import com.gdn.training.cart.domain.model.CartItem;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GetCartUseCase {
     private final CartRepositoryPort cartRepository;
@@ -33,17 +31,22 @@ public class GetCartUseCase {
                 .stream()
                 .map(CartItem::getProductId)
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
 
-        Map<UUID, Object> productInfoMap = Map.of();
+        // fecth product info
+        Map<UUID, ProductInfoResponse> productInfoMap = Map.of();
         if (productInfoPort != null && !productIds.isEmpty()) {
             productInfoMap = productInfoPort.fetchProductInfo(productIds);
         }
 
         List<CartItemResponse> cartItemResponses = cart.getItems()
                 .stream()
-                .map(this::mapItem)
-                .collect(Collectors.toList());
+                .map(ci -> new CartItemResponse(
+                        ci.getId(),
+                        ci.getProductId(),
+                        ci.getQuantity(),
+                        productInfoMap.get(ci.getProductId())))
+                .toList();
         return new CartResponse(
                 cart.getId(),
                 cart.getMemberId(),

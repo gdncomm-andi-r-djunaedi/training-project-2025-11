@@ -28,7 +28,7 @@ services:
   # ==========================================================
   cart-service:
     build:
-      context: ./cart-service
+      context: .
       dockerfile: Dockerfile
     container_name: cart-service
     restart: always
