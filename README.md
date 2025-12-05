@@ -238,24 +238,6 @@ backend/waroenk-parent/catalog/src/main/resources/seed-data/
 └── README.md           # Seed data documentation
 ```
 
-### Loading Seed Data
-
-Seed data is automatically loaded on first startup when collections are empty. To reload:
-
-```bash
-# Reset and reload all data
-make clean
-make up
-```
-
-### Test Accounts
-
-| Email | Password | Role |
-|-------|----------|------|
-| `admin@waroenk.com` | `admin123` | Admin |
-| `user@waroenk.com` | `user123` | Customer |
-| `merchant@waroenk.com` | `merchant123` | Merchant |
-
 ---
 
 ## Tech Stack
@@ -286,7 +268,7 @@ make up
 
 ### Communication
 - **REST** → Frontend to API Gateway
-- **gRPC** → Service-to-service communication (10x faster than REST)
+- **gRPC** → Service-to-service communication
 - **Protocol Buffers** → Contract definitions in `grpc-contract/`
 
 ---
