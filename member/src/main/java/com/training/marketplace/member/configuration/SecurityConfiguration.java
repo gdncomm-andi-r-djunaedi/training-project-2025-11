@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
@@ -57,13 +56,13 @@ public class SecurityConfiguration {
                 .build();
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        return http.authorizeHttpRequests(
-                request -> request
-                        .requestMatchers("/MemberService/Login").permitAll()
-                        .anyRequest().authenticated())
-                .authenticationProvider(authProvider())
-                .build();
-    }
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+//        return http.authorizeHttpRequests(
+//                request -> request
+//                        .requestMatchers("/MemberService/Login").permitAll()
+//                        .anyRequest().authenticated())
+//                .authenticationProvider(authProvider())
+//                .build();
+//    }
 }
