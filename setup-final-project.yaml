@@ -1,0 +1,77 @@
+services:
+  redis:
+    image: 'redis:7-alpine'
+    container_name: redis-final-project
+    ports:
+      - '6379:6379'
+    cpus: "0.15"
+    mem_limit: "96m"
+
+  postgres:
+    image: 'postgres:16-alpine'
+    container_name: postgres-final-project
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: member
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    command: [ "postgres", "-c", "max_connections=30", "-c", "shared_buffers=32MB", "-c", "work_mem=1MB", "-c", "maintenance_work_mem=16MB", "-c", "effective_cache_size=64MB", "-c", "temp_buffers=4MB", "-c", "max_worker_processes=4", "-c", "max_parallel_workers=2", "-c", "max_parallel_workers_per_gather=1" ]
+    cpus: "0.5"
+    mem_limit: "384m"
+
+  mongo:
+    image: 'mongo:7.0'
+    container_name: mongo-final-project
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: username
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo:/data/db
+    cpus: "0.5"
+    mem_limit: "384m"
+
+  consul:
+    image: 'hashicorp/consul:1.20'
+    container_name: consul-final-project
+    command:
+      - agent
+      - '-dev'
+      - '-client'
+      - 0.0.0.0
+    ports:
+      - '8500:8500'
+      - '8600:8600/udp'
+
+  kafka:
+    image: 'apache/kafka:latest'
+    container_name: kafka-final-project
+    hostname: kafka
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: /tmp/kafka-logs
+      CLUSTER_ID: my-cluster-id
+    volumes:
+      - kafka:/tmp/kafka-logs
+volumes:
+  postgres:
+  mongo:
+  kafka:

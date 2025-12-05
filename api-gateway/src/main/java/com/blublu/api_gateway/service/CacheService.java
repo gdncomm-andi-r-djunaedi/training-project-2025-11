@@ -27,7 +27,7 @@ public class CacheService {
       String valueString = this.objectMapper.writeValueAsString(value);
       stringRedisTemplate.opsForValue().set(key, valueString);
     } catch (Exception e) {
-      System.out.println("Error when setting cache: " + e.getMessage());
+      log.error("Error when setting cache: {}", e.getMessage());
     }
   }
 
@@ -37,7 +37,7 @@ public class CacheService {
       String valueString = this.objectMapper.writeValueAsString(value);
       stringRedisTemplate.opsForValue().set(key, valueString, timeout, unit);
     } catch (Exception e) {
-      System.out.println("Error when setting cache with expiration: " + e.getMessage());
+      log.error("Error when setting cache with expiration: {}", e.getMessage());
     }
   }
 
@@ -48,7 +48,7 @@ public class CacheService {
         return objectMapper.readValue(redisValue, typeRef);
       }
     } catch (Exception e) {
-      System.out.println("Error when getting cache: " + e.getMessage());
+      log.error("Error when getting cache: {}", e.getMessage());
     }
     return null;
   }

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class CartServiceImpl implements CartService {

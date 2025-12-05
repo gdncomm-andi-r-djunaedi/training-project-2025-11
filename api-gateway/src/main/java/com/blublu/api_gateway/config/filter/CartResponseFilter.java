@@ -35,6 +35,7 @@ public class CartResponseFilter implements WebFilter {
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    log.info("Start filter {}", CartResponseFilter.class);
     String token = jwtUtil.getTokenFromAuthHeaders(exchange.getRequest());
     if (verifyPathAndRequestValid(exchange) && !Objects.isNull(token)) {
       URI uri = exchange.getRequest().getURI();
