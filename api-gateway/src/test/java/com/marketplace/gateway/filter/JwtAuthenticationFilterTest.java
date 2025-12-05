@@ -21,8 +21,8 @@ import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,12 +37,11 @@ class JwtAuthenticationFilterTest {
     @Mock
     private GatewayFilterChain chain;
 
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
     private GatewayFilter gatewayFilter;
 
     @BeforeEach
     void setUp() {
-        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtUtil, cookieUtil);
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtUtil, cookieUtil);
         gatewayFilter = jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config());
     }
 
@@ -118,8 +117,8 @@ class JwtAuthenticationFilterTest {
         StepVerifier.create(gatewayFilter.filter(exchange, chain))
                 .verifyComplete();
 
-        verify(jwtUtil).validateToken(cookieToken);  // Should use cookie token
-        verify(jwtUtil, never()).validateToken(headerToken);  // Should not use header token
+        verify(jwtUtil).validateToken(cookieToken); // Should use cookie token
+        verify(jwtUtil, never()).validateToken(headerToken); // Should not use header token
     }
 
     @Test
@@ -195,7 +194,7 @@ class JwtAuthenticationFilterTest {
 
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/cart")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
-                .cookie(new HttpCookie(cookieName, ""))  // Empty cookie
+                .cookie(new HttpCookie(cookieName, "")) // Empty cookie
                 .build();
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
@@ -228,9 +227,9 @@ class JwtAuthenticationFilterTest {
         when(chain.filter(any(ServerWebExchange.class))).thenAnswer(invocation -> {
             ServerWebExchange modifiedExchange = invocation.getArgument(0);
             // Verify headers were added
-            assertEquals(userId.toString(), 
+            assertEquals(userId.toString(),
                     modifiedExchange.getRequest().getHeaders().getFirst("X-User-Id"));
-            assertEquals(email, 
+            assertEquals(email,
                     modifiedExchange.getRequest().getHeaders().getFirst("X-User-Email"));
             return Mono.empty();
         });
@@ -255,4 +254,3 @@ class JwtAuthenticationFilterTest {
         });
     }
 }
-
