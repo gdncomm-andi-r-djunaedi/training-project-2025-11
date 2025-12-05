@@ -20,7 +20,7 @@ public class MemberClient {
     private final ObjectMapper objectMapper;
 
     public MemberClient(WebClient.Builder webClientBuilder,
-            @Value("${gateway.member-service:http://localhost:8081}") String memberServiceUrl,
+            @Value("${gateway.member-service}") String memberServiceUrl,
             ObjectMapper objectMapper) {
         this.webClient = webClientBuilder.build();
         this.memberServiceUrl = memberServiceUrl;

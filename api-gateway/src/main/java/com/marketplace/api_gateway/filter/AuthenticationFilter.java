@@ -79,6 +79,10 @@ public class AuthenticationFilter implements HandlerFilterFunction<ServerRespons
             .build();
 
         return next.handle(modifiedRequest);
+      }).onErrorResume(e -> {
+        log.error("Error in AuthenticationFilter reactive chain", e);
+        ApiResponse<Object> res = ApiResponse.builder().success(false).message("Internal Authentication Error").build();
+        return ServerResponse.status(500).bodyValue(res);
       });
 
     } catch (ExpiredJwtException e) {

@@ -20,7 +20,7 @@ public class ProductClient {
   private final ObjectMapper objectMapper;
 
   public ProductClient(WebClient.Builder webClientBuilder,
-      @Value("${gateway.product-service:http://localhost:8082}") String productServiceUrl,
+      @Value("${gateway.product-service}") String productServiceUrl,
       ObjectMapper objectMapper) {
     this.webClient = webClientBuilder.build();
     this.productServiceUrl = productServiceUrl;

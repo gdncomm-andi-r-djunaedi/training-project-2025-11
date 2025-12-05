@@ -53,6 +53,9 @@ public class ProxyHandler {
           .switchIfEmpty(ServerResponse.status(status)
               .headers(h -> h.addAll(responseHeaders))
               .build());
+    }).onErrorResume(ex -> {
+      System.err.println("Proxy error: " + ex.getMessage());
+      return ServerResponse.status(502).bodyValue("Bad Gateway: " + ex.getMessage());
     });
   }
 }
