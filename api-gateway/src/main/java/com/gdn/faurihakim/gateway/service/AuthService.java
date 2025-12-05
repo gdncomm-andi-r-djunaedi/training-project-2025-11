@@ -17,21 +17,6 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    /*public Mono<String> login(AuthRequest request) {
-        return webClientBuilder.build()
-                .post()
-                .uri("http://localhost:8081/api/members/verify")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(VerifyCredentialsResponse.class) // Need to define this wrapper or use JsonNode
-                .map(response -> {
-                    if (response.getData() != null) {
-                        return jwtUtil.generateToken(response.getData().getMemberId());
-                    }
-                    return null;
-                });
-    }*/
-
     public Mono<String> login(AuthRequest request) {
 
         return webClientBuilder.build()
