@@ -1,34 +1,60 @@
 # Online Marketplace Platform
 
-A microservices-based online marketplace backend built with Java Spring Boot.
+A microservices-based online marketplace backend built with Java Spring Boot. This project implements a comprehensive API for a marketplace, featuring user authentication, product catalog management, and shopping cart functionality.
+
+## Requirement Verification Report
+
+| Category | Requirement | Status | Implementation Details |
+|----------|-------------|--------|------------------------|
+| **Architecture** | Minimum 4 microservices | ✅ Met | `api-gateway`, `member`, `product`, `cart` |
+| | API Gateway for AuthN/AuthZ | ✅ Met | Implemented in `api-gateway` with JWT & Redis Blacklist |
+| **Tech Stack** | Java & Spring | ✅ Met | Java 21, Spring Boot 3.4.1 |
+| | PostgreSQL, MongoDB, Redis | ✅ Met | Member/Cart (Postgres), Product (Mongo), Gateway (Redis) |
+| **Auth** | Register, Login, Logout | ✅ Met | `MemberService` & `Gateway`. BCrypt hashing used. |
+| | JWT & Session Validation | ✅ Met | JWT in secure HttpOnly cookie. `AuthFilter` validates tokens. |
+| | Password Hashing | ✅ Met | Uses Spring Security `BCryptPasswordEncoder` |
+| **Product** | Search & View Details | ✅ Met | Wildcard search implemented in `ProductService` |
+| | Pagination | ✅ Met | `Pageable` support in Search API |
+| | Seeding (50k products) | ✅ Met | `data-seeder` module generates 50,000 products |
+| **Cart** | Add/Remove Items | ✅ Met | Implemented in `CartService` |
+| | User specific cart | ✅ Met | Cart linked to User ID from JWT |
+| | Unlimited Stock Assumption | ✅ Met | Stock check skipped as per requirements |
+| **Quality** | Unit & Integration Tests | ✅ Met | Tests present in all services |
+| **Design** | Design Patterns | ✅ Met | Command Pattern, Builder Pattern, DTO Pattern used |
 
 ## Architecture
 
-- **API Gateway** (Port 8080): Routes and authenticates requests
-- **Member Service** (Port 8081): User registration and authentication
-- **Product Service** (Port 8082): Product catalog management
-- **Cart Service** (Port 8083): Shopping cart operations
+The system consists of the following microservices:
+
+1.  **API Gateway** (Port 8080): Entry point, handles routing, authentication (JWT), and rate limiting. Uses **Redis** for token blacklisting on logout.
+2.  **Member Service** (Port 8081): Manages user registration and credentials. Uses **PostgreSQL**.
+3.  **Product Service** (Port 8082): Manages product catalog and search. Uses **MongoDB** for flexible schema and efficient document storage.
+4.  **Cart Service** (Port 8083): Manages shopping carts. Uses **PostgreSQL**.
+5.  **Data Seeder**: Utility module to populate databases with 5,000 members and 50,000 products.
 
 ## Tech Stack
 
-- Java 17
-- Spring Boot 3.2.0
-- PostgreSQL (Member & Cart services)
-- MongoDB (Product service)
-- Redis (Session/Cache - optional)
-- JWT for authentication
+-   **Language:** Java 21
+-   **Framework:** Spring Boot 3.4.1, Spring Cloud Gateway, Spring Security
+-   **Databases:**
+    -   PostgreSQL (Member & Cart)
+    -   MongoDB (Product)
+    -   Redis (Gateway for blacklisting, Product for caching)
+-   **Authentication:** JWT (JSON Web Tokens) with HttpOnly Cookies
+-   **Testing:** JUnit 5, MockMvc, H2 (Test DB), Embedded MongoDB
 
 ## Prerequisites
 
-- Java 17+
-- Maven 3.9+
-- PostgreSQL running on port 5432
-- MongoDB running on port 27017
+-   Java 21+
+-   Maven 3.9+
+-   PostgreSQL (Port 5432)
+-   MongoDB (Port 27017)
+-   Redis (Port 6379)
 
 ## Database Setup
 
 ### PostgreSQL
-Create databases:
+Create the required databases:
 ```sql
 CREATE DATABASE marketplace_member;
 CREATE DATABASE marketplace_cart;
@@ -39,156 +65,94 @@ MongoDB will auto-create the `marketplace_product` database on first connection.
 
 ## Running the Services
 
-### 1. Start Member Service
+### 1. Build All Services
 ```bash
-cd member
-mvn spring-boot:run
+mvn clean package -DskipTests
 ```
 
-### 2. Start Product Service
-```bash
-cd product
-mvn spring-boot:run
-```
+### 2. Run Services (in separate terminals)
 
-### 3. Start Cart Service
-```bash
-cd cart
-mvn spring-boot:run
-```
-
-### 4. Start API Gateway
+**API Gateway**
 ```bash
 cd api-gateway
 mvn spring-boot:run
 ```
 
+**Member Service**
+```bash
+cd member
+mvn spring-boot:run
+```
+
+**Product Service**
+```bash
+cd product
+mvn spring-boot:run
+```
+
+**Cart Service**
+```bash
+cd cart
+mvn spring-boot:run
+```
+
+### 3. Seed Data (Optional)
+To populate the database with test data:
+```bash
+cd data-seeder
+mvn spring-boot:run
+```
+
 ## API Endpoints
 
-All requests go through API Gateway at `http://localhost:8080`
+All requests go through API Gateway at `http://localhost:8080`.
 
-### Authentication (No auth required)
+### Authentication
 
-**Register**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/login` | Login and receive JWT cookie |
+| POST | `/api/auth/logout` | Logout (invalidate cookie & blacklist token) |
+| POST | `/api/member/register` | Register new user |
+
+**Login Example:**
 ```bash
-POST /api/member/register
-Content-Type: application/json
-
-{
-  "username": "john",
-  "password": "password123",
-  "email": "john@example.com",
-  "fullName": "John Doe"
-}
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com", "password":"password123"}'
 ```
 
-**Login**
+### Products
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/product/search?name=phone&page=0&size=10` | Search products with pagination |
+| GET | `/api/product/{id}` | Get product details |
+
+### Shopping Cart (Requires Login)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/cart` | View current user's cart |
+| POST | `/api/cart/add` | Add item to cart |
+| DELETE | `/api/cart/{productId}` | Remove item from cart |
+
+**Add to Cart Example:**
 ```bash
-POST /api/member/login
-Content-Type: application/json
-
-{
-  "username": "john",
-  "password": "password123"
-}
+curl -X POST http://localhost:8080/api/cart/add \
+  -H "Content-Type: application/json" \
+  -H "Cookie: auth_token=YOUR_JWT_TOKEN" \
+  -d '{"productId":"PROD-123", "quantity": 1}'
 ```
-Returns JWT token to use in subsequent requests.
-
-### Products (Auth required)
-
-**Seed Products** (Creates 50,000 products)
-```bash
-POST /api/product/seed
-Authorization: Bearer <your-jwt-token>
-```
-
-**Search Products**
-```bash
-GET /api/product?name=Product&page=0&size=20
-Authorization: Bearer <your-jwt-token>
-```
-
-**Get Product by ID**
-```bash
-GET /api/product/{id}
-Authorization: Bearer <your-jwt-token>
-```
-
-### Shopping Cart (Auth required)
-
-**Add to Cart**
-```bash
-POST /api/cart
-Authorization: Bearer <your-jwt-token>
-Content-Type: application/json
-
-{
-  "productId": "product-id-here",
-  "productName": "Product Name",
-  "price": 99.99,
-  "quantity": 2
-}
-```
-
-**View Cart**
-```bash
-GET /api/cart
-Authorization: Bearer <your-jwt-token>
-```
-
-**Remove from Cart**
-```bash
-DELETE /api/cart/{productId}
-Authorization: Bearer <your-jwt-token>
-```
-
-## Security
-
-- Passwords are hashed using BCrypt (Spring Security)
-- JWT tokens are used for authentication with HS256 algorithm
-- API Gateway validates JWT tokens for all protected endpoints
-- Token expiration: 24 hours
-
-## Building All Services
-
-```bash
-# Build API Gateway
-cd api-gateway && mvn clean package -DskipTests
-
-# Build Member Service
-cd member && mvn clean package -DskipTests
-
-# Build Product Service  
-cd product && mvn clean package -DskipTests
-
-# Build Cart Service
-cd cart && mvn clean package -DskipTests
-```
-
-## Testing Flow
-
-1. Register a new user via `/api/member/register`
-2. Login via `/api/member/login` to get JWT token
-3. Seed products via `/api/product/seed`
-4. Search products via `/api/product?name=Product`
-5. Add products to cart via `/api/cart`
-6. View cart via `/api/cart`
-7. Remove items via `/api/cart/{productId}`
 
 ## Project Structure
 
 ```
 training-project-2025-11/
-├── api-gateway/          # API Gateway with JWT validation
-├── member/              # Member/Auth service (Postgres)
-├── product/             # Product catalog service (MongoDB)
-├── cart/                # Shopping cart service (Postgres)
-└── requirements/        # Project requirements
+├── api-gateway/          # Gateway, Auth Filter, Redis Blacklist
+├── member/               # User management (Postgres)
+├── product/              # Product catalog (MongoDB)
+├── cart/                 # Cart management (Postgres)
+├── common-utils/         # Shared DTOs and utilities
+└── data-seeder/          # Data generation tools
 ```
-
-## Notes
-
-- All services use the same JWT secret key for token validation
-- Product seeding creates 50,000 products with random prices
-- Cart operations are user-specific (extracted from JWT)
-- No inventory checking implemented (unlimited stock assumption)
