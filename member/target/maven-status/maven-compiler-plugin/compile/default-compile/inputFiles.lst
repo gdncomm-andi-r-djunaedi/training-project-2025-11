@@ -1,0 +1,13 @@
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\command\LoginMemberCommand.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\dto\AuthRequest.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\entity\Member.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\config\DataSeeder.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\service\MemberService.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\repository\MemberRepository.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\config\SecurityConfig.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\command\ValidateTokenCommand.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\MemberApplication.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\util\JwtUtil.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\command\RegisterMemberCommand.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\command\Command.java
+C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\main\java\com\gdn\marketplace\member\controller\MemberController.java

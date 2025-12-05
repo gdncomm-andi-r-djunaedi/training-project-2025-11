@@ -1,0 +1,139 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.gdn.marketplace:member >---------------------
+[INFO] Building member 1.0.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ member ---
+[INFO] Deleting C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\target
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ member ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 1 resource
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.11.0:compile (default-compile) @ member ---
+[INFO] Changes detected - recompiling the module! :source
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 9 source files with javac [debug target 17] to target\classes
+[WARNING] system modules path not set in conjunction with -source 17
+[INFO] Annotation processing is enabled because one or more processors were found
+  on the class path. A future release of javac may disable annotation processing
+  unless at least one processor is specified by name (-processor), or a search
+  path is specified (--processor-path, --processor-module-path), or annotation
+  processing is enabled explicitly (-proc:only, -proc:full).
+  Use -Xlint:-options to suppress this message.
+  Use -proc:none to disable annotation processing.
+[WARNING] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/main/java/com/gdn/marketplace/member/config/SecurityConfig.java:[22,20] csrf() in org.springframework.security.config.annotation.web.builders.HttpSecurity has been deprecated and marked for removal
+[WARNING] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/main/java/com/gdn/marketplace/member/config/SecurityConfig.java:[23,17] authorizeHttpRequests() in org.springframework.security.config.annotation.web.builders.HttpSecurity has been deprecated and marked for removal
+[WARNING] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/main/java/com/gdn/marketplace/member/config/SecurityConfig.java:[26,17] and() in org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry has been deprecated and marked for removal
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ member ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\member\src\test\resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.11.0:testCompile (default-testCompile) @ member ---
+[INFO] Changes detected - recompiling the module! :dependency
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 1 source file with javac [debug target 17] to target\test-classes
+[INFO] Annotation processing is enabled because one or more processors were found
+  on the class path. A future release of javac may disable annotation processing
+  unless at least one processor is specified by name (-processor), or a search
+  path is specified (--processor-path, --processor-module-path), or annotation
+  processing is enabled explicitly (-proc:only, -proc:full).
+  Use -Xlint:-options to suppress this message.
+  Use -proc:none to disable annotation processing.
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] system modules path not set in conjunction with -source 17
+[INFO] 1 warning
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[7,29] package org.junit.jupiter.api does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[8,39] package org.junit.jupiter.api.extension does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[9,19] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[10,19] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[11,33] package org.mockito.junit.jupiter does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[16,36] package org.junit.jupiter.api does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[17,26] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[17,1] static import only from classes and interfaces
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[18,26] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[18,1] static import only from classes and interfaces
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[20,2] cannot find symbol
+  symbol: class ExtendWith
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[20,13] cannot find symbol
+  symbol: class MockitoExtension
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[23,6] cannot find symbol
+  symbol:   class InjectMocks
+  location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[26,6] cannot find symbol
+  symbol:   class Mock
+  location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[29,6] cannot find symbol
+  symbol:   class Mock
+  location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[32,6] cannot find symbol
+  symbol:   class Mock
+  location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[35,6] cannot find symbol
+  symbol:   class Test
+  location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[45,6] cannot find symbol
+  symbol:   class Test
+  location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[56,6] cannot find symbol
+  symbol:   class Test
+  location: class com.gdn.marketplace.member.service.MemberServiceTest
+[INFO] 19 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.181 s
+[INFO] Finished at: 2025-12-03T14:40:50+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:testCompile (default-testCompile) on project member: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[7,29] package org.junit.jupiter.api does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[8,39] package org.junit.jupiter.api.extension does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[9,19] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[10,19] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[11,33] package org.mockito.junit.jupiter does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[16,36] package org.junit.jupiter.api does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[17,26] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[17,1] static import only from classes and interfaces
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[18,26] package org.mockito does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[18,1] static import only from classes and interfaces
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[20,2] cannot find symbol
+[ERROR]   symbol: class ExtendWith
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[20,13] cannot find symbol
+[ERROR]   symbol: class MockitoExtension
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[23,6] cannot find symbol
+[ERROR]   symbol:   class InjectMocks
+[ERROR]   location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[26,6] cannot find symbol
+[ERROR]   symbol:   class Mock
+[ERROR]   location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[29,6] cannot find symbol
+[ERROR]   symbol:   class Mock
+[ERROR]   location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[32,6] cannot find symbol
+[ERROR]   symbol:   class Mock
+[ERROR]   location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[35,6] cannot find symbol
+[ERROR]   symbol:   class Test
+[ERROR]   location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[45,6] cannot find symbol
+[ERROR]   symbol:   class Test
+[ERROR]   location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/member/src/test/java/com/gdn/marketplace/member/service/MemberServiceTest.java:[56,6] cannot find symbol
+[ERROR]   symbol:   class Test
+[ERROR]   location: class com.gdn.marketplace.member.service.MemberServiceTest
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
