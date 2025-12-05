@@ -1,0 +1,15 @@
+com\project\member\repositories\RevokedTokenRepository.class
+com\project\member\entity\Member.class
+com\project\member\security\RevokedToken$RevokedTokenBuilder.class
+com\project\member\security\JwtService.class
+com\project\member\controller\MemberController.class
+com\project\member\config\SecurityConfig.class
+com\project\member\security\RevokedToken.class
+com\project\member\MemberApplication.class
+com\project\member\dto\LoginRequest.class
+com\project\member\service\AuthService.class
+com\project\member\dto\AuthResponse.class
+com\project\member\dto\RegisterRequest.class
+com\project\member\config\OpenApiConfig.class
+com\project\member\entity\Member$MemberBuilder.class
+com\project\member\repositories\MemberRepository.class

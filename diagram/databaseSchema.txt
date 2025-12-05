@@ -1,0 +1,87 @@
+erDiagram
+    %% MEMBER SERVICE - PostgreSQL
+    MEMBERS {
+        uuid id PK
+        varchar email UK
+        varchar password_hash
+        varchar full_name
+        varchar phone_number
+        enum status "ACTIVE, INACTIVE, SUSPENDED"
+        timestamp created_at
+        timestamp updated_at
+        timestamp last_login_at
+    }
+
+    MEMBER_ADDRESSES {
+        uuid id PK
+        uuid member_id FK
+        varchar label "Home, Office, etc"
+        text address_line1
+        text address_line2
+        varchar city
+        varchar province
+        varchar postal_code
+        boolean is_default
+        timestamp created_at
+    }
+
+    JWT_TOKENS {
+        uuid id PK
+        uuid member_id FK
+        varchar token_hash
+        timestamp expires_at
+        boolean is_revoked
+        timestamp created_at
+    }
+
+    %% PRODUCT SERVICE - MongoDB (Document Structure)
+    PRODUCTS {
+        objectId _id PK
+        string sku UK
+        string name
+        string slug
+        text description
+        decimal price
+        decimal discount_price
+        string category
+        array tags
+        object images
+        int view_count
+        decimal rating
+        int review_count
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% CART SERVICE - Redis (Key-Value Structure)
+    CART_ITEMS {
+        string key "cart:member_id:product_id"
+        json value
+        int ttl "7 days"
+    }
+
+    CART_SUMMARY {
+        string key "cart:member_id:summary"
+        json value
+        int ttl "7 days"
+    }
+
+    %% Relationships
+    MEMBERS ||--o{ MEMBER_ADDRESSES : "has"
+    MEMBERS ||--o{ JWT_TOKENS : "generates"
+
+    %% Notes for Redis Cart Structure
+    %% cart:member_id:product_id = {
+    %%   "product_id": "uuid",
+    %%   "product_name": "string",
+    %%   "price": decimal,
+    %%   "quantity": int,
+    %%   "added_at": timestamp
+    %% }
+    %%
+    %% cart:member_id:summary = {
+    %%   "total_items": int,
+    %%   "total_price": decimal,
+    %%   "updated_at": timestamp
+    %% }

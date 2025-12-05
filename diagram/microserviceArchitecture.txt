@@ -1,0 +1,62 @@
+graph TB
+    Client[Client/API Consumer]
+
+    subgraph "API Gateway Service"
+        Gateway[API Gateway<br/>Port: 8080]
+        AuthN[Authentication<br/>JWT Validation]
+        AuthZ[Authorization<br/>Role Check]
+        RateLimit[Rate Limiting]
+    end
+
+    subgraph "Member Service"
+        MemberAPI[Member API<br/>Port: 8081]
+        MemberLogic[Business Logic]
+        PasswordHash[BCrypt Password Hash]
+        JWTGen[JWT Generator]
+        MemberDB[(PostgreSQL<br/>Member DB)]
+        MemberCache[(Redis Cache<br/>Session/Token)]
+    end
+
+    subgraph "Product Service"
+        ProductAPI[Product API<br/>Port: 8082]
+        ProductLogic[Business Logic]
+        SearchEngine[Search Engine<br/>Wildcard Search]
+        ProductDB[(MongoDB<br/>Product DB)]
+        ProductCache[(Redis Cache<br/>Popular Products)]
+    end
+
+    subgraph "Cart Service"
+        CartAPI[Cart API<br/>Port: 8083]
+        CartLogic[Business Logic]
+        CartDB[(Redis<br/>Cart Data)]
+    end
+
+    Client -->|HTTP/HTTPS| Gateway
+    Gateway --> AuthN
+    AuthN --> AuthZ
+    AuthZ --> RateLimit
+
+    RateLimit -->|/api/member/**| MemberAPI
+    RateLimit -->|/api/product/**| ProductAPI
+    RateLimit -->|/api/cart/**| CartAPI
+
+    MemberAPI --> MemberLogic
+    MemberLogic --> PasswordHash
+    MemberLogic --> JWTGen
+    MemberLogic --> MemberDB
+    MemberLogic --> MemberCache
+
+    ProductAPI --> ProductLogic
+    ProductLogic --> SearchEngine
+    ProductLogic --> ProductDB
+    ProductLogic --> ProductCache
+
+    CartAPI --> CartLogic
+    CartLogic --> CartDB
+    CartLogic -.->|Validate Product| ProductAPI
+    CartLogic -.->|Validate Member| MemberAPI
+
+    style Gateway fill:#4A90E2
+    style MemberAPI fill:#50C878
+    style ProductAPI fill:#FFB84D
+    style CartAPI fill:#9B59B6

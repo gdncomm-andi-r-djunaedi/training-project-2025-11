@@ -1,0 +1,107 @@
+sequenceDiagram
+    participant C as Client
+    participant G as API Gateway
+    participant M as Member Service
+    participant P as Product Service
+    participant CT as Cart Service
+    participant R as Redis
+    participant DB as Database
+
+    Note over C,DB: 1. REGISTER & LOGIN FLOW
+
+    C->>G: POST /api/member/register
+    G->>M: Forward request
+    M->>M: Hash password (BCrypt)
+    M->>DB: Save member
+    DB-->>M: Success
+    M-->>G: 201 Created
+    G-->>C: Member created
+
+    C->>G: POST /api/member/login
+    G->>M: Forward credentials
+    M->>DB: Find member by email
+    DB-->>M: Member data
+    M->>M: Validate password (BCrypt)
+    M->>M: Generate JWT token
+    M->>R: Store token hash
+    M-->>G: JWT token + refresh token
+    G-->>C: Set JWT cookie/header
+
+    Note over C,DB: 2. SEARCH & VIEW PRODUCT FLOW
+
+    C->>G: GET /api/product/search?q=laptop&page=1&size=20
+    G->>G: Validate JWT (optional for search)
+    G->>P: Forward request
+    P->>R: Check cache
+    alt Cache Hit
+        R-->>P: Cached results
+    else Cache Miss
+        P->>DB: Query with wildcard (MongoDB)
+        DB-->>P: Product list
+        P->>R: Cache results (5 min TTL)
+    end
+    P-->>G: Paginated product list
+    G-->>C: 200 OK + products
+
+    C->>G: GET /api/product/{id}
+    G->>P: Forward request
+    P->>R: Check cache
+    alt Cache Hit
+        R-->>P: Cached product
+    else Cache Miss
+        P->>DB: Find by ID
+        DB-->>P: Product detail
+        P->>DB: Increment view_count
+        P->>R: Cache product (30 min TTL)
+    end
+    P-->>G: Product detail
+    G-->>C: 200 OK + product
+
+    Note over C,DB: 3. ADD TO CART FLOW
+
+    C->>G: POST /api/cart/items (with JWT)
+    G->>G: Validate JWT
+    alt Invalid JWT
+        G-->>C: 401 Unauthorized
+    else Valid JWT
+        G->>CT: Forward request + member_id
+        CT->>P: Verify product exists
+        P-->>CT: Product details
+        CT->>R: HSET cart:member_id:product_id
+        CT->>R: HINCRBY cart:member_id:summary total_items
+        CT->>R: EXPIRE cart:member_id:* 604800
+        R-->>CT: Success
+        CT-->>G: 201 Created
+        G-->>C: Item added to cart
+    end
+
+    Note over C,DB: 4. VIEW & MANAGE CART FLOW
+
+    C->>G: GET /api/cart (with JWT)
+    G->>G: Validate JWT
+    G->>CT: Forward request + member_id
+    CT->>R: HGETALL cart:member_id:*
+    R-->>CT: All cart items
+    CT-->>G: Cart summary + items
+    G-->>C: 200 OK + cart data
+
+    C->>G: DELETE /api/cart/items/{product_id} (with JWT)
+    G->>G: Validate JWT
+    G->>CT: Forward request + member_id
+    CT->>R: HDEL cart:member_id:product_id
+    CT->>R: Update cart:member_id:summary
+    R-->>CT: Success
+    CT-->>G: 204 No Content
+    G-->>C: Item removed
+
+    Note over C,DB: 5. LOGOUT FLOW
+
+    C->>G: POST /api/member/logout (with JWT)
+    G->>G: Validate JWT
+    G->>M: Forward request + token
+    M->>R: Add token to blacklist
+    M->>DB: Mark token as revoked
+    R-->>M: Success
+    M-->>G: 200 OK
+    G-->>C: Clear JWT cookie
+    G-->>C: Logout success

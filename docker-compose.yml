@@ -1,0 +1,74 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: member-postgres
+    environment:
+      POSTGRES_DB: memberdb
+      POSTGRES_USER: member
+      POSTGRES_PASSWORD: memberpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    container_name: api-gateway-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+#    networks:
+#      - gateway-network
+    restart: unless-stopped
+  mongodb:
+    image: mongo:8
+    container_name: product-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: productdb
+    restart: unless-stopped
+  product-service:
+    build:
+      context: ./product
+    image: product-service:latest
+    container_name: product-service
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/productdb
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+#  member-service:
+#    build:
+#      context: ./member
+#    image: member-service:latest
+#    container_name: member-service
+#    depends_on:
+#      - postgres
+#    environment:
+#      DB_URL: jdbc:postgresql://postgres:5432/memberdb
+#      DB_USERNAME: member
+#      DB_PASSWORD: memberpass
+#      JWT_SECRET: supersecretkeysupersecretkeysupersecr
+#      JWT_EXPIRATION_SECONDS: 3600
+#    ports:
+#      - "8080:8080"
+volumes:
+  pgdata:
+  redis_data:
+  mongodb_data:
