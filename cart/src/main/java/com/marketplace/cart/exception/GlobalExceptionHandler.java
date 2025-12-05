@@ -1,10 +1,10 @@
-package com.marketplace.common.exception;
+package com.marketplace.cart.exception;
 
 import com.marketplace.common.dto.ErrorResponse;
+import com.marketplace.common.exception.BaseException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,26 +16,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Global exception handler for Spring MVC (servlet-based) services only.
- * Catches all exceptions and returns standardized error responses.
- * 
- * This handler is conditionally enabled only for SERVLET applications.
- * API Gateway uses WebFlux and has its own reactive exception handler.
+ * Global exception handler for Cart Service.
  */
 @Slf4j
 @RestControllerAdvice
-@ConditionalOnWebApplication(type = Type.SERVLET)
 public class GlobalExceptionHandler {
 
-    /**
-     * Handle custom BaseException and its subclasses
-     */
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(
             BaseException ex,
             HttpServletRequest request) {
 
-        log.error("Base exception occurred: {}", ex.getMessage(), ex);
+        log.warn("Business exception: {} - {}", ex.getErrorCode(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.of(
                 ex.getStatusCode(),
@@ -48,15 +40,12 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
-    /**
-     * Handle validation errors from @Valid annotations
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
             HttpServletRequest request) {
 
-        log.error("Validation error occurred: {}", ex.getMessage());
+        log.warn("Validation failed: {}", ex.getMessage());
 
         List<String> details = new ArrayList<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -66,7 +55,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.withDetails(
                 HttpStatus.BAD_REQUEST.value(),
                 "VALIDATION_ERROR",
-                "Invalid request data",
+                "Input validation failed",
                 details,
                 request.getRequestURI());
 
@@ -75,20 +64,35 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
-    /**
-     * Handle all other unexpected exceptions
-     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex,
+            HttpServletRequest request) {
+
+        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                "DATA_CONFLICT",
+                "Operation failed due to data constraint violation",
+                request.getRequestURI());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex,
             HttpServletRequest request) {
 
-        log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
+        log.error("Unhandled exception occurred", ex);
 
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "INTERNAL_ERROR",
-                "An unexpected error occurred. Please try again later.",
+                "INTERNAL_SERVER_ERROR",
+                "An unexpected error occurred",
                 request.getRequestURI());
 
         return ResponseEntity
@@ -96,3 +100,4 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 }
+
