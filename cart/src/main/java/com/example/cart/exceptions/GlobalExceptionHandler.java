@@ -13,13 +13,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<APIResponse<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        APIResponse response = ResponseUtil.errorWithMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, ex.getMessage());
+        APIResponse response = ResponseUtil.error(ex.getMessage(), String.valueOf(HttpStatus.NOT_FOUND.value()));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<APIResponse<Object>> handleGeneralException(Exception ex) {
-        APIResponse response = ResponseUtil.errorWithMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        APIResponse response = ResponseUtil.error("An unexpected error occurred", String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }

@@ -10,5 +10,5 @@ public interface CartService {
 
     String removeItemFromCart(String userId, Long productId);
 
-    void emptyCart(String userId);
+    String emptyCart(String userId);
 }

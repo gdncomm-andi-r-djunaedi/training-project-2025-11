@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +30,6 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartResponseDTO getCart(String userId) {
-
         Cart cart = cartRepository.findById(userId).orElse(null);
 
         if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
@@ -37,70 +37,82 @@ public class CartServiceImpl implements CartService {
             return CartResponseDTO.builder()
                     .userId(userId)
                     .items(Collections.emptyList())
+                    .totalPrice(BigDecimal.ZERO)
                     .build();
         }
 
-            List<Long> productIds = cart.getItems().stream()
-                    .map(CartItem::getProductId)
-                    .collect(Collectors.toList());
-
-        List<GetBulkProductResponseDTO> productDetails = new ArrayList<>();
-        int batchSize = 20;
-
-        for (int i = 0; i < productIds.size(); i += batchSize) {
-            List<Long> batch = productIds.subList(i, Math.min(i + batchSize, productIds.size()));
-            try {
-                APIResponse<List<GetBulkProductResponseDTO>> response = productClient.fetchProductInBulk(batch).getBody();
-                if (response != null && response.getData() != null) {
-                    productDetails.addAll(response.getData());
-                }
-            } catch (Exception e) {
-                log.error("Failed to fetch product details for batch: {}", batch, e);
-            }
-        }
-
-            Map<Long, GetBulkProductResponseDTO> productMap = productDetails.stream()
-                    .collect(Collectors.toMap(
-                            GetBulkProductResponseDTO::getProductId,
-                            Function.identity(),
-                            (existing, duplicate) -> existing  // handle duplicates
-                    ));
-
-        List<CartItemResponseDTO> itemDTOs = cart.getItems().stream()
-                .filter(item -> productMap.containsKey(item.getProductId()))
-                .map(item -> {
-                    GetBulkProductResponseDTO product = productMap.get(item.getProductId());
-                    return CartItemResponseDTO.builder()
-                            .productId(item.getProductId())
-                            .title(product.getTitle())
-                            .price(product.getPrice())
-                            .imageUrl(product.getImageUrl())
-                            .quantity(item.getQuantity())
-                            .build();
-                })
+        List<Long> productIds = cart.getItems().stream()
+                .map(CartItem::getProductId)
                 .collect(Collectors.toList());
+
+        List<GetBulkProductResponseDTO> productDetails = fetchProductDetails(productIds);
+
+        Map<Long, GetBulkProductResponseDTO> productMap = productDetails.stream()
+                .collect(Collectors.toMap(
+                        GetBulkProductResponseDTO::getProductId,
+                        Function.identity(),
+                        (existing, duplicate) -> existing
+                ));
+
+        List<CartItemResponseDTO> itemDTOs = new ArrayList<>();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+
+        for (CartItem item : cart.getItems()) {
+            GetBulkProductResponseDTO product = productMap.get(item.getProductId());
+            if (product == null) {
+                log.warn("Product {} not found for cart item, skipping", item.getProductId());
+                continue;
+            }
+
+            BigDecimal price = product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO;
+            BigDecimal itemTotal = price.multiply(BigDecimal.valueOf(item.getQuantity()));
+
+            itemDTOs.add(CartItemResponseDTO.builder()
+                    .productId(product.getProductId())
+                    .title(product.getTitle())
+                    .price(price)
+                    .imageUrl(product.getImageUrl())
+                    .quantity(item.getQuantity())
+                    .build());
+
+            totalPrice = totalPrice.add(itemTotal);
+        }
 
         log.info("Successfully fetched cart with {} items for userId: {}", itemDTOs.size(), userId);
         return CartResponseDTO.builder()
                 .userId(userId)
                 .items(itemDTOs)
+                .totalPrice(totalPrice)
                 .build();
+    }
 
+    private List<GetBulkProductResponseDTO> fetchProductDetails(List<Long> productIds) {
+        try {
+            APIResponse<List<GetBulkProductResponseDTO>> response =
+                    productClient.fetchProductInBulk(productIds).getBody();
+
+            if (response != null && response.getData() != null) {
+                return response.getData();
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch product details for productIds: {}", productIds, e);
+        }
+        return Collections.emptyList();
     }
 
     @Override
     public String addToCartOrUpdateQuantity(String userId, AddToCartRequestDTO request) {
-        
+
         if (request.getProductId() == null) {
             log.error("Invalid productId: productId is null");
             throw new IllegalArgumentException("Product ID cannot be null");
         }
-        
+
         if (request.getQuantity() <= 0) {
             log.error("Invalid quantity: quantity must be positive, got: {}", request.getQuantity());
             throw new IllegalArgumentException("Quantity must be greater than 0");
         }
-        
+
         Long productId = request.getProductId();
         int quantity = request.getQuantity();
 
@@ -123,12 +135,12 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public String removeItemFromCart(String userId, Long productId) {
-        
+
         if (productId == null) {
             log.error("Invalid productId: productId is null");
             throw new IllegalArgumentException("Product ID cannot be null");
         }
-        
+
         Cart cart = cartRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.error("Cart not found for userId: {}", userId);
@@ -152,13 +164,13 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void emptyCart(String userId) {
-        
+    public String emptyCart(String userId) {
+
         if (userId == null || userId.trim().isEmpty()) {
             log.error("Invalid userId: userId is null or empty");
             throw new IllegalArgumentException("User ID cannot be null or empty");
         }
-        
+
         Cart cart = cartRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.error("Cart not found for userId: {}", userId);
@@ -167,6 +179,7 @@ public class CartServiceImpl implements CartService {
 
         cart.getItems().clear();
         cartRepository.save(cart);
+        return "Cart deleted successfully";
     }
 
 }

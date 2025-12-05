@@ -21,8 +21,6 @@ public class CartController {
     @GetMapping
     public ResponseEntity<APIResponse<CartResponseDTO>> getCart(@RequestHeader("x-user-id") String userId) {
         APIResponse<CartResponseDTO> response = ResponseUtil.success(
-                HttpStatus.OK.value(),
-                HttpStatus.OK,
                 cartService.getCart(userId)
         );
         return ResponseEntity.ok(response);
@@ -32,11 +30,7 @@ public class CartController {
     public ResponseEntity<APIResponse<String>> addOrUpdateToCart(
             @RequestHeader("x-user-id") String userId,
             @RequestBody AddToCartRequestDTO requestDTO) {
-        APIResponse<String> response = ResponseUtil.success(
-                HttpStatus.CREATED.value(),
-                HttpStatus.CREATED,
-                cartService.addToCartOrUpdateQuantity(userId, requestDTO)
-        );
+        APIResponse<String> response = ResponseUtil.success(cartService.addToCartOrUpdateQuantity(userId, requestDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -44,22 +38,14 @@ public class CartController {
     public ResponseEntity<APIResponse<String>> removeItemFromCart(
             @RequestHeader("x-user-id") String userId,
             @PathVariable Long productId) {
-        APIResponse<String> response = ResponseUtil.success(
-                HttpStatus.OK.value(),
-                HttpStatus.OK,
-                cartService.removeItemFromCart(userId, productId)
-        );
+        APIResponse<String> response = ResponseUtil.success(cartService.removeItemFromCart(userId, productId));
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/deleteAll")
-    public ResponseEntity<APIResponse<Void>> emptyCart(@RequestHeader("x-user-id") String userId) {
-        cartService.emptyCart(userId);
-        APIResponse<Void> response = ResponseUtil.success(
-                HttpStatus.NO_CONTENT.value(),
-                HttpStatus.NO_CONTENT,
-                null
-        );
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+    public ResponseEntity<APIResponse<String>> emptyCart(@RequestHeader("x-user-id") String userId) {
+        String message = cartService.emptyCart(userId);
+        APIResponse<String> response = ResponseUtil.success(message);
+        return ResponseEntity.ok(response);
     }
 }
