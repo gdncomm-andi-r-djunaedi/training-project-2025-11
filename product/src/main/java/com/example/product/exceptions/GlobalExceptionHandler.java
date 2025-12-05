@@ -16,20 +16,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<APIResponse<Object>> handleProductNotFound(ProductNotFoundException ex) {
-        APIResponse<Object> response = ResponseUtil.errorWithMessage(
-                HttpStatus.NOT_FOUND.value(), 
-                HttpStatus.NOT_FOUND, 
-                ex.getMessage()
+        APIResponse<Object> response = ResponseUtil.error(
+                ex.getMessage(),
+                String.valueOf(HttpStatus.NOT_FOUND.value())
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<APIResponse<Object>> handleGenericException(Exception ex) {
-        APIResponse<Object> response = ResponseUtil.errorWithMessage(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-                HttpStatus.INTERNAL_SERVER_ERROR, 
-                "An unexpected error occurred: " + ex.getMessage()
+        APIResponse<Object> response = ResponseUtil.error(
+                "An unexpected error occurred: " + ex.getMessage(),
+                String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value())
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

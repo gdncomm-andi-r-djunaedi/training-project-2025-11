@@ -6,11 +6,14 @@ import com.example.product.dto.ProductResponseDTO;
 import com.example.product.entity.Product;
 import com.example.product.exceptions.ProductNotFoundException;
 import com.example.product.repository.ProductRepository;
+import com.example.product.service.KafkaProducerService;
 import com.example.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +25,10 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final SequenceGeneratorService sequenceGeneratorService;
+    private final KafkaProducerService kafkaProducerService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Override
     public ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO) {
@@ -38,15 +45,10 @@ public class ProductServiceImpl implements ProductService {
                 .build();
 
         Product savedProduct = productRepository.save(product);
-        return mapToResponseDTO(savedProduct);
+        ProductResponseDTO savedProductDTO = mapToResponseDTO(savedProduct);
+        kafkaProducerService.publishProductCreated(savedProductDTO);
+        return savedProductDTO;
     }
-
-//    @Override
-//    public ProductResponseDTO getProductById(String id) {
-//        Product product = productRepository.findById(id)
-//                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
-//        return mapToResponseDTO(product);
-//    }
 
     @Override
     @Cacheable(value = "products", key = "#productId")
@@ -55,13 +57,6 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductNotFoundException("Product not found"));
         return mapToResponseDTO(product);
     }
-
-//    @Override
-//    public List<ProductResponseDTO> getAllProducts() {
-//        return productRepository.findAll().stream()
-//                .map(this::mapToResponseDTO)
-//                .collect(Collectors.toList());
-//    }
 
     @Override
     public List<ProductResponseDTO> getProductsByCategory(String category) {
@@ -84,33 +79,28 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductNotFoundException("Product not found"));
         if(product.isMarkForDelete())
             throw new RuntimeException("cannot update the deleted product");
-        Product updatedProduct = Product.builder()
-                .title(updateProductDTO.getTitle())
-                .description(updateProductDTO.getDescription())
-                .price(updateProductDTO.getPrice())
-                .imageUrl(updateProductDTO.getImageUrl())
-                .category(updateProductDTO.getCategory())
-                .markForDelete(false)
-                .build();
+        
+        product.setTitle(updateProductDTO.getTitle());
+        product.setDescription(updateProductDTO.getDescription());
+        product.setPrice(updateProductDTO.getPrice());
+        product.setImageUrl(updateProductDTO.getImageUrl());
+        product.setCategory(updateProductDTO.getCategory());
 
-        Product savedProduct = productRepository.save(updatedProduct);
-        return mapToResponseDTO(savedProduct);
+        Product savedProduct = productRepository.save(product);
+        ProductResponseDTO savedProductDto = mapToResponseDTO(savedProduct);
+        kafkaProducerService.publishProductUpdated(savedProductDto);
+        return savedProductDto;
     }
-
-//    @Override
-//    public void deleteProduct(String id) {
-//        Product product = productRepository.findById(id)
-//                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
-//        productRepository.delete(product);
-//    }
 
     @Override
     @CacheEvict(value = "products", key = "#productId")
-    public void deleteProductByProductId(long productId) {
+    public String deleteProductByProductId(long productId) {
         Product product = productRepository.findByProductId(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found"));
         product.setMarkForDelete(true);
         productRepository.save(product);
+        kafkaProducerService.publishProductDeleted(productId);
+        return "Product deleted successfully";
     }
 
     @Override
@@ -118,8 +108,10 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByProductIdIn(productIds).stream().map(this::mapToBulkResponseDTO).collect(Collectors.toList());
     }
 
+
     private ProductResponseDTO mapToResponseDTO(Product product) {
         return ProductResponseDTO.builder()
+                .productId(product.getProductId())
                 .title(product.getTitle())
                 .description(product.getDescription())
                 .price(product.getPrice())
@@ -138,4 +130,5 @@ public class ProductServiceImpl implements ProductService {
                 .markForDelete(product.isMarkForDelete())
                 .build();
     }
+
 }
