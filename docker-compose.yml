@@ -1,0 +1,49 @@
+services:
+  postgres-member:
+    image: postgres:15
+    container_name: postgres-member
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: memberdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - member_pgdata:/var/lib/postgresql/data
+
+  postgres-product:
+    image: postgres:15
+    container_name: postgres-product
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: productdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - product_pgdata:/var/lib/postgresql/data
+
+  mongo-cart:
+    image: mongo:7
+    container_name: mongo-cart
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: cartdb
+    volumes:
+      - cart_mongodata:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  member_pgdata:
+  product_pgdata:
+  cart_mongodata:
+  redis_data:
