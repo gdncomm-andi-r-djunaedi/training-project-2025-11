@@ -18,7 +18,9 @@ public class CartDto {
 
     private List<CartItemDto> items;
 
-    private Date updatedAt;
-
     private Integer totalQuantity;
+
+    private Long totalPrice;
+
+    private Date updatedAt;
 }

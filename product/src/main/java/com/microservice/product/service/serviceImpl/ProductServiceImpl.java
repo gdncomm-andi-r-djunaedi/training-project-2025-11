@@ -132,7 +132,6 @@ public class ProductServiceImpl implements ProductService {
     public void deleteById(String skuId) {
         log.info("Deleting product with SKU ID: {}", skuId);
 
-        // Check if product exists before attempting to delete
         if (!productRepository.existsBySkuId(skuId)) {
             log.warn("Attempted to delete non-existent product with SKU ID: {}", skuId);
             throw new ResourceNotFoundException("Product", skuId);

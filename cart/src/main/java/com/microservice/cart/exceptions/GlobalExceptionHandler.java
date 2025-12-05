@@ -49,30 +49,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(FeignException.class)
-    public ResponseEntity<Map<String, Object>> handleFeignException(FeignException ex) {
-        log.error("FeignException occurred: status={}, message={}", ex.status(), ex.getMessage());
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        
-        if (ex instanceof FeignException.NotFound) {
-            errorResponse.put("status", HttpStatus.NOT_FOUND.value());
-            errorResponse.put("error", "Resource Not Found");
-            errorResponse.put("message", "The requested resource was not found in the product service.");
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-        } else if (ex.status() >= 500) {
-            errorResponse.put("status", HttpStatus.SERVICE_UNAVAILABLE.value());
-            errorResponse.put("error", "Service Unavailable");
-            errorResponse.put("message", "Product service is currently unavailable. Please try again later.");
-            return new ResponseEntity<>(errorResponse, HttpStatus.SERVICE_UNAVAILABLE);
-        } else {
-            errorResponse.put("status", HttpStatus.BAD_GATEWAY.value());
-            errorResponse.put("error", "Bad Gateway");
-            errorResponse.put("message", "Error communicating with product service. Please try again later.");
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
-        }
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         log.error("Unexpected exception occurred", ex);

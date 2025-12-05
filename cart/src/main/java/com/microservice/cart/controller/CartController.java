@@ -24,31 +24,80 @@ public class CartController {
         log.info("GET /api/cart - Request received for userId: {}", userId);
 
         CartDto cartDto = cartService.getCart(userId);
-        ApiResponse<CartDto> response = ApiResponse.success(cartDto, HttpStatus.OK);
+        
+        // Check if cart is empty and set appropriate message
+        ApiResponse<CartDto> response;
+        if (cartDto.getItems() == null || cartDto.getItems().isEmpty()) {
+            if (cartDto.getTotalQuantity() == null || cartDto.getTotalQuantity() == 0) {
+                response = ApiResponse.successWithMessage(cartDto, "Cart is empty", HttpStatus.OK);
+                log.info("GET /api/cart - Cart is empty for userId: {}, returning empty cart with message", userId);
+            } else {
+                response = ApiResponse.success(cartDto, HttpStatus.OK);
+            }
+        } else {
+            response = ApiResponse.success(cartDto, HttpStatus.OK);
+        }
 
         log.info("GET /api/cart - Response sent successfully for userId: {}", userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/items")
-    public ResponseEntity<ApiResponse<Boolean>> addItemToCart(
+    public ResponseEntity<?> addItemToCart(
             @RequestHeader("X-User-Id") Long userId,
             @RequestBody AddToCartRequestDto request) {
-        log.info("POST /api/cart/items - Request received for userId: {}, productId: {}, quantity: {}",
+        log.info("POST /api/cart/items - Request received for userId: {}, skuId: {}, quantity: {}",
                 userId,
                 request != null ? request.getSkuId() : null,
                 request != null ? request.getQuantity() : null);
 
-        Boolean addedToCart = cartService.addItemToCart(userId, request);
-        ApiResponse<Boolean> response = ApiResponse.success(addedToCart, HttpStatus.CREATED);
-
-        log.info("POST /api/cart/items - Item added successfully for userId: {}, returning 201 Created", userId);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        String result = cartService.addItemToCart(userId, request);
+        
+        // Determine status code and text based on result
+        HttpStatus httpStatus;
+        String statusText;
+        CartDto emptyCart = null;
+        
+        if ("UPDATED".equals(result)) {
+            httpStatus = HttpStatus.OK;
+            statusText = "Updated";
+            log.info("POST /api/cart/items - Item updated successfully for userId: {}, returning 200 OK", userId);
+        } else if ("ADDED".equals(result)) {
+            httpStatus = HttpStatus.CREATED;
+            statusText = "Created";
+            log.info("POST /api/cart/items - Item added successfully for userId: {}, returning 201 Created", userId);
+        } else if ("EMPTY_CART".equals(result)) {
+            // Cart became empty after removing deleted product
+            httpStatus = HttpStatus.OK;
+            statusText = "OK";
+            emptyCart = new CartDto();
+            emptyCart.setUserId(userId);
+            emptyCart.setItems(new java.util.ArrayList<>());
+            emptyCart.setUpdatedAt(new java.util.Date());
+            emptyCart.setTotalQuantity(0);
+            log.info("POST /api/cart/items - Cart is now empty for userId: {} after removing deleted product", userId);
+        } else {
+            // REMOVED case (item removed but cart still has other items)
+            httpStatus = HttpStatus.OK;
+            statusText = "Removed";
+            log.info("POST /api/cart/items - Item removed successfully for userId: {}, returning 200 OK", userId);
+        }
+        
+        if (emptyCart != null) {
+            // Return empty cart with message
+            ApiResponse<CartDto> cartResponse = ApiResponse.successWithMessage(emptyCart, "Cart is empty", httpStatus);
+            cartResponse.setStatusText(statusText);
+            return new ResponseEntity<>(cartResponse, httpStatus);
+        } else {
+            ApiResponse<Boolean> boolResponse = ApiResponse.success(true, httpStatus);
+            boolResponse.setStatusText(statusText);
+            return new ResponseEntity<>(boolResponse, httpStatus);
+        }
     }
 
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<ApiResponse<Boolean>> removeItemFromCart(
-            @PathVariable String itemId,  // Changed from Long itemId to String itemId
+            @PathVariable String itemId,
             @RequestHeader("X-User-Id") Long userId) {
         log.info("DELETE /api/cart/items/{} - Request received for userId: {}", itemId, userId);
 

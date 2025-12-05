@@ -12,9 +12,6 @@ public interface ProductFeign {
     @GetMapping("/api/products/{productId}")
     ApiResponse<ProductResponseDto> getProduct(@PathVariable("productId") String productId);
 
-    @GetMapping("/api/products/isPresent")
-    ApiResponse<Boolean> isProductIdPresent(@RequestParam String id);
-
     @PostMapping("/api/products/getSkusById")
     ApiResponse<List<ProductResponseDto>> getProductsBySkuIds(@RequestBody List<String> skuIds);
 }

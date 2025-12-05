@@ -28,5 +28,9 @@ public class Cart implements Serializable {
 
     private List<CartItem> items;
 
+    private Long totalPrice;
+
+    private Integer totalQuantity;
+
     private Date updatedAt;
 }
