@@ -1,0 +1,15 @@
+com\blibli\training\product\dto\ProductResponse.class
+com\blibli\training\product\exception\GlobalExceptionHandler.class
+com\blibli\training\product\config\SecurityConfig.class
+com\blibli\training\product\dto\ProductResponse$ProductResponseBuilder.class
+com\blibli\training\product\service\impl\ProductServiceImpl.class
+com\blibli\training\product\entity\Product.class
+com\blibli\training\product\dto\UpdateProductRequest.class
+com\blibli\training\product\dto\ProductRequest.class
+com\blibli\training\product\repository\ProductRepository.class
+com\blibli\training\product\dto\ProductRequest$ProductRequestBuilder.class
+com\blibli\training\product\service\ProductService.class
+com\blibli\training\product\controller\ProductController.class
+com\blibli\training\product\entity\Product$ProductBuilder.class
+com\blibli\training\product\dto\CreateProductRequest.class
+com\blibli\training\product\ProductApplication.class

@@ -1,0 +1,14 @@
+com\blibli\training\member\dto\MemberResponse.class
+com\blibli\training\member\dto\LoginRequest.class
+com\blibli\training\member\entity\Member.class
+com\blibli\training\member\client\AuthClient.class
+com\blibli\training\member\dto\RegisterRequest.class
+com\blibli\training\member\MemberApplication.class
+com\blibli\training\member\service\impl\MemberServiceImpl.class
+com\blibli\training\member\exception\GlobalExceptionHandler.class
+com\blibli\training\member\service\MemberService.class
+com\blibli\training\member\repository\MemberRepository.class
+com\blibli\training\member\controller\MemberController.class
+com\blibli\training\member\dto\MemberResponse$MemberResponseBuilder.class
+com\blibli\training\member\config\SecurityConfig.class
+com\blibli\training\member\entity\Member$MemberBuilder.class
