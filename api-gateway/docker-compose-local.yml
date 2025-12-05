@@ -1,0 +1,17 @@
+services:
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVICE_MEMBER_URL=http://member-service:8081
+      - SERVICE_PRODUCT_URL=http://product-service:8082
+      - SERVICE_CART_URL=http://cart-service:8083
+      - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
