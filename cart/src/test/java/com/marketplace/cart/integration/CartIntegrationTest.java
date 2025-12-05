@@ -2,6 +2,7 @@ package com.marketplace.cart.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marketplace.cart.client.ProductClient;
+import com.marketplace.cart.config.TestSecurityConfig;
 import com.marketplace.cart.dto.AddToCartRequest;
 import com.marketplace.cart.dto.ProductDTO;
 import com.marketplace.cart.dto.UpdateCartItemRequest;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -34,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Import(TestSecurityConfig.class)
 class CartIntegrationTest {
 
     @Container
@@ -184,8 +187,8 @@ class CartIntegrationTest {
 
     @Test
     @Order(7)
-    @DisplayName("Should fail without member ID header")
-    void shouldFailWithoutMemberIdHeader() throws Exception {
+    @DisplayName("Should fail without authentication")
+    void shouldFailWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/api/cart"))
                 .andExpect(status().isUnauthorized());
     }
@@ -199,5 +202,26 @@ class CartIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Cart cleared"));
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Should validate product exists when adding to cart")
+    void shouldValidateProductExistsWhenAddingToCart() throws Exception {
+        // Mock product not found
+        when(productClient.getProductByIdOrThrow("non-existent-product"))
+                .thenThrow(com.marketplace.common.exception.ResourceNotFoundException.of("Product", "non-existent-product"));
+
+        AddToCartRequest request = AddToCartRequest.builder()
+                .productId("non-existent-product")
+                .quantity(1)
+                .build();
+
+        mockMvc.perform(post("/api/cart/items")
+                        .header("X-Member-Id", TEST_MEMBER_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
     }
 }

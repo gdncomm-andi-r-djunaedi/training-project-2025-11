@@ -1,9 +1,26 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   data:
     mongodb:
       auto-index-creation: true
 
+jwt:
+  access-token-validity: 3600000
+  refresh-token-validity: 86400000
+  rsa:
+    public-key: |
+      -----BEGIN PUBLIC KEY-----
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnUcdaQBpzumEFFSyPuhZ
+      bmo4AwnRsi+1RwbzlSmkPa3FXRCuHduYXtp1wQcIk+ICzC02sengnSFP3lLrPz3s
+      co3ch2f/9q6ulkiF3VU8wQmSIXd04PqY7E2nBjF4gYCteWrtQ1qP5VVPBwMVQRsZ
+      E3uMQZuIOUp/9ppfVtgMydGGJHSqSdE/dq/3ZWhkBGL/ipEYkuoyKbF/hYetfkVK
+      5t+fJsHwrATAzFo8FCe/OyLUOF8ZPrEE53efUiwAgN54/76FaewmpWgJg9MRsfGA
+      TuwVxR5EOlJ+MTNPUljr7SvntQ68LijYjpE5FzsFUXm6HZjdKxwLDEE/vjMNz4NR
+      rwIDAQAB
+      -----END PUBLIC KEY-----
+    private-key: ""
+
 logging:
   level:
     com.marketplace: DEBUG
-

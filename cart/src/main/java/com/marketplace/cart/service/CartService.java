@@ -2,7 +2,10 @@ package com.marketplace.cart.service;
 
 import com.marketplace.cart.cache.CartCache;
 import com.marketplace.cart.client.ProductClient;
-import com.marketplace.cart.dto.*;
+import com.marketplace.cart.dto.AddToCartRequest;
+import com.marketplace.cart.dto.CartResponse;
+import com.marketplace.cart.dto.ProductDTO;
+import com.marketplace.cart.dto.UpdateCartItemRequest;
 import com.marketplace.cart.entity.Cart;
 import com.marketplace.cart.entity.CartItem;
 import com.marketplace.cart.mapper.CartMapper;
