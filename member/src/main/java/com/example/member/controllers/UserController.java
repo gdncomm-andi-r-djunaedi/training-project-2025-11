@@ -5,17 +5,16 @@ import com.example.member.dto.UserResponseDTO;
 import com.example.member.service.UserService;
 import com.example.member.utils.APIResponse;
 import com.example.member.utils.ResponseUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/api/member")
+@Slf4j
 public class UserController {
 
     @Autowired
@@ -23,19 +22,24 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<APIResponse<UserResponseDTO>> registerUser(@Valid @RequestBody UserRequestDto userRequestDto){
-        return ResponseEntity.ok(ResponseUtil.success(HttpStatus.OK.value(), HttpStatus.OK, userService.registerUser(userRequestDto)));
+        return ResponseEntity.ok(ResponseUtil.success(userService.registerUser(userRequestDto)));
     }
 
     @PostMapping("/login")
     public ResponseEntity<APIResponse<String>> loginUser(@RequestBody com.example.member.dto.LoginRequestDto loginRequestDto, jakarta.servlet.http.HttpServletResponse response){
         String token = userService.loginUser(loginRequestDto);
-
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("Authorization", token);
+        log.info("token:" + token);
+        Cookie cookie = new Cookie("Authorization", token);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(24 * 60 * 60); // 1 day
         response.addCookie(cookie);
 
-        return ResponseEntity.ok(ResponseUtil.success(HttpStatus.OK.value(), HttpStatus.OK, "Login successful"));
+        return ResponseEntity.ok(ResponseUtil.success("Login successful"));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<APIResponse<UserResponseDTO>> getMemberProfile(@RequestHeader("x-user-id") String userId){
+        return ResponseEntity.ok(ResponseUtil.success(userService.getMemberProfile(userId)));
     }
 }

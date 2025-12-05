@@ -1,24 +1,21 @@
 package com.example.member.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class APIResponse<T> {
 
-    private int code;
-    private HttpStatus status;
-    private String message;
+    private boolean success;
     private T data;
-    private Object paging;
+    private String errorMessage;
+    private String errorCode;
 
-    public APIResponse(int code, HttpStatus status, T data, Object metadata, String message) {
-        this.code = code;
-        this.status = status;
-        this.data = data;
-        this.paging = metadata;
-        this.message = message;
-    }
 }

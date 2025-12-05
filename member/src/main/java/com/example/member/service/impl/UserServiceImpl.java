@@ -6,13 +6,18 @@ import com.example.member.entity.User;
 import com.example.member.exceptions.InvalidCredentialsException;
 import com.example.member.exceptions.UserAlreadyExistsException;
 import com.example.member.repository.UserRepository;
+import com.example.member.security.JwtUtil;
 import com.example.member.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -23,7 +28,7 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
 
     @Autowired
-    com.example.member.security.JwtUtil jwtUtil;
+    JwtUtil jwtUtil;
 
     @Override
     public UserResponseDTO registerUser(UserRequestDto userRequestDto) {
@@ -55,5 +60,18 @@ public class UserServiceImpl implements UserService {
         }
 
         return jwtUtil.generateToken(user);
+    }
+
+    @Override
+    public UserResponseDTO getMemberProfile(String userId) {
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> {
+                    log.error("user is not present with the id: " + userId);
+                    return new RuntimeException("User not found");
+                });
+
+        UserResponseDTO response = new UserResponseDTO();
+        BeanUtils.copyProperties(user, response, "password", "userId");
+        return response;
     }
 }

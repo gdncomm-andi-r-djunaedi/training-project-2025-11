@@ -17,25 +17,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<APIResponse<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        APIResponse response = ResponseUtil.errorWithMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, ex.getMessage());
+        APIResponse response = ResponseUtil.error(ex.getMessage(), String.valueOf(HttpStatus.NOT_FOUND.value()));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<APIResponse<Object>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
-        APIResponse response = ResponseUtil.errorWithMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT, ex.getMessage());
+        APIResponse response = ResponseUtil.error(ex.getMessage(), String.valueOf(HttpStatus.CONFLICT.value()));
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<APIResponse<Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
-        APIResponse response = ResponseUtil.errorWithMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED, ex.getMessage());
+        APIResponse response = ResponseUtil.error(ex.getMessage(), String.valueOf(HttpStatus.UNAUTHORIZED.value()));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<APIResponse<Object>> handleInvalidPassword(InvalidPasswordException ex) {
-        APIResponse response = ResponseUtil.errorWithMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, ex.getMessage());
+        APIResponse response = ResponseUtil.error(ex.getMessage(), String.valueOf(HttpStatus.BAD_REQUEST.value()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
         );
         
         String errorMessage = errors.values().stream().findFirst().orElse("Validation failed");
-        APIResponse response = ResponseUtil.errorWithMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, errorMessage);
+        APIResponse response = ResponseUtil.error(errorMessage, String.valueOf(HttpStatus.BAD_REQUEST.value()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

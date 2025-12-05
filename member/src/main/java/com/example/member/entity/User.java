@@ -2,6 +2,7 @@ package com.example.member.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.UUID;
@@ -14,8 +15,8 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
-    @Column(unique = true, nullable = false)
     @Email
+    @Column(unique = true, nullable = false)
     private String email;
     @Column(nullable = false)
     private String password;
