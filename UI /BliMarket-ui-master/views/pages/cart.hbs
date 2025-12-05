@@ -10,137 +10,186 @@
             </h1>
         </div>
 
-        {{#if error}}
-        <div class="alert alert-error">
+        <div id="error-message" class="alert alert-error" style="display: none;">
             <i class="fas fa-exclamation-circle"></i>
-            <span>{{error}}</span>
+            <span id="error-text"></span>
         </div>
-        {{/if}}
 
-        {{#if requiresLogin}}
-        {{#if cart.items.length}}
-        <div class="guest-cart-notice">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    <strong>Guest Cart</strong>
-                    <p>You have {{cart.totalItems}} item(s) in your cart. Please login to save your cart and proceed to checkout.</p>
+        <div id="cart-container">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading your cart...</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Load cart data on page load
+    loadCart();
+
+    // Load cart function
+    async function loadCart() {
+        const container = document.getElementById('cart-container');
+        const errorDiv = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        
+        try {
+            const response = await fetch('/api/v1/cart', { credentials: 'include' });
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                const cart = data.data || data;
+                renderCart(cart);
+            } else {
+                showError(data.message || 'Failed to load cart');
+            }
+        } catch (error) {
+            console.error('Error loading cart:', error);
+            showError('Unable to load cart. Please try again later.');
+        }
+    }
+
+    // Render cart function
+    function renderCart(cart) {
+        const container = document.getElementById('cart-container');
+        const requiresLogin = {{#if requiresLogin}}true{{else}}false{{/if}};
+        
+        if (!cart || !cart.items || cart.items.length === 0) {
+            if (requiresLogin) {
+                container.innerHTML = `
+                    <div class="login-prompt">
+                        <div class="login-prompt-card">
+                            <i class="fas fa-lock"></i>
+                            <h2>Login Required</h2>
+                            <p>Please login to view and manage your cart items.</p>
+                            <button class="btn btn-primary btn-lg" onclick="openModal('loginModal')">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Login Now
+                            </button>
+                            <p class="login-prompt-footer">
+                                Don't have an account? 
+                                <a href="#" onclick="openModal('registerModal'); return false;" class="link">Sign Up</a>
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h2>Your Cart is Empty</h2>
+                        <p>Looks like you haven't added anything to your cart yet.</p>
+                        <a href="/" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shopping-bag"></i>
+                            Start Shopping
+                        </a>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        const formatCurrency = window.formatCurrency || ((amount) => `$${amount.toFixed(2)}`);
+        const itemsHtml = cart.items.map(item => {
+            const itemTotal = item.price * item.qty;
+            const variantHtml = item.variant ? `
+                <div class="item-variants">
+                    ${item.variant.color ? `<span class="variant-tag"><i class="fas fa-palette"></i> ${item.variant.color}</span>` : ''}
+                    ${item.variant.size ? `<span class="variant-tag"><i class="fas fa-ruler"></i> ${item.variant.size}</span>` : ''}
                 </div>
-            </div>
-            <div class="login-prompt-actions">
-                <button class="btn btn-primary btn-lg" onclick="openModal('loginModal')">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Login to Continue
-                </button>
-                <p class="login-prompt-footer">
-                    Don't have an account? 
-                    <a href="#" onclick="openModal('registerModal'); return false;" class="link">Sign Up</a>
-                </p>
-            </div>
-        </div>
-        {{else}}
-        <div class="login-prompt">
-            <div class="login-prompt-card">
-                <i class="fas fa-lock"></i>
-                <h2>Login Required</h2>
-                <p>Please login to view and manage your cart items.</p>
-                <button class="btn btn-primary btn-lg" onclick="openModal('loginModal')">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Login Now
-                </button>
-                <p class="login-prompt-footer">
-                    Don't have an account? 
-                    <a href="#" onclick="openModal('registerModal'); return false;" class="link">Sign Up</a>
-                </p>
-            </div>
-        </div>
-        {{/if}}
-        {{/if}}
-
-        {{#if cart}}
-            {{#if cart.items.length}}
-            <div class="cart-layout">
-                <div class="cart-items">
-                    {{#each cart.items}}
-                    <div class="cart-item" data-sku="{{this.sku}}">
-                        <div class="item-image">
-                            <a href="/product/{{this.productId}}" title="View product details">
-                                <img src="https://picsum.photos/seed/{{this.sku}}/120/120" alt="{{this.name}}" onerror="this.src='https://picsum.photos/120/120?random={{@index}}'">
-                            </a>
-                        </div>
-                        <div class="item-details">
-                            <h3 class="item-name">{{this.name}}</h3>
-                            <p class="item-sku">SKU: {{this.sku}}</p>
-                            {{#if this.variant}}
-                            <div class="item-variants">
-                                {{#if this.variant.color}}
-                                <span class="variant-tag">
-                                    <i class="fas fa-palette"></i> {{this.variant.color}}
-                                </span>
-                                {{/if}}
-                                {{#if this.variant.size}}
-                                <span class="variant-tag">
-                                    <i class="fas fa-ruler"></i> {{this.variant.size}}
-                                </span>
-                                {{/if}}
-                            </div>
-                            {{/if}}
-                        </div>
-                        <div class="item-price">
-                            <span class="price-label">Price:</span>
-                            <span class="price-value">{{currency this.price}}</span>
-                        </div>
-                        <div class="item-quantity">
-                            <span class="qty-label">Quantity:</span>
-                            <div class="quantity-selector">
-                                <button type="button" class="qty-btn decrease-qty" data-sku="{{this.sku}}">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" class="qty-input" value="{{this.qty}}" min="1" readonly data-sku="{{this.sku}}">
-                                <button type="button" class="qty-btn increase-qty" data-sku="{{this.sku}}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="item-total">
-                            <span class="total-label">Total:</span>
-                            <span class="total-value">{{currency (multiply this.price this.qty)}}</span>
-                        </div>
-                        <div class="item-actions">
-                            <button type="button" class="btn-remove" data-sku="{{this.sku}}" title="Remove item">
-                                <i class="fas fa-trash-alt"></i>
+            ` : '';
+            
+            return `
+                <div class="cart-item" data-sku="${item.sku}">
+                    <div class="item-image">
+                        <a href="/product/${item.productId}" title="View product details">
+                            <img src="https://picsum.photos/seed/${item.sku}/120/120" alt="${item.name}" onerror="this.src='https://picsum.photos/120/120?random=${Math.random()}'">
+                        </a>
+                    </div>
+                    <div class="item-details">
+                        <h3 class="item-name">${item.name}</h3>
+                        <p class="item-sku">SKU: ${item.sku}</p>
+                        ${variantHtml}
+                    </div>
+                    <div class="item-price">
+                        <span class="price-label">Price:</span>
+                        <span class="price-value">${formatCurrency(item.price)}</span>
+                    </div>
+                    <div class="item-quantity">
+                        <span class="qty-label">Quantity:</span>
+                        <div class="quantity-selector">
+                            <button type="button" class="qty-btn decrease-qty" data-sku="${item.sku}">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" class="qty-input" value="${item.qty}" min="1" readonly data-sku="${item.sku}">
+                            <button type="button" class="qty-btn increase-qty" data-sku="${item.sku}">
+                                <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
-                    {{/each}}
+                    <div class="item-total">
+                        <span class="total-label">Total:</span>
+                        <span class="total-value">${formatCurrency(itemTotal)}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button type="button" class="btn-remove" data-sku="${item.sku}" title="Remove item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>
+            `;
+        }).join('');
 
+        const guestNoticeHtml = requiresLogin ? `
+            <div class="guest-cart-notice">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Guest Cart</strong>
+                        <p>You have ${cart.totalItems || 0} item(s) in your cart. Please login to save your cart and proceed to checkout.</p>
+                    </div>
+                </div>
+                <div class="login-prompt-actions">
+                    <button class="btn btn-primary btn-lg" onclick="openModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login to Continue
+                    </button>
+                    <p class="login-prompt-footer">
+                        Don't have an account? 
+                        <a href="#" onclick="openModal('registerModal'); return false;" class="link">Sign Up</a>
+                    </p>
+                </div>
+            </div>
+        ` : '';
+
+        container.innerHTML = `
+            ${guestNoticeHtml}
+            <div class="cart-layout">
+                <div class="cart-items">
+                    ${itemsHtml}
+                </div>
                 <div class="cart-summary">
                     <div class="summary-card">
                         <h2 class="summary-title">Order Summary</h2>
-                        
                         <div class="summary-row">
-                            <span class="summary-label">Items ({{cart.totalItems}}):</span>
-                            <span class="summary-value">{{currency cart.totalValue}}</span>
+                            <span class="summary-label">Items (${cart.totalItems || 0}):</span>
+                            <span class="summary-value">${formatCurrency(cart.totalValue || 0)}</span>
                         </div>
-                        
                         <div class="summary-row">
                             <span class="summary-label">Shipping:</span>
                             <span class="summary-value free">FREE</span>
                         </div>
-                        
                         <div class="summary-row">
                             <span class="summary-label">Tax:</span>
                             <span class="summary-value">$0.00</span>
                         </div>
-                        
                         <div class="summary-divider"></div>
-                        
                         <div class="summary-row summary-total">
                             <span class="summary-label">Total:</span>
-                            <span class="summary-value">{{currency cart.totalValue}}</span>
+                            <span class="summary-value">${formatCurrency(cart.totalValue || 0)}</span>
                         </div>
-
                         <div class="summary-actions">
                             <button class="btn btn-primary btn-block btn-lg" id="checkoutBtn">
                                 <i class="fas fa-credit-card"></i>
@@ -155,7 +204,6 @@
                                 Clear Cart
                             </button>
                         </div>
-
                         <div class="trust-badges">
                             <div class="badge-item">
                                 <i class="fas fa-lock"></i>
@@ -171,8 +219,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Promo Code -->
                     <div class="promo-card">
                         <h3 class="promo-title">Have a promo code?</h3>
                         <div class="promo-form">
@@ -182,31 +228,26 @@
                     </div>
                 </div>
             </div>
-            {{else}}
-            <div class="empty-cart">
-                <i class="fas fa-shopping-cart"></i>
-                <h2>Your Cart is Empty</h2>
-                <p>Looks like you haven't added anything to your cart yet.</p>
-                <a href="/" class="btn btn-primary btn-lg">
-                    <i class="fas fa-shopping-bag"></i>
-                    Start Shopping
-                </a>
-            </div>
-            {{/if}}
-        {{else}}
-        <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading your cart...</p>
-        </div>
-        {{/if}}
-    </div>
-</main>
+        `;
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Update quantity
-    document.querySelectorAll('.increase-qty, .decrease-qty').forEach(btn => {
-        btn.addEventListener('click', async function() {
+        // Re-attach event listeners after rendering
+        attachEventListeners();
+    }
+
+    // Show error function
+    function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        errorText.textContent = message;
+        errorDiv.style.display = 'block';
+        document.getElementById('cart-container').innerHTML = '';
+    }
+
+    // Attach event listeners function
+    function attachEventListeners() {
+        // Update quantity - Optimistic UI update with fire-and-forget API call
+        document.querySelectorAll('.increase-qty, .decrease-qty').forEach(btn => {
+        btn.addEventListener('click', function() {
             const sku = this.dataset.sku;
             const input = document.querySelector(`.qty-input[data-sku="${sku}"]`);
             const currentQty = parseInt(input.value);
@@ -215,39 +256,141 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (newQty === currentQty) return;
 
-            try {
-                const response = await fetch(`/api/v1/cart/item/${sku}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ qty: newQty })
-                });
+            // Get cart item element
+            const cartItem = input.closest('.cart-item');
+            const priceElement = cartItem.querySelector('.price-value');
+            const totalElement = cartItem.querySelector('.total-value');
+            
+            // Extract price from price element (remove currency symbols)
+            const priceText = priceElement.textContent.replace(/[^0-9.]/g, '');
+            const itemPrice = parseFloat(priceText);
 
-                const data = await response.json();
+            // Update UI optimistically
+            input.value = newQty;
+            const newTotal = itemPrice * newQty;
+            totalElement.textContent = window.formatCurrency ? window.formatCurrency(newTotal) : `$${newTotal.toFixed(2)}`;
+            
+            // Update cart summary totals
+            updateCartSummary();
+            
+            // Update cart count badge
+            updateCartCount();
 
-                if (response.ok && data.success) {
-                    // Reload page to update totals
-                    window.location.reload();
-                } else {
-                    showNotification(data.message || 'Failed to update quantity', 'error');
+            // Fire-and-forget API call (don't await)
+            fetch(`/api/v1/cart/item/${sku}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ qty: newQty })
+            }).then(response => {
+                if (!response.ok) {
+                    console.error('Cart update failed with status:', response.status);
+                    return null;
                 }
-            } catch (error) {
-                console.error('Update quantity error:', error);
-                showNotification('An error occurred. Please try again.', 'error');
-            }
+                return response.json();
+            })
+              .then(data => {
+                  if (data && !data.success) {
+                      console.error('Cart update failed:', data.message);
+                      // Optionally show a subtle error notification
+                  }
+              })
+              .catch(error => {
+                  console.error('Update quantity error:', error);
+                  // Silently handle error - UI already updated optimistically
+              });
         });
     });
 
-    // Remove item
-    document.querySelectorAll('.btn-remove').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            if (!confirm('Are you sure you want to remove this item?')) return;
+    // Update cart summary totals
+    function updateCartSummary() {
+        let totalItems = 0;
+        let totalValue = 0;
 
-            const sku = this.dataset.sku;
-            const cartItem = this.closest('.cart-item');
+        document.querySelectorAll('.cart-item').forEach(item => {
+            const qtyInput = item.querySelector('.qty-input');
+            const totalElement = item.querySelector('.total-value');
+            
+            if (qtyInput && totalElement) {
+                const qty = parseInt(qtyInput.value);
+                const totalText = totalElement.textContent.replace(/[^0-9.]/g, '');
+                const itemTotal = parseFloat(totalText);
+                
+                totalItems += qty;
+                totalValue += itemTotal;
+            }
+        });
+
+        // Update summary display
+        const itemsLabel = document.querySelector('.summary-row .summary-label');
+        const itemsValue = document.querySelector('.summary-row .summary-value');
+        const totalValueElement = document.querySelector('.summary-total .summary-value');
+
+        if (itemsLabel) {
+            itemsLabel.textContent = `Items (${totalItems}):`;
+        }
+        if (itemsValue && window.formatCurrency) {
+            itemsValue.textContent = window.formatCurrency(totalValue);
+        }
+        if (totalValueElement && window.formatCurrency) {
+            totalValueElement.textContent = window.formatCurrency(totalValue);
+        }
+    }
+
+    // Update cart count badge
+    async function updateCartCount() {
+        try {
+            const response = await fetch('/cart-count', { credentials: 'include' });
+            const data = await response.json();
+            const cartBadge = document.querySelector('.cart-count');
+            if (cartBadge) {
+                cartBadge.textContent = data.count || 0;
+                cartBadge.style.display = data.count > 0 ? 'block' : 'none';
+            }
+        } catch (error) {
+            console.error('Failed to update cart count:', error);
+        }
+    }
+
+        // Remove item
+        document.querySelectorAll('.btn-remove').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                if (!confirm('Are you sure you want to remove this item?')) return;
+
+                const sku = this.dataset.sku;
+                const cartItem = this.closest('.cart-item');
+
+                try {
+                    const response = await fetch(`/api/v1/cart/${sku}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        cartItem.style.opacity = '0';
+                        setTimeout(() => {
+                            loadCart(); // Reload cart instead of page reload
+                            updateCartCount();
+                        }, 300);
+                        showNotification('Item removed from cart', 'success');
+                    } else {
+                        showNotification(data.message || 'Failed to remove item', 'error');
+                    }
+                } catch (error) {
+                    console.error('Remove item error:', error);
+                    showNotification('An error occurred. Please try again.', 'error');
+                }
+            });
+        });
+
+        // Clear cart
+        document.getElementById('clearCartBtn')?.addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to clear your entire cart?')) return;
 
             try {
-                const response = await fetch(`/api/v1/cart/${sku}`, {
+                const response = await fetch('/api/v1/cart', {
                     method: 'DELETE',
                     credentials: 'include'
                 });
@@ -255,61 +398,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    cartItem.style.opacity = '0';
+                    showNotification('Cart cleared successfully', 'success');
                     setTimeout(() => {
-                        window.location.reload();
-                    }, 300);
-                    showNotification('Item removed from cart', 'success');
+                        loadCart(); // Reload cart instead of page reload
+                        updateCartCount();
+                    }, 500);
                 } else {
-                    showNotification(data.message || 'Failed to remove item', 'error');
+                    showNotification(data.message || 'Failed to clear cart', 'error');
                 }
             } catch (error) {
-                console.error('Remove item error:', error);
+                console.error('Clear cart error:', error);
                 showNotification('An error occurred. Please try again.', 'error');
             }
         });
-    });
 
-    // Clear cart
-    document.getElementById('clearCartBtn')?.addEventListener('click', async function() {
-        if (!confirm('Are you sure you want to clear your entire cart?')) return;
+        // Checkout (placeholder)
+        document.getElementById('checkoutBtn')?.addEventListener('click', function() {
+            showNotification('Checkout feature coming soon!', 'info');
+        });
 
-        try {
-            const response = await fetch('/api/v1/cart', {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                showNotification('Cart cleared successfully', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                showNotification(data.message || 'Failed to clear cart', 'error');
+        // Apply promo code (placeholder)
+        document.getElementById('applyPromoBtn')?.addEventListener('click', function() {
+            const code = document.getElementById('promoCode').value.trim();
+            if (!code) {
+                showNotification('Please enter a promo code', 'error');
+                return;
             }
-        } catch (error) {
-            console.error('Clear cart error:', error);
-            showNotification('An error occurred. Please try again.', 'error');
-        }
-    });
-
-    // Checkout (placeholder)
-    document.getElementById('checkoutBtn')?.addEventListener('click', function() {
-        showNotification('Checkout feature coming soon!', 'info');
-    });
-
-    // Apply promo code (placeholder)
-    document.getElementById('applyPromoBtn')?.addEventListener('click', function() {
-        const code = document.getElementById('promoCode').value.trim();
-        if (!code) {
-            showNotification('Please enter a promo code', 'error');
-            return;
-        }
-        showNotification('Promo code feature coming soon!', 'info');
-    });
+            showNotification('Promo code feature coming soon!', 'info');
+        });
+    }
 
     function showNotification(message, type = 'success') {
         const notification = document.createElement('div');

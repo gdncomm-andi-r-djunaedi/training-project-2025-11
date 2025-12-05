@@ -361,15 +361,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateCartBadge() {
-        fetch('/api/v1/cart', { credentials: 'include' })
+        fetch('/cart-count', { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.data) {
-                    const badge = document.getElementById('cartBadge');
-                    if (badge && data.data.totalItems > 0) {
-                        badge.textContent = data.data.totalItems;
-                        badge.style.display = 'flex';
-                    }
+                const badge = document.querySelector('.cart-count');
+                if (badge) {
+                    badge.textContent = data.count || 0;
+                    badge.style.display = data.count > 0 ? 'block' : 'none';
                 }
             })
             .catch(err => console.error('Error updating cart badge:', err));

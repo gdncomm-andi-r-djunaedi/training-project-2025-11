@@ -11,13 +11,14 @@
 
             <!-- Search Bar -->
             <div class="navbar-search">
-                <form action="/" method="GET" class="search-form">
+                <form class="search-form" onsubmit="handleSearch(event)">
                     <input 
                         type="text" 
                         name="name" 
                         placeholder="Search for products..." 
                         class="search-input"
                         value="{{search.name}}"
+                        id="navbar-search-input"
                     >
                     <button type="submit" class="search-btn">
                         <i class="fas fa-search"></i>
@@ -68,16 +69,17 @@
             </button>
         </div>
 
-        <!-- Mobile Menu -->
+            <!-- Mobile Menu -->
         <div class="mobile-menu" id="mobileMenu">
             <div class="mobile-search">
-                <form action="/" method="GET" class="search-form">
+                <form class="search-form" onsubmit="handleSearch(event)">
                     <input 
                         type="text" 
                         name="name" 
                         placeholder="Search for products..." 
                         class="search-input"
                         value="{{search.name}}"
+                        id="mobile-search-input"
                     >
                     <button type="submit" class="search-btn">
                         <i class="fas fa-search"></i>
@@ -112,29 +114,37 @@
     </div>
 </nav>
 
-{{#if isAuthenticated}}
 <script>
-    // Load cart count on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        // Use a slight delay to ensure the page is fully loaded
-        setTimeout(() => {
-            fetch('/cart', {
-                method: 'GET',
-                credentials: 'include'
-            })
-            .then(res => {
-                // Check if we're on the cart page itself to avoid issues
-                if (window.location.pathname === '/cart') {
-                    return;
-                }
-                return res.text();
-            })
-            .catch(err => {
-                console.log('Cart count loading skipped or failed');
-            });
-        }, 100);
-    });
+    // Search handler - client-side API call
+    function handleSearch(event) {
+        event.preventDefault();
+        const form = event.target;
+        const input = form.querySelector('.search-input');
+        const searchTerm = input.value.trim();
+        
+        // Update URL and load products
+        const url = new URL(window.location.href);
+        if (searchTerm) {
+            url.searchParams.set('name', searchTerm);
+        } else {
+            url.searchParams.delete('name');
+        }
+        url.searchParams.set('page', '0'); // Reset to first page
+        
+        // If on home page, load products dynamically
+        if (window.location.pathname === '/') {
+            loadProducts(searchTerm, url.searchParams.get('category') || '', url.searchParams.get('sort') || 'name,asc');
+            // Update URL without reload
+            window.history.pushState({}, '', url);
+        } else {
+            // Navigate to home page with search
+            window.location.href = url.toString();
+        }
+    }
     
+    window.handleSearch = handleSearch;
+    
+{{#if isAuthenticated}}
     // Logout handler
     async function handleLogout() {
         try {
@@ -162,5 +172,5 @@
     }
     
     window.handleLogout = handleLogout;
-</script>
 {{/if}}
+</script>

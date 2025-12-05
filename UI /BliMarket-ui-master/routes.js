@@ -41,96 +41,38 @@ router.use(getUserInfo);
 // Public Routes
 // ============================================
 
-// Home page - Product Catalog
-router.get('/', async (req, res, next) => {
-    try {
-        const page = parseInt(req.query.page) || 0;
-        const size = parseInt(req.query.size) || 20;
-        let sort = req.query.sort || 'name,asc';
-        const name = req.query.name || '';
-        const category = req.query.category || '';
-
-        // Fix price sorting - products have variants with prices
-        // Backend might need variants.price or we handle client-side
-        let sortParam = sort;
-        let products = [];
-        
-        console.log('Fetching products from:', `${process.env.PRODUCT_SERVICE_URL}/api/v1/products`);
-        console.log('Sort parameter:', sortParam);
-
-        const response = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products`, {
-            params: { name, category, page, size, sort: sortParam }
-        });
-        
-        // Ensure products is always an array (even if empty)
-        products = Array.isArray(response.data.data?.content) ? response.data.data.content : [];
-        
-        console.log('Products fetched:', products.length, 'items');
-        console.log('Is array?', Array.isArray(products));
-        console.log('Products value:', JSON.stringify(products));
-        
-        // If price sorting and backend didn't sort correctly, sort client-side
-        if (sort.startsWith('price') && products.length > 0) {
-            products.sort((a, b) => {
-                const priceA = a.variants && a.variants.length > 0 ? a.variants[0].price : 0;
-                const priceB = b.variants && b.variants.length > 0 ? b.variants[0].price : 0;
-                
-                if (sort === 'price,asc') {
-                    return priceA - priceB;
-                } else if (sort === 'price,desc') {
-                    return priceB - priceA;
-                }
-                return 0;
-            });
-        }
-
-        // Always render with products array (even if empty) to show empty state instead of loading
-        // Ensure products is explicitly an array to avoid Handlebars truthiness issues
-        const productsArray = Array.isArray(products) ? products : [];
-        
-        console.log('Rendering with products array length:', productsArray.length);
-        console.log('Products array type:', typeof productsArray, 'IsArray:', Array.isArray(productsArray));
-        
-        // Always set hasProducts explicitly - this is the key to fixing the loading issue
-        const hasProducts = productsArray.length > 0;
-        
-        console.log('Final render - hasProducts:', hasProducts, 'productsArray.length:', productsArray.length);
-        
-        res.render('pages/home', {
-            title: 'BliMarket - Shop Smart, Live Better',
-            products: productsArray, // Always pass array (even if empty)
-            hasProducts: hasProducts, // Explicit boolean flag - false when empty
-            pagination: {
-                currentPage: response.data.data?.number || 0,
-                totalPages: response.data.data?.totalPages || 0,
-                totalElements: response.data.data?.totalElements || 0,
-                size: response.data.data?.size || size
-            },
-            search: { name, category, sort }
-        });
-    } catch (error) {
-        console.error('Error fetching products:', error.message);
-        res.render('pages/home', {
-            title: 'BliMarket - Shop Smart, Live Better',
-            products: [],
-            error: 'Unable to load products. Please try again later.'
-        });
-    }
+// Home page - Product Catalog (loads products client-side)
+router.get('/', (req, res) => {
+    const name = req.query.name || '';
+    const category = req.query.category || '';
+    const sort = req.query.sort || 'name,asc';
+    const page = parseInt(req.query.page) || 0;
+    
+    res.render('pages/home', {
+        title: 'BliMarket - Shop Smart, Live Better',
+        products: null, // Will be loaded client-side
+        hasProducts: false,
+        search: { name, category, sort },
+        initialPage: page
+    });
 });
 
-// Product detail page
-router.get('/product/:id', async (req, res, next) => {
+// Product detail page - uses productId
+router.get('/product/:productId', async (req, res, next) => {
     try {
-        // Try both productId and id formats
+        const productId = req.params.productId;
+        
+        // Try to fetch by productId directly from product service
         let response;
         try {
-            response = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products/${req.params.id}`);
+            response = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products/${productId}`);
         } catch (err) {
-            // If direct ID fails, try to find by productId
+            // If direct fetch fails, try to find by productId in the list
             const allProducts = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products?size=1000`);
-            const product = allProducts.data.data.content.find(p => 
-                p.id === req.params.id || p.productId === req.params.id
+            const product = allProducts.data.data?.content?.find(p => 
+                p.productId === productId || p.id === productId
             );
+            
             if (product) {
                 response = { data: { data: product } };
             } else {
@@ -138,10 +80,11 @@ router.get('/product/:id', async (req, res, next) => {
             }
         }
         
-        if (response && response.data && response.data.data) {
+        const product = response.data?.data || response.data;
+        if (product) {
             res.render('pages/product-detail', {
-                title: response.data.data.name || 'Product Details',
-                product: response.data.data
+                title: product.name || 'Product Details',
+                product: product
             });
         } else {
             throw new Error('Product not found');
@@ -183,61 +126,18 @@ router.get('/register', (req, res) => {
 // Protected Routes (Require Authentication)
 // ============================================
 
-// Shopping Cart - Show login modal for guests, show cart for authenticated users
-router.get('/cart', async (req, res, next) => {
-    // ENSURE PORT 8089
-    const cartServiceUrl = process.env.CART_SERVICE_URL || 'http://localhost:8089';
-    const finalUrl = cartServiceUrl.includes(':8089') ? cartServiceUrl : 'http://localhost:8089';
-    
+// Shopping Cart - Render loading state, fetch data client-side
+router.get('/cart', (req, res) => {
     const token = req.cookies.accessToken;
     const guestCartId = req.cookies.guestCartId;
     
-    // If not authenticated, show cart page with login prompt
-    if (!token) {
-        let guestCart = { items: [], totalItems: 0, totalValue: 0 };
-        
-        // Try to load guest cart if exists
-        if (guestCartId) {
-            try {
-                const response = await axios.get(`${finalUrl}/api/v1/cart`, {
-                    headers: { 'X-Guest-Cart-Id': guestCartId }
-                });
-                guestCart = response.data.data || response.data || guestCart;
-            } catch (error) {
-                console.log('Guest cart not found or error:', error.message);
-            }
-        }
-        
-        return res.render('pages/cart', {
-            title: 'Shopping Cart - BliMarket',
-            cart: guestCart,
-            requiresLogin: true,
-            guestCartId: guestCartId
-        });
-    }
-    
-    // Authenticated user - load their cart
-    try {
-        const response = await axios.get(`${finalUrl}/api/v1/cart`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        const cart = response.data.data || response.data;
-        
-        res.render('pages/cart', {
-            title: 'Shopping Cart - BliMarket',
-            cart: cart || { items: [], totalItems: 0, totalValue: 0 },
-            requiresLogin: false
-        });
-    } catch (error) {
-        console.error('Error fetching cart:', error.message);
-        res.render('pages/cart', {
-            title: 'Shopping Cart - BliMarket',
-            cart: { items: [], totalItems: 0, totalValue: 0 },
-            error: 'Unable to load cart. Please try again later.',
-            requiresLogin: false
-        });
-    }
+    res.render('pages/cart', {
+        title: 'Shopping Cart - BliMarket',
+        cart: null, // Will be loaded client-side
+        requiresLogin: !token,
+        guestCartId: guestCartId,
+        isLoading: true
+    });
 });
 
 // User Profile
@@ -559,6 +459,95 @@ router.post('/api/cart', async (req, res) => {
     router.handle(req, res);
 });
 
+// Get single product by productId API - for client-side calls
+router.get('/api/v1/products/:productId', async (req, res) => {
+    try {
+        const productId = req.params.productId;
+        
+        // Try to fetch by productId directly
+        try {
+            const response = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products/${productId}`);
+            res.json({
+                success: true,
+                data: response.data.data || response.data
+            });
+        } catch (error) {
+            // If direct fetch fails, try to find by productId in the list
+            const allProducts = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products?size=1000`);
+            const product = allProducts.data.data?.content?.find(p => 
+                p.productId === productId || p.id === productId
+            );
+            
+            if (product) {
+                res.json({
+                    success: true,
+                    data: product
+                });
+            } else {
+                throw new Error('Product not found');
+            }
+        }
+    } catch (error) {
+        console.error('Get product error:', error.response?.data || error.message);
+        res.status(error.response?.status || 404).json(
+            error.response?.data || { 
+                success: false, 
+                message: 'Product not found.' 
+            }
+        );
+    }
+});
+
+// Get products API - for client-side calls
+router.get('/api/v1/products', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 0;
+        const size = parseInt(req.query.size) || 20;
+        let sort = req.query.sort || 'name,asc';
+        const name = req.query.name || '';
+        const category = req.query.category || '';
+
+        const response = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/v1/products`, {
+            params: { name, category, page, size, sort }
+        });
+
+        // If price sorting and backend didn't sort correctly, sort client-side
+        let products = Array.isArray(response.data.data?.content) ? response.data.data.content : [];
+        if (sort.startsWith('price') && products.length > 0) {
+            products.sort((a, b) => {
+                const priceA = a.variants && a.variants.length > 0 ? a.variants[0].price : 0;
+                const priceB = b.variants && b.variants.length > 0 ? b.variants[0].price : 0;
+                
+                if (sort === 'price,asc') {
+                    return priceA - priceB;
+                } else if (sort === 'price,desc') {
+                    return priceB - priceA;
+                }
+                return 0;
+            });
+        }
+
+        res.json({
+            success: true,
+            data: {
+                content: products,
+                number: response.data.data?.number || 0,
+                totalPages: response.data.data?.totalPages || 0,
+                totalElements: response.data.data?.totalElements || 0,
+                size: response.data.data?.size || size
+            }
+        });
+    } catch (error) {
+        console.error('Get products error:', error.response?.data || error.message);
+        res.status(error.response?.status || 500).json(
+            error.response?.data || { 
+                success: false, 
+                message: 'Failed to get products.' 
+            }
+        );
+    }
+});
+
 // Get cart API - supports both authenticated and guest
 router.get('/api/v1/cart', async (req, res) => {
     try {
@@ -651,44 +640,43 @@ router.post('/api/v1/cart/merge', async (req, res) => {
     }
 });
 
-// Update cart item quantity API
+// Update cart item quantity API - Fire and forget (async)
 router.put('/api/v1/cart/item/:sku', async (req, res) => {
-    try {
-        // ENSURE PORT 8089
-        const cartServiceUrl = process.env.CART_SERVICE_URL || 'http://localhost:8089';
-        const finalUrl = cartServiceUrl.includes(':8089') ? cartServiceUrl : 'http://localhost:8089';
-        
-        console.log('Update Cart Item API called - Using URL:', `${finalUrl}/api/v1/cart/item/${req.params.sku}`);
-        
-        const token = req.cookies.accessToken;
-        const headers = {};
-        let requestBody = { ...req.body };
-        
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        } else {
-            // Guest user - pass guest cart ID in memberId field
-            const guestCartId = req.cookies.guestCartId;
-            if (guestCartId) {
-                requestBody.memberId = guestCartId;
+    // Send response immediately (fire and forget)
+    res.json({ success: true, message: 'Cart update initiated' });
+    
+    // Process update asynchronously without blocking
+    (async () => {
+        try {
+            // ENSURE PORT 8089
+            const cartServiceUrl = process.env.CART_SERVICE_URL || 'http://localhost:8089';
+            const finalUrl = cartServiceUrl.includes(':8089') ? cartServiceUrl : 'http://localhost:8089';
+            
+            console.log('Update Cart Item API called - Using URL:', `${finalUrl}/api/v1/cart/item/${req.params.sku}`);
+            
+            const token = req.cookies.accessToken;
+            const headers = {};
+            let requestBody = { ...req.body };
+            
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            } else {
+                // Guest user - pass guest cart ID in memberId field
+                const guestCartId = req.cookies.guestCartId;
+                if (guestCartId) {
+                    requestBody.memberId = guestCartId;
+                }
             }
+            
+            await axios.put(
+                `${finalUrl}/api/v1/cart/item/${req.params.sku}`,
+                requestBody,
+                { headers }
+            );
+        } catch (error) {
+            console.error('Update cart error (async):', error.response?.data || error.message);
         }
-        
-        const response = await axios.put(
-            `${finalUrl}/api/v1/cart/item/${req.params.sku}`,
-            requestBody,
-            { headers }
-        );
-        res.json(response.data);
-    } catch (error) {
-        console.error('Update cart error:', error.response?.data || error.message);
-        res.status(error.response?.status || 500).json(
-            error.response?.data || { 
-                success: false, 
-                message: 'Failed to update cart item.' 
-            }
-        );
-    }
+    })();
 });
 
 // Legacy route
