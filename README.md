@@ -1,340 +1,419 @@
 # Training Project 2025-11 - Microservices E-Commerce Platform
 
 ## Overview
-A microservices-based e-commerce platform built with Spring Boot 3.5.8, demonstrating modern cloud-native architecture patterns including API Gateway, JWT authentication, distributed caching, and polyglot persistence.
+A microservices-based marketplace platform built with Spring Boot 3.5.8 and Java 21. Implements JWT-based authentication, product catalog with Redis caching, shopping cart with MongoDB, and Redis-based rate limiting.
 
 ## Architecture
 
-```mermaid
-graph TB
-    Client[Client/Browser]
-    Gateway[API Gateway<br/>:8080<br/>JWT Auth]
-    Member[Member Service<br/>:8081<br/>PostgreSQL]
-    Product[Product Service<br/>:8082<br/>PostgreSQL + Redis]
-    Cart[Cart Service<br/>:8083<br/>MongoDB]
-    Redis[(Redis<br/>Token Blacklist<br/>+ Product Cache)]
-    PG1[(PostgreSQL<br/>member DB)]
-    PG2[(PostgreSQL<br/>product DB)]
-    Mongo[(MongoDB<br/>cart DB)]
-    
-    Client -->|All requests| Gateway
-    Gateway -->|Internal API| Member
-    Gateway -->|Internal API| Product
-    Gateway -->|Internal API + X-User-Id| Cart
-    Member --> PG1
-    Product --> PG2
-    Product <--> Redis
-    Cart --> Mongo
-    Gateway <--> Redis
-    
-    style Gateway fill:#e1f5ff
-    style Member fill:#fff4e1
-    style Product fill:#f0ffe1
-    style Cart fill:#ffe1f5
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              Client                                     │
+└─────────────────────────────────┬───────────────────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         API Gateway (:8080)                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │ JWT Filter  │  │Rate Limiter │  │Token Blackl.│  │   Routing   │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+└──────────┬──────────────┬───────────────────┬───────────────────────────┘
+           │              │                   │
+           ▼              ▼                   ▼
+┌──────────────┐  ┌──────────────┐    ┌──────────────┐
+│Member Service│  │Product Serv. │    │ Cart Service │
+│   (:8081)    │  │   (:8082)    │    │   (:8083)    │
+└──────┬───────┘  └──────┬───────┘    └──────┬───────┘
+       │                 │                   │
+       ▼                 ▼                   ▼
+┌──────────────┐  ┌──────────────┐    ┌──────────────┐
+│  PostgreSQL  │  │  PostgreSQL  │    │   MongoDB    │
+│   (member)   │  │  (product)   │    │  (cart_db)   │
+└──────────────┘  └──────────────┘    └──────────────┘
+                         │
+                         ▼
+                  ┌──────────────┐
+                  │    Redis     │
+                  │ (Cache/Rate) │
+                  └──────────────┘
 ```
 
 ### Services
 
-| Service | Port | Database | Purpose | Security |
-|---------|------|----------|---------|----------|
-| **API Gateway** | 8080 | Redis (cache) | Entry point, JWT validation, routing | JWT filter on all routes |
-| **Member Service** | 8081 | PostgreSQL | User registration & credential validation | No security (internal only) |
-| **Product Service** | 8082 | PostgreSQL + Redis | Product catalog with caching | No security (internal only) |
-| **Cart Service** | 8083 | MongoDB | Shopping cart management | No security (internal only) |
-
-### Security Architecture
-
-> [!IMPORTANT]
-> **Gateway-Only Security Pattern**: Only the API Gateway has Spring Security enabled. Backend services (Member, Product, Cart) have no authentication layers, relying on network isolation and trusting requests from the Gateway.
-
-- **Authentication**: JWT tokens issued by Gateway after credential validation via Member Service
-- **Authorization**: JWT filter in Gateway validates tokens and extracts user info
-- **User Propagation**: Gateway adds `X-User-Id` header to downstream requests
-- **Token Storage**: HttpOnly cookies (secure, no XSS risk)
-- **Logout**: Token blacklist in Redis (15-minute TTL)
+| Service | Port | Database | Description |
+|---------|------|----------|-------------|
+| **API Gateway** | 8080 | Redis | Entry point, JWT validation, rate limiting, request routing |
+| **Member Service** | 8081 | PostgreSQL | User registration & credential validation |
+| **Product Service** | 8082 | PostgreSQL + Redis | Product catalog with search & caching |
+| **Cart Service** | 8083 | MongoDB | Shopping cart management |
 
 ## Tech Stack
 
-- **Java 21** with Spring Boot 3.5.8
-- **Databases**: 
-  - PostgreSQL 12+ (Member, Product)
-  - MongoDB 4.4+ (Cart)
-  - Redis 6+ (Token blacklist + Product cache)
-- **Security**: JWT with HttpOnly cookies
-- **Build Tool**: Maven 3.9.11 (with wrapper included)
-- **Documentation**: OpenAPI/Swagger UI
+- **Java 21** with Virtual Threads enabled
+- **Spring Boot 3.5.8**
+- **Spring Cloud Gateway (WebMVC)** - Request routing
+- **Spring Security** - JWT authentication
+- **Databases**:
+  - PostgreSQL (Member & Product services)
+  - MongoDB (Cart service)
+  - Redis (Caching, Rate Limiting, Token Blacklist)
+- **Build Tool**: Maven
+- **Container**: Docker with Eclipse Temurin 21 Alpine
+
+## Prerequisites
+
+### Local Development
+- Java 21+
+- Maven 3.8+
+- PostgreSQL 12+
+- MongoDB 4.4+
+- Redis 6+
+
+### Docker
+- Docker Engine 20.10+
 
 ## Quick Start
 
-### 1. Prerequisites
+### Option 1: Local Development
 
-- **Java 21+** (JDK must be installed)
-- **PostgreSQL 12+** (running on default port 5432)
-- **MongoDB 4.4+** (running on default port 27017)
-- **Redis 6+** (running on default port 6379)
+#### 1. Setup Databases
 
-> [!TIP]
-> **No Maven installation required!** Each service includes Maven wrapper (`mvnw` / `mvnw.cmd`).
-
-### 2. Database Setup
-
-#### PostgreSQL Setup
-
-Create databases and users:
-```sql
-CREATE DATABASE member;
-CREATE USER member_user WITH ENCRYPTED PASSWORD 'member_pass';
-GRANT ALL PRIVILEGES ON DATABASE member TO member_user;
-
-CREATE DATABASE product;
-CREATE USER product_user WITH ENCRYPTED PASSWORD 'product_pass';
-GRANT ALL PRIVILEGES ON DATABASE product TO product_user;
-```
-
-Enable pgcrypto extension (for UUID generation):
-```sql
-\c member
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
-\c product
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-```
-
-Seed databases:
+**PostgreSQL:**
 ```bash
-psql -U postgres -d member -f member/setup-db.sql
-psql -U postgres -d product -f product/setup-db.sql
+# Create databases
+psql -U postgres -c "CREATE DATABASE member;"
+psql -U postgres -c "CREATE DATABASE product;"
+
+# Create users
+psql -U postgres -c "CREATE USER member_user WITH PASSWORD 'member_pass';"
+psql -U postgres -c "CREATE USER product_user WITH PASSWORD 'product_pass';"
+
+# Grant privileges
+psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE member TO member_user;"
+psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE product TO product_user;"
 ```
 
-This generates:
-- **5,000 members** with MD5-hashed passwords (format: `user{1..5000}@example.com` / password: `password`)
-- **50,000 products** with random names and prices
+**MongoDB:**
+MongoDB will automatically create the `cart_db` database on first connection.
 
-#### MongoDB Setup
+**Redis:**
+```bash
+# Start Redis (default port 6379)
+redis-server
+```
 
-MongoDB will auto-create the `cart` database on first connection. No setup needed.
+#### 2. Seed Data (Optional)
 
-#### Redis Setup
+```bash
+# Seed 5,000 members (password: Password!123)
+psql -U member_user -d member -f member/setup-db.sql
 
-Redis should be running with default configuration. No setup needed.
+# Seed 50,000 products (requires pgcrypto extension)
+psql -U product_user -d product -f product/setup-db.sql
+```
 
-### 3. Start Services
+#### 3. Set Environment Variable
 
-> [!WARNING]
-> **Start order matters!** Start backend services first, then Gateway last.
+```bash
+# Linux/Mac
+export SECURITY_JWT_SECRET_KEY=your-256-bit-secret-key-here-minimum-32-chars
 
-Open 4 separate terminals and run:
+# Windows PowerShell
+$env:SECURITY_JWT_SECRET_KEY="your-256-bit-secret-key-here-minimum-32-chars"
+```
+
+#### 4. Start Services
 
 ```bash
 # Terminal 1 - Member Service
-cd member
-./mvnw spring-boot:run
+cd member && mvn spring-boot:run
 
 # Terminal 2 - Product Service
-cd product
-./mvnw spring-boot:run
+cd product && mvn spring-boot:run
 
 # Terminal 3 - Cart Service
-cd cart
-./mvnw spring-boot:run
+cd cart && mvn spring-boot:run
 
-# Terminal 4 - API Gateway (start last!)
-cd api-gateway
-./mvnw spring-boot:run
+# Terminal 4 - API Gateway
+cd api-gateway && mvn spring-boot:run
 ```
 
-Windows users use `mvnw.cmd` instead of `./mvnw`.
+### Option 2: Docker
 
-### 4. Verify Services
+Each service has a `Dockerfile` using Eclipse Temurin 21 Alpine.
 
-Check health:
+#### Build Images
+
 ```bash
-curl http://localhost:8080/actuator/health  # Gateway
-curl http://localhost:8081/members/actuator/health  # Member
-curl http://localhost:8082/products/actuator/health  # Product
-curl http://localhost:8083/cart/actuator/health  # Cart
+# Build all services
+cd api-gateway && mvn clean package -DskipTests && docker build -t api-gateway .
+cd ../member && mvn clean package -DskipTests && docker build -t member-service .
+cd ../product && mvn clean package -DskipTests && docker build -t product-service .
+cd ../cart && mvn clean package -DskipTests && docker build -t cart-service .
 ```
 
-### 5. Access Swagger Documentation
+#### Run with Docker Network
 
-- Member Service: http://localhost:8081/members/swagger-ui/index.html
-- Product Service: http://localhost:8082/products/swagger-ui/index.html
-- Cart Service: http://localhost:8083/cart/swagger-ui/index.html
+```bash
+# Create network
+docker network create ecommerce-net
+
+# Run Redis
+docker run -d --name redis --network ecommerce-net redis:alpine
+
+# Run PostgreSQL
+docker run -d --name postgres --network ecommerce-net \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  postgres:15-alpine
+
+# Run MongoDB
+docker run -d --name mongo --network ecommerce-net mongo:6
+
+# Run services (adjust environment variables as needed)
+docker run -d --name member --network ecommerce-net \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/member \
+  member-service
+
+docker run -d --name product --network ecommerce-net \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/product \
+  -e SPRING_DATA_REDIS_HOST=redis \
+  product-service
+
+docker run -d --name cart --network ecommerce-net \
+  -e SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/cart_db \
+  cart-service
+
+docker run -d --name api-gateway --network ecommerce-net -p 8080:8080 \
+  -e SECURITY_JWT_SECRET_KEY=your-secret-key \
+  -e SPRING_DATA_REDIS_HOST=redis \
+  api-gateway
+```
 
 ## API Endpoints
 
-### Authentication (Public)
+### Authentication (via Gateway :8080)
 
-```http
-POST http://localhost:8080/auth/register
-Content-Type: application/json
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/auth/register` | Register new user | No |
+| POST | `/auth/login` | Login (returns JWT cookie + token body) | No |
+| POST | `/auth/logout` | Logout (blacklists token in Redis) | No |
 
+**Register Request:**
+```json
 {
   "name": "John Doe",
   "email": "john@example.com",
-  "password": "password123"
+  "password": "Password123!"
 }
 ```
 
-```http
-POST http://localhost:8080/auth/login
-Content-Type: application/json
-
+**Login Request:**
+```json
 {
   "email": "john@example.com",
-  "password": "password123"
+  "password": "Password123!"
 }
-
-Response: Sets HttpOnly cookie + returns JWT in body
 ```
 
-```http
-POST http://localhost:8080/auth/logout
-Cookie: jwt_token=<your-token>
+### Products (via Gateway :8080)
 
-Response: Clears cookie + blacklists token
-```
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/products` | List/search products with pagination | No |
+| GET | `/products/{id}` | Get product detail (cached in Redis) | No |
 
-### Products (Public)
+**Query Parameters for Search:**
+- `query` - Search keyword (supports wildcard `*` and `?`)
+- `page` - Page number (0-based)
+- `size` - Page size
+- `sort` - Sort field (e.g., `name,asc`)
 
-```http
+**Examples:**
+```bash
 # Search products
-GET http://localhost:8080/products?query=laptop&page=0&size=20
+curl "http://localhost:8080/products?query=Product*&page=0&size=10"
 
-# Get product details (cached in Redis)
-GET http://localhost:8080/products/123e4567-e89b-12d3-a456-426614174000
+# Get product by ID
+curl "http://localhost:8080/products/550e8400-e29b-41d4-a716-446655440000"
 ```
 
-### Cart (Protected - Requires Authentication)
+### Cart (via Gateway :8080) - Requires Authentication
 
-```http
-# View cart
-GET http://localhost:8080/cart
-Cookie: jwt_token=<your-token>
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/cart` | Get current user's cart | Yes |
+| POST | `/cart` | Add item to cart | Yes |
+| DELETE | `/cart/{productId}` | Remove item from cart | Yes |
 
-# Add item to cart
-POST http://localhost:8080/cart
-Cookie: jwt_token=<your-token>
-Content-Type: application/json
-
+**Add to Cart Request:**
+```json
 {
-  "productId": "123e4567-e89b-12d3-a456-426614174000",
+  "productId": "550e8400-e29b-41d4-a716-446655440000",
   "quantity": 2
 }
-
-# Remove item from cart
-DELETE http://localhost:8080/cart/123e4567-e89b-12d3-a456-426614174000
-Cookie: jwt_token=<your-token>
 ```
+
+## Redis Usage
+
+Redis is used for three main purposes:
+
+### 1. Token Blacklist (API Gateway)
+- Key pattern: `jwt:blacklist:{jwtId}`
+- TTL: Remaining token expiration time
+- Used during logout to invalidate JWT before expiration
+
+### 2. Rate Limiting (API Gateway)
+- Key pattern: `ratelimit:{user|anon}:{identifier}`
+- Window: 1 minute (sliding window)
+- Default limit: 120 requests/minute
+- Anonymous users are identified via `ANON_CLIENT_ID` cookie
+
+### 3. Product Cache (Product Service)
+- Cache name: `productById`
+- TTL: 2 minutes (per product detail)
+- Serialization: JSON via Jackson
+
+## Rate Limiting
+
+Redis-based rate limiter with configuration in `application.properties`:
+
+```properties
+rate-limiter.enabled=true
+rate-limiter.requests-per-minute=120
+rate-limiter.ignored-paths[0]=/actuator/**
+```
+
+### Response Headers
+- `X-RateLimit-Limit` - Maximum requests per window
+- `X-RateLimit-Remaining` - Remaining requests
+- `Retry-After` - Seconds until reset (when blocked)
+
+### Rate Limit Exceeded Response
+```json
+{
+  "message": "Rate limit exceeded"
+}
+```
+HTTP Status: `429 Too Many Requests`
 
 ## Features Implemented
 
-✅ **Authentication & Authorization**
-- User registration with password hashing (MD5 for training purposes)
-- JWT-based authentication with HttpOnly cookies
-- Logout with Redis-backed token blacklist (15-min TTL)
-- Gateway-level authorization via JWT filter
-
-✅ **Product Catalog**
-- Product search with wildcard support (`LIKE %query%`)
-- Pagination for product listing
-- Redis cache for product detail lookups (10-min TTL)
-
-✅ **Shopping Cart**
-- Per-user cart management (MongoDB)
-- Add, view, remove items
-- User ID propagation via `X-User-Id` header from Gateway
-
-✅ **Microservices Patterns**
-- API Gateway pattern (centralized routing)
-- Gateway-only security (network isolation for backends)
-- Polyglot persistence (PostgreSQL, MongoDB, Redis)
-- Service-to-service communication via RestTemplate
-- Distributed caching with Redis
-
-✅ **Developer Experience**
-- Maven wrapper included (no Maven installation needed)
-- OpenAPI/Swagger documentation for all services
-- Structured logging with SLF4J
-- Actuator endpoints for monitoring
+✅ User registration with password hashing (BCrypt)  
+✅ JWT-based authentication with HttpOnly cookies  
+✅ Logout with Redis-backed token blacklist  
+✅ Product search with wildcard support (`*`, `?`)  
+✅ Pagination for product listing  
+✅ Shopping cart (add, view, remove)  
+✅ Authorization via JWT validation in API Gateway  
+✅ User ID propagation via `X-User-Id` header  
+✅ Redis cache for product detail lookups (TTL: 2 minutes)  
+✅ Redis-based rate limiting (120 req/min per user)  
+✅ Virtual Threads (Java 21) enabled in all services  
+✅ Docker support with Eclipse Temurin 21 Alpine  
+✅ Spring Cloud Gateway (WebMVC) for request routing  
+✅ Standardized API response (`BaseResponse<T>`)  
 
 ## Project Structure
 
 ```
 training-project-2025-11/
-├── api-gateway/          # API Gateway (JWT, routing)
-│   ├── .mvn/            # Maven wrapper files
-│   ├── mvnw, mvnw.cmd   # Maven wrapper scripts
-│   └── src/
-├── member/               # Member service (PostgreSQL)
-│   ├── .mvn/
-│   ├── mvnw, mvnw.cmd
-│   ├── setup-db.sql     # Database seed script
-│   └── src/
-├── product/              # Product service (PostgreSQL + Redis)
-│   ├── .mvn/
-│   ├── mvnw, mvnw.cmd
-│   ├── setup-db.sql
-│   └── src/
-├── cart/                 # Cart service (MongoDB)
-│   ├── .mvn/
-│   ├── mvnw, mvnw.cmd
-│   └── src/
-├── common-model/         # Shared DTOs and models
-│   └── src/
+├── api-gateway/                    # API Gateway with JWT filter & rate limiter
+│   ├── Dockerfile
+│   ├── pom.xml
+│   └── src/main/java/.../
+│       ├── client/                 # HTTP clients (MemberClient)
+│       ├── config/                 # Security, Rate limiter configs
+│       ├── controller/             # AuthController (login/register/logout)
+│       ├── dto/                    # Request/Response DTOs
+│       ├── exception/              # Global exception handler
+│       └── security/               # JWT, Token blacklist, Rate limiter
+│
+├── member/                         # Member Service (Authentication)
+│   ├── Dockerfile
+│   ├── pom.xml
+│   ├── setup-db.sql               # Seed 5,000 members
+│   └── src/main/java/.../
+│       ├── controller/             # Internal auth endpoints
+│       ├── entity/                 # Member entity
+│       ├── repository/             # JPA repository
+│       └── service/                # Business logic
+│
+├── product/                        # Product Service (Catalog)
+│   ├── Dockerfile
+│   ├── pom.xml
+│   ├── setup-db.sql               # Seed 50,000 products
+│   └── src/main/java/.../
+│       ├── config/                 # Redis cache config
+│       ├── controller/             # Product endpoints
+│       ├── entity/                 # Product entity
+│       ├── repository/             # JPA repository
+│       └── service/                # Business logic with caching
+│
+├── cart/                           # Cart Service (Shopping Cart)
+│   ├── Dockerfile
+│   ├── pom.xml
+│   └── src/main/java/.../
+│       ├── client/                 # ProductClient for validation
+│       ├── controller/             # Cart endpoints
+│       ├── entity/                 # Cart, CartItem entities
+│       ├── repository/             # MongoDB repository
+│       └── service/                # Cart business logic
+│
+├── common-model/                   # Shared DTOs
+│   └── src/main/java/.../
+│       └── model/
+│           ├── BaseResponse.java   # Standard API response wrapper
+│           └── ErrorResponse.java  # Error response format
+│
 └── README.md
 ```
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Service | Description | Required |
+|----------|---------|-------------|----------|
+| `SECURITY_JWT_SECRET_KEY` | api-gateway | JWT signing key (min 32 chars) | Yes |
+| `SPRING_DATA_REDIS_HOST` | api-gateway, product | Redis hostname | Docker only |
+| `SPRING_DATASOURCE_URL` | member, product | PostgreSQL JDBC URL | Docker only |
+| `SPRING_DATA_MONGODB_URI` | cart | MongoDB connection URI | Docker only |
+
+### Default Ports
+
+| Service | Local | Docker |
+|---------|-------|--------|
+| API Gateway | 8080 | 8080 |
+| Member | 8081 | 8081 |
+| Product | 8082 | 8082 |
+| Cart | 8083 | 8083 |
+| PostgreSQL | 5432 | 5432 |
+| MongoDB | 27017 | 27017 |
+| Redis | 6379 | 6379 |
 
 ## Development
 
 ### Build All Services
-
-From each service directory:
 ```bash
-./mvnw clean install
+# From root directory
+cd common-model && mvn clean install
+cd ../member && mvn clean package
+cd ../product && mvn clean package
+cd ../cart && mvn clean package
+cd ../api-gateway && mvn clean package
 ```
 
 ### Run Tests
-
 ```bash
-./mvnw test
+mvn test
 ```
 
-### Configuration Files
-
-Each service has `application.properties` in `src/main/resources/`:
-
-- **Database connections** (JDBC URLs, credentials)
-- **Server ports** and context paths
-- **JWT secret** (in Gateway only)
-- **Redis connection** (Gateway & Product)
-- **Client URLs** (for inter-service communication)
-
-### Common Issues
-
-**Issue**: "Cannot connect to database"
-- **Solution**: Ensure PostgreSQL/MongoDB/Redis are running and credentials match `application.properties`
-
-**Issue**: "401 Unauthorized" on registration
-- **Solution**: Ensure Member Service is running and accessible from Gateway
-
-**Issue**: "BeanCreationException: PasswordEncoder"
-- **Solution**: Member Service now uses custom PasswordEncoder (no Spring Security dependency)
-
-**Issue**: Maven wrapper not executing
-- **Solution**: On Unix/Mac, run `chmod +x mvnw` first
-
-## Security Considerations
-
-> [!CAUTION]
-> **For Production Use**: This is a training project. Before deploying to production:
-> - Replace MD5 password hashing with BCrypt (add Spring Security to Member Service or use standalone BCrypt library)
-> - Use strong JWT secrets (not hardcoded in application.properties)
-> - Implement mTLS between Gateway and backend services
-> - Add rate limiting and request validation
-> - Use service mesh (Istio, Linkerd) for secure service-to-service communication
-> - Implement proper secret management (Vault, AWS Secrets Manager)
+### API Documentation
+Each service (except api-gateway) has Swagger UI available:
+- Member: http://localhost:8081/members/swagger-ui.html
+- Product: http://localhost:8082/products/swagger-ui.html
+- Cart: http://localhost:8083/cart/swagger-ui.html
 
 ## License
-
 MIT
