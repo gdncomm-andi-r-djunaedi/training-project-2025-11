@@ -1,0 +1,68 @@
+services:
+  postgres-cart:
+    image: postgres:16 # Specifies the PostgreSQL image and version
+    restart: always # Ensures the container restarts automatically
+    environment:
+      POSTGRES_DB: cart # Sets the default database name
+      POSTGRES_USER: root # Sets the default user
+      POSTGRES_PASSWORD: root # Sets the password for the default user
+#    ports:
+#      - "5432:5432" # Maps host port 5432 to container port 5432
+    volumes:
+      - postgres_data_cart:/var/lib/postgresql/data # Persists data to a named volume
+  postgres-product:
+    image: postgres:16 # Specifies the PostgreSQL image and version
+    restart: always # Ensures the container restarts automatically
+    environment:
+      POSTGRES_DB: product # Sets the default database name
+      POSTGRES_USER: root # Sets the default user
+      POSTGRES_PASSWORD: root # Sets the password for the default user
+    #    ports:
+    #      - "5432:5432" # Maps host port 5432 to container port 5432
+    volumes:
+      - postgres_data_product:/var/lib/postgresql/data # Persists data to a named volume
+
+  mongo:
+    image: mongo:latest # Use the official MongoDB image
+    restart: always
+    ports:
+      - "27017:27017" # Map host port 27017 to container port 27017
+    volumes:
+      - mongo_data:/data/db # Persist data in a named volume
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+  auth:
+    image: local/training/auth
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - "8080:8080"
+  member:
+    image: local/training/member
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8080"
+  cart:
+    image: local/training/cart
+    restart: always
+    depends_on:
+      - postgres-cart
+#    ports:
+#      - "8080:8080"
+  product:
+    image: local/training/product
+    restart: always
+    depends_on:
+      - postgres-product
+    ports:
+      - "8082:8080"
+
+volumes:
+  postgres_data_cart:
+  mongo_data:
+  mongo_member_data:
+  postgres_data_product:
