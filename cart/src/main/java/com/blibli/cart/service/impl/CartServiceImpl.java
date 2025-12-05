@@ -95,7 +95,7 @@ public class CartServiceImpl implements CartService {
         cart.setUpdatedAt(new Date());
 
         saveCart(userId, cart);
-        cacheCartInRedis(userId, cart);
+//        cacheCartInRedis(userId, cart);
         return mapToResponse(cart, updatedItem);
     }
 

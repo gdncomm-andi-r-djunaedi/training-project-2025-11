@@ -11,11 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 
-/**
- * Cart entity - Persisted in MongoDB, Cached in Redis
- * MongoDB: Source of truth for cart data  
- * Redis: Fast cache with TTL for frequent reads
- */
+
 @Document(collection = "carts")
 @Data
 @Builder

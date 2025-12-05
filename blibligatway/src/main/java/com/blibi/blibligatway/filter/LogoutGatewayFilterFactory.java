@@ -52,6 +52,7 @@ public class LogoutGatewayFilterFactory extends AbstractGatewayFilterFactory<Log
             String token = extractJwtFromRequest(request);
 
             // check acces token and black list it
+            //BLACKLIST
             if (StringUtils.hasText(token)) {
                 try {
                     if (jwtUtil.validateToken(token)) {
