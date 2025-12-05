@@ -1,0 +1,36 @@
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+    include-message: always
+    include-exception: false
+    include-binding-errors: never
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: product
+              uri: 'http://localhost:8081'
+              predicates:
+                - Path=/api/product/**
+            - id: member
+              uri: 'http://localhost:8082'
+              predicates:
+                - Path=/api/member/**
+            - id: cart
+              uri: 'http://localhost:8083'
+              predicates:
+                - Path=/api/cart/**
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+jwt:
+  secret: this-is-a-very-secret-and-safe-key-no-hacker-can-hack
+  expiryInMinutes: 60
+redis:
+  expiryInMinutes: 60

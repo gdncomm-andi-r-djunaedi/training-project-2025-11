@@ -1,1 +1,1 @@
-this folder contains the product mvn project
+this folder contains the products mvn project
