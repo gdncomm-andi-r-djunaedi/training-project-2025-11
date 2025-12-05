@@ -4,7 +4,10 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.training.cart.dto.AddToCartRequest;
+import com.gdn.training.cart.dto.ProductDetailResponse;
 import com.gdn.training.cart.repository.CartRepository;
+import jakarta.servlet.ServletException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,13 +22,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,7 +53,7 @@ public class AddToCartIntegrationTest {
     @BeforeEach
     void setUp() {
         cartRepository.deleteAll();
-        
+
         validToken = JWT.create()
                 .withSubject("testuser")
                 .withIssuer("testingIssuer")
@@ -64,14 +64,12 @@ public class AddToCartIntegrationTest {
 
     @Test
     void addToCart_HappyFlow() throws Exception {
-        Map<String, Object> productResponse = new HashMap<>();
-        productResponse.put("status", "success");
-        productResponse.put("product_id", "SKU-000001");
-        productResponse.put("product_name", "Test Product");
-        productResponse.put("price", 10000);
-        productResponse.put("description", "Desc");
+        ProductDetailResponse productResponse = new ProductDetailResponse();
+        productResponse.setProductId("SKU-000001");
+        productResponse.setProductName("Test Product");
+        productResponse.setPrice(10000.0);
 
-        Mockito.when(restTemplate.getForEntity(anyString(), eq(Map.class)))
+        Mockito.when(restTemplate.getForEntity(anyString(), eq(ProductDetailResponse.class)))
                 .thenReturn(new ResponseEntity<>(productResponse, HttpStatus.OK));
 
         AddToCartRequest request = new AddToCartRequest();
@@ -79,9 +77,9 @@ public class AddToCartIntegrationTest {
         request.setQuantity(2);
 
         mockMvc.perform(post("/api/carts/add-cart")
-                        .header("Authorization", "Bearer " + validToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .header("Authorization", "Bearer " + validToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.memberId").value("testuser"))
                 .andExpect(jsonPath("$.cartItems", hasSize(1)))
@@ -91,19 +89,20 @@ public class AddToCartIntegrationTest {
 
     @Test
     void addToCart_InvalidProduct() {
-        Mockito.when(restTemplate.getForEntity(anyString(), eq(Map.class)))
+        Mockito.when(restTemplate.getForEntity(anyString(), eq(ProductDetailResponse.class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
         AddToCartRequest request = new AddToCartRequest();
         request.setProductId("invalid-sku");
         request.setQuantity(1);
 
-        jakarta.servlet.ServletException exception = org.junit.jupiter.api.Assertions.assertThrows(jakarta.servlet.ServletException.class, () -> {
-            mockMvc.perform(post("/api/carts/add-cart")
+        ServletException exception = Assertions
+                .assertThrows(ServletException.class, () -> {
+                    mockMvc.perform(post("/api/carts/add-cart")
                             .header("Authorization", "Bearer " + validToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)));
-        });
+                });
 
         assertEquals("Product not found", exception.getCause().getMessage());
     }

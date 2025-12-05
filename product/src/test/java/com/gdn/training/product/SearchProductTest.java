@@ -16,7 +16,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,7 +45,7 @@ public class SearchProductTest {
         request.setPage(0);
         request.setSize(10);
 
-        Product product = new Product("SKU-000001", "Test Product", new BigDecimal("10000"), "Description");
+        Product product = new Product("SKU-000001", "Test Product", 10000.0, "Description");
         Page<Product> productPage = new PageImpl<>(Collections.singletonList(product));
 
         when(productRepository.searchByName(any(String.class), any(Pageable.class))).thenReturn(productPage);

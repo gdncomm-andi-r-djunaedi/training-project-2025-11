@@ -13,17 +13,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,10 +46,11 @@ public class ViewProductListTest {
         request.setPage(0);
         request.setSize(10);
 
-        Product product = new Product("SKU-000001", "Test Product", new BigDecimal("10000"), "Description");
+        Product product = new Product("SKU-000001", "Test Product", 10000.0, "Description");
         Page<Product> productPage = new PageImpl<>(Collections.singletonList(product));
 
-        when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(productPage);
+        when(productRepository.findByFilters(eq("SKU-000001"), eq("Test"), any(Pageable.class)))
+                .thenReturn(productPage);
 
         Page<Product> result = productService.viewProductList(request);
 
@@ -61,7 +59,7 @@ public class ViewProductListTest {
         assertEquals("SKU-000001", result.getContent().get(0).getProduct_id());
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(productRepository).findAll(any(Specification.class), pageableCaptor.capture());
+        verify(productRepository).findByFilters(eq("SKU-000001"), eq("Test"), pageableCaptor.capture());
 
         Pageable capturedPageable = pageableCaptor.getValue();
         assertEquals(0, capturedPageable.getPageNumber());

@@ -3,16 +3,18 @@ package com.gdn.training.cart.service;
 import com.gdn.training.cart.dto.AddToCartRequest;
 import com.gdn.training.cart.dto.CartItemResponse;
 import com.gdn.training.cart.dto.CartResponse;
+import com.gdn.training.cart.dto.ProductDetailResponse;
 import com.gdn.training.cart.entity.Cart;
 import com.gdn.training.cart.entity.CartItem;
 import com.gdn.training.cart.repository.CartRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,17 +24,20 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final RestTemplate restTemplate;
 
+    @Value("${gdn.product.url}")
+    private String productBaseUrl;
+
     public CartServiceImpl(CartRepository cartRepository, RestTemplate restTemplate) {
         this.cartRepository = cartRepository;
         this.restTemplate = restTemplate;
     }
 
     @Override
-    public Cart addToCart(String username, AddToCartRequest request) {
-        String productUrl = "http://localhost:8081/api/products/product-detail?product_id=" + request.getProductId();
-        ResponseEntity<Map> response;
+    public CartResponse addToCart(String username, AddToCartRequest request) {
+        String productUrl = productBaseUrl + "/api/products/product-detail?product_id=" + request.getProductId();
+        ResponseEntity<ProductDetailResponse> response;
         try {
-            response = restTemplate.getForEntity(productUrl, Map.class);
+            response = restTemplate.getForEntity(productUrl, ProductDetailResponse.class);
         } catch (Exception e) {
             throw new RuntimeException("Product not found or service unavailable: " + e.getMessage());
         }
@@ -41,18 +46,7 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Product not found");
         }
 
-        Map<String, Object> productData = response.getBody();
-        String productName = (String) productData.get("product_name");
-
-        BigDecimal price;
-        Object priceObj = productData.get("price");
-        if (priceObj instanceof Integer) {
-            price = BigDecimal.valueOf((Integer) priceObj);
-        } else if (priceObj instanceof Double) {
-            price = BigDecimal.valueOf((Double) priceObj);
-        } else {
-            price = new BigDecimal(priceObj.toString());
-        }
+        ProductDetailResponse productData = response.getBody();
 
         Cart cart = cartRepository.findByMemberId(username)
                 .orElseGet(() -> {
@@ -67,18 +61,26 @@ public class CartServiceImpl implements CartService {
 
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + request.getQuantity());
+            int newQuantity = item.getQuantity() + request.getQuantity();
+            if (newQuantity <= 0) {
+                cart.getCartItems().remove(item);
+            } else {
+                item.setQuantity(newQuantity);
+            }
         } else {
-            CartItem newItem = new CartItem();
-            newItem.setProductId(request.getProductId());
-            newItem.setProductName(productName);
-            newItem.setPrice(price);
-            newItem.setQuantity(request.getQuantity());
-            newItem.setCart(cart);
-            cart.getCartItems().add(newItem);
+            if (request.getQuantity() > 0) {
+                CartItem newItem = new CartItem();
+                newItem.setProductId(request.getProductId());
+                newItem.setProductName(productData.getProductName());
+                newItem.setPrice(productData.getPrice());
+                newItem.setQuantity(request.getQuantity());
+                newItem.setCart(cart);
+                cart.getCartItems().add(newItem);
+            }
         }
 
-        return cartRepository.save(cart);
+        Cart savedCart = cartRepository.save(cart);
+        return mapToCartResponse(savedCart);
     }
 
     @Override
@@ -87,31 +89,15 @@ public class CartServiceImpl implements CartService {
         if (cart == null) {
             CartResponse response = new CartResponse();
             response.setMemberId(username);
-            response.setCartItems(new java.util.ArrayList<>());
+            response.setCartItems(new ArrayList<>());
             return response;
         }
 
-        CartResponse response = new CartResponse();
-        response.setId(cart.getId());
-        response.setMemberId(cart.getMemberId());
-
-        java.util.List<CartItemResponse> itemResponses = new java.util.ArrayList<>();
-        for (CartItem item : cart.getCartItems()) {
-            CartItemResponse itemResponse = new CartItemResponse();
-            itemResponse.setId(item.getId().toString());
-            itemResponse.setProductId(item.getProductId());
-            itemResponse.setProductName(item.getProductName());
-            itemResponse.setPrice(item.getPrice());
-            itemResponse.setQuantity(item.getQuantity());
-            itemResponses.add(itemResponse);
-        }
-        response.setCartItems(itemResponses);
-
-        return response;
+        return mapToCartResponse(cart);
     }
 
     @Override
-    public Cart deleteProductFromCart(String username, String productId) {
+    public CartResponse deleteProductFromCart(String username, String productId) {
         Cart cart = cartRepository.findByMemberId(username)
                 .orElseThrow(() -> new RuntimeException("Cart not found for user: " + username));
 
@@ -121,9 +107,30 @@ public class CartServiceImpl implements CartService {
 
         if (itemToDelete.isPresent()) {
             cart.getCartItems().remove(itemToDelete.get());
-            return cartRepository.save(cart);
+            Cart savedCart = cartRepository.save(cart);
+            return mapToCartResponse(savedCart);
         } else {
-            return cart;
+            return mapToCartResponse(cart);
         }
+    }
+
+    private CartResponse mapToCartResponse(Cart cart) {
+        CartResponse response = new CartResponse();
+        response.setId(cart.getId());
+        response.setMemberId(cart.getMemberId());
+
+        List<CartItemResponse> itemResponses = new ArrayList<>();
+        for (CartItem item : cart.getCartItems()) {
+            CartItemResponse itemResponse = new CartItemResponse();
+            itemResponse.setId(item.getId() != null ? item.getId().toString() : null);
+            itemResponse.setProductId(item.getProductId());
+            itemResponse.setProductName(item.getProductName());
+            itemResponse.setPrice(item.getPrice());
+            itemResponse.setQuantity(item.getQuantity());
+            itemResponses.add(itemResponse);
+        }
+        response.setCartItems(itemResponses);
+
+        return response;
     }
 }

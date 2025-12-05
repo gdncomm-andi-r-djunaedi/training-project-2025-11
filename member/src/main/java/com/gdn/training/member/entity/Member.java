@@ -72,14 +72,6 @@ public class Member {
     @Column(nullable = true, name = "last_logout")
     private Date lastLogout;
 
-    public Date getLastLogout() {
-        return lastLogout;
-    }
-
-    public void setLastLogout(Date lastLogout) {
-        this.lastLogout = lastLogout;
-    }
-
     public Member() {
     }
 

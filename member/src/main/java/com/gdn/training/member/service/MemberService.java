@@ -1,12 +1,14 @@
 package com.gdn.training.member.service;
 
 import com.gdn.training.member.dto.LoginResponse;
+import com.gdn.training.member.dto.LogoutResponse;
+import com.gdn.training.member.dto.RegisterResponse;
 
 public interface MemberService {
 
-    void register(String username, String email, String password);
+    RegisterResponse register(String username, String email, String password);
 
     LoginResponse login(String username, String password);
 
-    void logout(String token);
+    LogoutResponse logout(String authorizationHeader);
 }

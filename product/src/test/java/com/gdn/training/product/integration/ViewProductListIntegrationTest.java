@@ -12,8 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,8 +33,8 @@ public class ViewProductListIntegrationTest {
     @BeforeEach
     void setUp() {
         productRepository.deleteAll();
-        Product p1 = new Product("SKU-000001", "Product 1", new BigDecimal("10000"), "Desc 1");
-        Product p2 = new Product("SKU-000002", "Product 2", new BigDecimal("20000"), "Desc 2");
+        Product p1 = new Product("SKU-000001", "Product 1", 10000.0, "Desc 1");
+        Product p2 = new Product("SKU-000002", "Product 2", 20000.0, "Desc 2");
         productRepository.save(p1);
         productRepository.save(p2);
     }
@@ -48,8 +46,8 @@ public class ViewProductListIntegrationTest {
         request.setSize(10);
 
         mockMvc.perform(post("/api/products/list")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)));
     }
@@ -62,8 +60,8 @@ public class ViewProductListIntegrationTest {
         request.setSize(10);
 
         mockMvc.perform(post("/api/products/list")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)));
     }

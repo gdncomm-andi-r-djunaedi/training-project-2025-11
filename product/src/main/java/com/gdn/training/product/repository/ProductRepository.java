@@ -19,6 +19,13 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     @Query(value = "SELECT * FROM products p WHERE p.product_id = ?1", nativeQuery = true)
     Optional<Product> viewProductDetail(String product_id);
 
-    @Query("SELECT p FROM Product p WHERE LOWER(p.product_name) LIKE LOWER(CONCAT('%', :productName, '%'))")
+    @Query(value = "SELECT * FROM products p WHERE LOWER(CAST(p.product_name AS TEXT)) LIKE LOWER(CONCAT('%', :productName, '%'))", nativeQuery = true)
     Page<Product> searchByName(@Param("productName") String product_name, Pageable paging);
+
+    @Query(value = """
+            SELECT * FROM products p
+            WHERE (NULLIF(?1, '') IS NULL OR p.product_id = ?1)
+              AND (NULLIF(?2, '') IS NULL OR LOWER(p.product_name) LIKE LOWER(CONCAT('%', ?2, '%')))
+            """, nativeQuery = true)
+    Page<Product> findByFilters(String productId, String productName, Pageable pageable);
 }

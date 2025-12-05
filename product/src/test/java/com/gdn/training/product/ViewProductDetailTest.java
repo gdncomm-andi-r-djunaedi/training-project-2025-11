@@ -1,6 +1,8 @@
 package com.gdn.training.product;
 
+import com.gdn.training.product.dto.ProductDetailResponse;
 import com.gdn.training.product.entity.Product;
+import com.gdn.training.product.exception.ProductNotFoundException;
 import com.gdn.training.product.repository.ProductRepository;
 import com.gdn.training.product.service.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,11 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,27 +38,24 @@ public class ViewProductDetailTest {
         Product mockProduct = new Product();
         mockProduct.setProduct_id(productId);
         mockProduct.setProduct_name("Test Product");
-        mockProduct.setPrice(new BigDecimal("10000"));
+        mockProduct.setPrice(10000.0);
 
         when(productRepository.viewProductDetail(productId)).thenReturn(Optional.of(mockProduct));
 
-        Optional<Product> result = productService.viewDetailById(productId);
+        ProductDetailResponse result = productService.viewDetailById(productId);
 
-        assertTrue(result.isPresent());
-        assertEquals(productId, result.get().getProduct_id());
-        assertEquals("Test Product", result.get().getProduct_name());
-        assertEquals(new BigDecimal("10000"), result.get().getPrice());
+        assertEquals(productId, result.getProductId());
+        assertEquals("Test Product", result.getProductName());
+        assertEquals(10000.0, result.getPrice());
     }
 
     @Test
-    @DisplayName("view product detail with invalid id should return empty optional")
+    @DisplayName("view product detail with invalid id should throw exception")
     public void viewProductDetailWithInvalidIdTest() {
         String invalidProductId = "INVALID-ID";
 
         when(productRepository.viewProductDetail(invalidProductId)).thenReturn(Optional.empty());
 
-        Optional<Product> result = productService.viewDetailById(invalidProductId);
-
-        assertTrue(result.isEmpty());
+        assertThrows(ProductNotFoundException.class, () -> productService.viewDetailById(invalidProductId));
     }
 }

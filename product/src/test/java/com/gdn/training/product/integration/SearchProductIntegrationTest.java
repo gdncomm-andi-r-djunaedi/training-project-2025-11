@@ -12,8 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,9 +33,9 @@ public class SearchProductIntegrationTest {
     @BeforeEach
     void setUp() {
         productRepository.deleteAll();
-        Product p1 = new Product("SKU-000001", "Apple iPhone", new BigDecimal("10000000"), "Smartphone");
-        Product p2 = new Product("SKU-000002", "Samsung Galaxy", new BigDecimal("9000000"), "Smartphone");
-        Product p3 = new Product("SKU-000003", "Apple iPad", new BigDecimal("8000000"), "Tablet");
+        Product p1 = new Product("SKU-000001", "Apple iPhone", 10000000.0, "Smartphone");
+        Product p2 = new Product("SKU-000002", "Samsung Galaxy", 9000000.0, "Smartphone");
+        Product p3 = new Product("SKU-000003", "Apple iPad", 8000000.0, "Tablet");
         productRepository.save(p1);
         productRepository.save(p2);
         productRepository.save(p3);
@@ -51,8 +49,8 @@ public class SearchProductIntegrationTest {
         request.setSize(10);
 
         mockMvc.perform(post("/api/products/search")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)));
     }

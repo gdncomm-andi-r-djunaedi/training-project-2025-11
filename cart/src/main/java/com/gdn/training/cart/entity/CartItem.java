@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -25,7 +24,7 @@ public class CartItem {
     private String productName;
 
     @Column(name = "price", nullable = false)
-    private BigDecimal price;
+    private Double price;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;

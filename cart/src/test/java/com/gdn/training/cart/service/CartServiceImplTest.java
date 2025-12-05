@@ -1,6 +1,8 @@
 package com.gdn.training.cart.service;
 
+import com.gdn.training.cart.dto.AddToCartRequest;
 import com.gdn.training.cart.dto.CartResponse;
+import com.gdn.training.cart.dto.ProductDetailResponse;
 import com.gdn.training.cart.entity.Cart;
 import com.gdn.training.cart.entity.CartItem;
 import com.gdn.training.cart.repository.CartRepository;
@@ -10,11 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,6 +36,7 @@ class CartServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        ReflectionTestUtils.setField(cartService, "productBaseUrl", "http://localhost:8081");
     }
 
     @Test
@@ -50,7 +52,7 @@ class CartServiceImplTest {
         item.setId(UUID.randomUUID());
         item.setProductId("SKU-000001");
         item.setProductName("Test Product");
-        item.setPrice(BigDecimal.valueOf(10000));
+        item.setPrice(10000.0);
         item.setQuantity(2);
         item.setCart(cart);
         cart.getCartItems().add(item);
@@ -65,7 +67,7 @@ class CartServiceImplTest {
         assertEquals(1, response.getCartItems().size());
         assertEquals("SKU-000001", response.getCartItems().get(0).getProductId());
         assertEquals(2, response.getCartItems().get(0).getQuantity());
-        assertEquals(BigDecimal.valueOf(10000), response.getCartItems().get(0).getPrice());
+        assertEquals(10000.0, response.getCartItems().get(0).getPrice());
 
         verify(cartRepository, times(1)).findByMemberId(username);
     }
@@ -89,16 +91,17 @@ class CartServiceImplTest {
     @Test
     void addToCart_HappyFlow() {
         String username = "testuser";
-        com.gdn.training.cart.dto.AddToCartRequest request = new com.gdn.training.cart.dto.AddToCartRequest();
+        AddToCartRequest request = new AddToCartRequest();
         request.setProductId("SKU-000001");
         request.setQuantity(2);
 
-        java.util.Map<String, Object> productData = new java.util.HashMap<>();
-        productData.put("product_name", "Test Product");
-        productData.put("price", 10000);
-        org.springframework.http.ResponseEntity<Map> productResponse = ResponseEntity
-                .ok(productData);
-        when(restTemplate.getForEntity(anyString(), eq(java.util.Map.class))).thenReturn(productResponse);
+        ProductDetailResponse productData = new ProductDetailResponse();
+        productData.setProductId("SKU-000001");
+        productData.setProductName("Test Product");
+        productData.setPrice(10000.0);
+
+        ResponseEntity<ProductDetailResponse> productResponse = ResponseEntity.ok(productData);
+        when(restTemplate.getForEntity(anyString(), eq(ProductDetailResponse.class))).thenReturn(productResponse);
 
         Cart cart = new Cart();
         cart.setMemberId(username);
@@ -106,16 +109,16 @@ class CartServiceImplTest {
         when(cartRepository.findByMemberId(username)).thenReturn(Optional.of(cart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cart updatedCart = cartService.addToCart(username, request);
+        CartResponse updatedCart = cartService.addToCart(username, request);
 
         assertNotNull(updatedCart);
         assertEquals(1, updatedCart.getCartItems().size());
         assertEquals("SKU-000001", updatedCart.getCartItems().get(0).getProductId());
         assertEquals("Test Product", updatedCart.getCartItems().get(0).getProductName());
-        assertEquals(BigDecimal.valueOf(10000), updatedCart.getCartItems().get(0).getPrice());
+        assertEquals(10000.0, updatedCart.getCartItems().get(0).getPrice());
         assertEquals(2, updatedCart.getCartItems().get(0).getQuantity());
 
-        verify(restTemplate, times(1)).getForEntity(anyString(), eq(Map.class));
+        verify(restTemplate, times(1)).getForEntity(anyString(), eq(ProductDetailResponse.class));
         verify(cartRepository, times(1)).findByMemberId(username);
         verify(cartRepository, times(1)).save(any(Cart.class));
     }
@@ -136,7 +139,7 @@ class CartServiceImplTest {
         when(cartRepository.findByMemberId(username)).thenReturn(Optional.of(cart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cart updatedCart = cartService.deleteProductFromCart(username, productId);
+        CartResponse updatedCart = cartService.deleteProductFromCart(username, productId);
 
         assertNotNull(updatedCart);
         assertTrue(updatedCart.getCartItems().isEmpty());
@@ -153,7 +156,7 @@ class CartServiceImplTest {
 
         when(cartRepository.findByMemberId(username)).thenReturn(Optional.of(cart));
 
-        Cart updatedCart = cartService.deleteProductFromCart(username, productId);
+        CartResponse updatedCart = cartService.deleteProductFromCart(username, productId);
 
         assertNotNull(updatedCart);
         assertTrue(updatedCart.getCartItems().isEmpty());

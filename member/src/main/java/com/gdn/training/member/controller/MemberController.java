@@ -2,15 +2,15 @@ package com.gdn.training.member.controller;
 
 import com.gdn.training.member.dto.LoginRequest;
 import com.gdn.training.member.dto.LoginResponse;
+import com.gdn.training.member.dto.LogoutResponse;
 import com.gdn.training.member.dto.RegisterMemberRequest;
+import com.gdn.training.member.dto.RegisterResponse;
 import com.gdn.training.member.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/members")
@@ -23,12 +23,11 @@ public class MemberController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterMemberRequest request) {
-        memberService.register(request.getUsername(), request.getEmail(), request.getPassword());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterMemberRequest request) {
+        RegisterResponse response = memberService.register(
+                request.getUsername(),
+                request.getEmail(),
+                request.getPassword());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -39,13 +38,9 @@ public class MemberController {
     }
 
     @PutMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(jakarta.servlet.http.HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            memberService.logout(token);
-            return ResponseEntity.ok(Map.of("message", "Logout successful"));
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Invalid token"));
+    public ResponseEntity<LogoutResponse> logout(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        LogoutResponse response = memberService.logout(authorizationHeader);
+        return ResponseEntity.ok(response);
     }
 }

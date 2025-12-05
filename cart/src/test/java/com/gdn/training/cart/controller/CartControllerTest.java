@@ -1,20 +1,21 @@
 package com.gdn.training.cart.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.training.cart.dto.AddToCartRequest;
 import com.gdn.training.cart.dto.CartItemResponse;
 import com.gdn.training.cart.dto.CartResponse;
-import com.gdn.training.cart.entity.Cart;
-import com.gdn.training.cart.entity.CartItem;
 import com.gdn.training.cart.service.CartService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -46,7 +47,7 @@ class CartControllerTest {
                 item.setId(UUID.randomUUID().toString());
                 item.setProductId("SKU-000001");
                 item.setProductName("Test Product");
-                item.setPrice(BigDecimal.valueOf(10000));
+                item.setPrice(10000.0);
                 item.setQuantity(2);
                 items.add(item);
                 response.setCartItems(items);
@@ -69,28 +70,28 @@ class CartControllerTest {
                 request.setProductId("SKU-000001");
                 request.setQuantity(2);
 
-                Cart cart = new Cart();
-                cart.setId(UUID.randomUUID());
-                cart.setMemberId(username);
+                CartResponse cartResponse = new CartResponse();
+                cartResponse.setId(UUID.randomUUID());
+                cartResponse.setMemberId(username);
 
-                CartItem item = new CartItem();
-                item.setId(UUID.randomUUID());
-                item.setProductId("SKU-000001");
-                item.setProductName("Test Product");
-                item.setPrice(BigDecimal.valueOf(10000));
-                item.setQuantity(2);
-                cart.setCartItems(List.of(item));
+                CartItemResponse itemResponse = new CartItemResponse();
+                itemResponse.setId(UUID.randomUUID().toString());
+                itemResponse.setProductId("SKU-000001");
+                itemResponse.setProductName("Test Product");
+                itemResponse.setPrice(10000.0);
+                itemResponse.setQuantity(2);
+                cartResponse.setCartItems(List.of(itemResponse));
 
-                given(cartService.addToCart(org.mockito.ArgumentMatchers.eq(username),
-                                org.mockito.ArgumentMatchers.any(com.gdn.training.cart.dto.AddToCartRequest.class)))
-                                .willReturn(cart);
+                given(cartService.addToCart(ArgumentMatchers.eq(username),
+                                ArgumentMatchers.any(AddToCartRequest.class)))
+                                .willReturn(cartResponse);
 
-                mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                mockMvc.perform(MockMvcRequestBuilders
                                 .post("/api/carts/add-cart")
-                                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .with(SecurityMockMvcRequestPostProcessors
                                                 .csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(request)))
+                                .content(new ObjectMapper().writeValueAsString(request)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.memberId").value(username))
                                 .andExpect(jsonPath("$.cartItems[0].productId").value("SKU-000001"))
@@ -102,14 +103,14 @@ class CartControllerTest {
         void deleteProductFromCart_Success() throws Exception {
                 String username = "testuser";
                 String productId = "SKU-000001";
-                Cart cart = new Cart();
-                cart.setId(UUID.randomUUID());
-                cart.setMemberId(username);
-                cart.setCartItems(new ArrayList<>());
+                CartResponse cartResponse = new CartResponse();
+                cartResponse.setId(UUID.randomUUID());
+                cartResponse.setMemberId(username);
+                cartResponse.setCartItems(new ArrayList<>());
 
-                given(cartService.deleteProductFromCart(username, productId)).willReturn(cart);
+                given(cartService.deleteProductFromCart(username, productId)).willReturn(cartResponse);
 
-                mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                mockMvc.perform(MockMvcRequestBuilders
                                 .delete("/api/carts/delete-from-cart/{productId}", productId)
                                 .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
                                                 .csrf()))

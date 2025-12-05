@@ -2,7 +2,6 @@ package com.gdn.training.cart.controller;
 
 import com.gdn.training.cart.dto.AddToCartRequest;
 import com.gdn.training.cart.dto.CartResponse;
-import com.gdn.training.cart.entity.Cart;
 import com.gdn.training.cart.service.CartService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,9 +18,10 @@ public class CartController {
     }
 
     @PostMapping("/add-cart")
-    public ResponseEntity<Cart> addToCart(@RequestBody AddToCartRequest request, Authentication authentication) {
+    public ResponseEntity<CartResponse> addToCart(@RequestBody AddToCartRequest request,
+            Authentication authentication) {
         String username = authentication.getName();
-        Cart cart = cartService.addToCart(username, request);
+        CartResponse cart = cartService.addToCart(username, request);
         return ResponseEntity.ok(cart);
     }
 
@@ -33,9 +33,10 @@ public class CartController {
     }
 
     @DeleteMapping("/delete-from-cart/{productId}")
-    public ResponseEntity<Cart> deleteProductFromCart(@PathVariable String productId, Authentication authentication) {
+    public ResponseEntity<CartResponse> deleteProductFromCart(@PathVariable String productId,
+            Authentication authentication) {
         String username = authentication.getName();
-        Cart cart = cartService.deleteProductFromCart(username, productId);
+        CartResponse cart = cartService.deleteProductFromCart(username, productId);
         return ResponseEntity.ok(cart);
     }
 }

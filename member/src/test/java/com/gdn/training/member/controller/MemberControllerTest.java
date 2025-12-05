@@ -18,6 +18,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.mockito.Mockito.when;
+
 @WebMvcTest(MemberController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class MemberControllerTest {
@@ -38,9 +40,12 @@ class MemberControllerTest {
         request.setEmail("test@example.com");
         request.setPassword("password123");
 
+        when(memberService.register(any(), any(), any()))
+                .thenReturn(new com.gdn.training.member.dto.RegisterResponse());
+
         mockMvc.perform(post("/api/members/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("success"));
     }
@@ -50,8 +55,8 @@ class MemberControllerTest {
         RegisterMemberRequest request = new RegisterMemberRequest();
 
         mockMvc.perform(post("/api/members/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -66,8 +71,8 @@ class MemberControllerTest {
                 .when(memberService).register(any(), any(), any());
 
         mockMvc.perform(post("/api/members/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").exists());
     }

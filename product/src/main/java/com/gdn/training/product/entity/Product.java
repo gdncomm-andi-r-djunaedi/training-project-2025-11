@@ -9,7 +9,6 @@ import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -18,37 +17,37 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 public class Product {
 
-    //what a product needs:
-    //- product id
-    //- name
-    //- price
-    //- description         : for product detail i guess?
-    //assume stock unlimited so no stock?
+    // what a product needs:
+    // - product id
+    // - name
+    // - price
+    // - description : for product detail i guess?
+    // assume stock unlimited so no stock?
 
-    //what to do:
-    //- search product
-    //      - how do you paginate the search result?
-    //- view product list
-    //      - how do you paginate the list?
-    //- view product detail
+    // what to do:
+    // - search product
+    // - how do you paginate the search result?
+    // - view product list
+    // - how do you paginate the list?
+    // - view product detail
 
     @Id
     @Column(nullable = false, unique = true)
     private String product_id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String product_name;
 
     @Column(nullable = false, unique = true)
-    private BigDecimal price;
+    private Double price;
 
     @Column(nullable = false, unique = true)
     private String description;
 
-    public Product(){
+    public Product() {
     }
 
-    public Product(String product_id, String product_name, BigDecimal price, String description){
+    public Product(String product_id, String product_name, Double price, String description) {
         this.product_id = product_id;
         this.product_name = product_name;
         this.price = price;

@@ -1,7 +1,10 @@
 package com.gdn.training.cart.integration;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.training.cart.dto.AddToCartRequest;
+import com.gdn.training.cart.dto.ProductDetailResponse;
 import com.gdn.training.cart.repository.CartItemRepository;
 import com.gdn.training.cart.repository.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,8 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
-
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -30,77 +31,81 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class DeleteCartItemIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private CartRepository cartRepository;
+        @Autowired
+        private CartRepository cartRepository;
 
-    @Autowired
-    private CartItemRepository cartItemRepository;
+        @Autowired
+        private CartItemRepository cartItemRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @MockBean
-    private RestTemplate restTemplate;
+        @MockBean
+        private RestTemplate restTemplate;
 
-    private String validToken;
+        private String validToken;
 
-    @BeforeEach
-    void setUp() {
-        cartItemRepository.deleteAll();
-        cartRepository.deleteAll();
+        @BeforeEach
+        void setUp() {
+                cartItemRepository.deleteAll();
+                cartRepository.deleteAll();
 
-        validToken = com.auth0.jwt.JWT.create()
-                .withSubject("testuser")
-                .sign(com.auth0.jwt.algorithms.Algorithm.HMAC256("testkey"));
-    }
+                validToken = JWT.create()
+                                .withSubject("testuser")
+                                .sign(Algorithm.HMAC256("testkey"));
+        }
 
-    @Test
-    void deleteProduct_HappyFlow() throws Exception {
-        Mockito.when(restTemplate.getForEntity(anyString(), eq(Map.class)))
-                .thenReturn(new ResponseEntity<>(Map.of(
-                        "product_id", "SKU-000001",
-                        "product_name", "Test Product",
-                        "price", 10000), HttpStatus.OK));
+        @Test
+        void deleteProduct_HappyFlow() throws Exception {
+                ProductDetailResponse productResponse = new ProductDetailResponse();
+                productResponse.setProductId("SKU-000001");
+                productResponse.setProductName("Test Product");
+                productResponse.setPrice(10000.0);
 
-        AddToCartRequest request = new AddToCartRequest();
-        request.setProductId("SKU-000001");
-        request.setQuantity(2);
+                Mockito.when(restTemplate.getForEntity(anyString(), eq(ProductDetailResponse.class)))
+                                .thenReturn(new ResponseEntity<>(productResponse, HttpStatus.OK));
 
-        mockMvc.perform(post("/api/carts/add-cart")
-                .header("Authorization", "Bearer " + validToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                AddToCartRequest request = new AddToCartRequest();
+                request.setProductId("SKU-000001");
+                request.setQuantity(2);
 
-        mockMvc.perform(delete("/api/carts/delete-from-cart/SKU-000001")
-                .header("Authorization", "Bearer " + validToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cartItems").isEmpty());
-    }
+                mockMvc.perform(post("/api/carts/add-cart")
+                                .header("Authorization", "Bearer " + validToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isOk());
 
-    @Test
-    void deleteProduct_ItemNotFound() throws Exception {
-        Mockito.when(restTemplate.getForEntity(anyString(), eq(Map.class)))
-                .thenReturn(new ResponseEntity<>(Map.of(
-                        "product_id", "SKU-000001",
-                        "product_name", "Test Product",
-                        "price", 10000), HttpStatus.OK));
+                mockMvc.perform(delete("/api/carts/delete-from-cart/SKU-000001")
+                                .header("Authorization", "Bearer " + validToken))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.cartItems").isEmpty());
+        }
 
-        AddToCartRequest request = new AddToCartRequest();
-        request.setProductId("SKU-000001");
-        request.setQuantity(2);
+        @Test
+        void deleteProduct_ItemNotFound() throws Exception {
+                ProductDetailResponse productResponse = new ProductDetailResponse();
+                productResponse.setProductId("SKU-000001");
+                productResponse.setProductName("Test Product");
+                productResponse.setPrice(10000.0);
 
-        mockMvc.perform(post("/api/carts/add-cart")
-                .header("Authorization", "Bearer " + validToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                Mockito.when(restTemplate.getForEntity(anyString(), eq(ProductDetailResponse.class)))
+                                .thenReturn(new ResponseEntity<>(productResponse, HttpStatus.OK));
 
-        mockMvc.perform(delete("/api/carts/delete-from-cart/SKU-invalid")
-                .header("Authorization", "Bearer " + validToken))
-                .andExpect(status().isOk());
-    }
+                AddToCartRequest request = new AddToCartRequest();
+                request.setProductId("SKU-000001");
+                request.setQuantity(2);
+
+                mockMvc.perform(post("/api/carts/add-cart")
+                                .header("Authorization", "Bearer " + validToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isOk());
+
+                mockMvc.perform(delete("/api/carts/delete-from-cart/SKU-invalid")
+                                .header("Authorization", "Bearer " + validToken))
+                                .andExpect(status().isOk());
+        }
 }
