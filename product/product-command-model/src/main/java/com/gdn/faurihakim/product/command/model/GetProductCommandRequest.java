@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetProductCommandRequest {
+    private String productId;
     private String productName;
 }

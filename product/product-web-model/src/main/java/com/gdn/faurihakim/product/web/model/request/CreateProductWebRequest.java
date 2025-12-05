@@ -14,5 +14,4 @@ public class CreateProductWebRequest {
     private String productName;
     private String description;
     private Double price;
-    private Integer stock;
 }

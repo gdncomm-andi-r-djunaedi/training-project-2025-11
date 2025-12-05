@@ -7,8 +7,8 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @SpringBootApplication
-@ComponentScan("com.gdn.faurihakim")
-@EnableMongoRepositories(basePackages = "com.gdn.faurihakim")
+@ComponentScan
+@EnableMongoRepositories
 public class ProductApplication {
 
     public static void main(String[] args) {

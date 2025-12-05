@@ -4,6 +4,7 @@ import com.gdn.faurihakim.Product;
 import com.gdn.faurihakim.ProductRepository;
 import com.gdn.faurihakim.product.command.GetProductCommand;
 import com.gdn.faurihakim.product.command.model.GetProductCommandRequest;
+import com.gdn.faurihakim.product.web.model.ProductNotFoundException;
 import com.gdn.faurihakim.product.web.model.response.GetProductWebResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -18,8 +19,9 @@ public class GetProductCommandImpl implements GetProductCommand {
 
     @Override
     public GetProductWebResponse execute(GetProductCommandRequest request) {
-        Product product = productRepository.findByProductName(request.getProductName())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        Product product = productRepository.findByProductId(request.getProductId())
+                .orElseThrow(() -> new ProductNotFoundException("Product not found: " + request.getProductId()));
+
         GetProductWebResponse response = new GetProductWebResponse();
         BeanUtils.copyProperties(product, response);
         return response;

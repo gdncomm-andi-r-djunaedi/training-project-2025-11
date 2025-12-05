@@ -14,7 +14,6 @@ public class CreateProductWebResponse {
     private String productName;
     private String description;
     private Double price;
-    private Integer stock;
     private Long version;
     private Long createdDate;
     private String createdBy;

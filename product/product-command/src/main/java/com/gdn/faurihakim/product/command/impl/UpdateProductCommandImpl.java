@@ -4,6 +4,7 @@ import com.gdn.faurihakim.Product;
 import com.gdn.faurihakim.ProductRepository;
 import com.gdn.faurihakim.product.command.UpdateProductCommand;
 import com.gdn.faurihakim.product.command.model.UpdateProductCommandRequest;
+import com.gdn.faurihakim.product.web.model.ProductNotFoundException;
 import com.gdn.faurihakim.product.web.model.response.UpdateProductWebResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -19,7 +20,7 @@ public class UpdateProductCommandImpl implements UpdateProductCommand {
     @Override
     public UpdateProductWebResponse execute(UpdateProductCommandRequest request) {
         Product product = productRepository.findByProductId(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found: " + request.getProductId()));
         if (product != null) {
             BeanUtils.copyProperties(request, product);
             productRepository.save(product);

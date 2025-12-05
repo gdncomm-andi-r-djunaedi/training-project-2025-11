@@ -19,6 +19,4 @@ public class CreateProductCommandRequest implements ProductData {
     private String description;
     @NotNull(message = "NotNull")
     private Double price;
-    @NotNull(message = "NotNull")
-    private Integer stock;
 }
