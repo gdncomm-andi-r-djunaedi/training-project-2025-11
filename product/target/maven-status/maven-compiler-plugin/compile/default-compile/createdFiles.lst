@@ -1,0 +1,4 @@
+com\gdn\training\product\controller\ProductController.class
+com\gdn\training\product\entity\Product.class
+com\gdn\training\product\ProductApplication.class
+com\gdn\training\product\repository\ProductRepository.class
