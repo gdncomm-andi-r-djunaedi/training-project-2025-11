@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import com.gdn.training.cart.model.entity.CartItem;
 import com.gdn.training.cart.model.request.AddToCartRequest;
 import com.gdn.training.cart.model.response.CartResponse;
+import com.gdn.training.cart.model.dto.ProductDetailDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CartService {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${cart.ttl:604800}")
     private long cartTtl;
@@ -33,7 +34,7 @@ public class CartService {
         String cartKey = CART_KEY_PREFIX + userEmail;
         String productKey = cartKey + PRODUCT_KEY_SUFFIX;
 
-        ProductDetail productDetail = fetchProductDetail(request.getProductId());
+        ProductDetailDTO productDetail = fetchProductDetail(request.getProductId());
 
         Integer currentQuantity = (Integer) redisTemplate.opsForHash().get(cartKey, request.getProductId());
         if (currentQuantity == null) {
@@ -76,7 +77,7 @@ public class CartService {
         for (Map.Entry<Object, Object> entry : cartItems.entrySet()) {
             String productId = (String) entry.getKey();
             Integer quantity = (Integer) entry.getValue();
-            ProductDetail productDetail = (ProductDetail) productDetails.get(productId);
+            ProductDetailDTO productDetail = (ProductDetailDTO) productDetails.get(productId);
 
             if (productDetail == null) {
                 throw new IllegalArgumentException("Product not found");
@@ -127,20 +128,13 @@ public class CartService {
         return response;
     }
 
-    private ProductDetail fetchProductDetail(String productId) {
+    private ProductDetailDTO fetchProductDetail(String productId) {
         try {
             System.out.println(PRODUCT_SERVICE_URL + productId);
-            return restTemplate.getForObject(PRODUCT_SERVICE_URL + productId, ProductDetail.class);
+            return restTemplate.getForObject(PRODUCT_SERVICE_URL + productId, ProductDetailDTO.class);
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch product detail");
         }
-    }
-
-    @lombok.Data
-    private static class ProductDetail {
-        private String id;
-        private String name;
-        private double price;
     }
 
 }
