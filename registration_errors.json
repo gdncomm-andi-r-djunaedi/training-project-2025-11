@@ -1,0 +1,542 @@
+[
+  {
+    "user": "timothyhughes",
+    "email": "timothyhughes@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(timothyhughes) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764899922013}",
+    "status": 500
+  },
+  {
+    "user": "jacqueline.jones",
+    "email": "jacqueline.jones@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(jacqueline.jones) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764899981753}",
+    "status": 500
+  },
+  {
+    "user": "david_hall",
+    "email": "david_hall@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(david_hall) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900003215}",
+    "status": 500
+  },
+  {
+    "user": "carolyn.scott",
+    "email": "carolyn.scott@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(carolyn.scott) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900008088}",
+    "status": 500
+  },
+  {
+    "user": "markcollins",
+    "email": "markcollins1057@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(markcollins) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900022912}",
+    "status": 500
+  },
+  {
+    "user": "timothy.turner",
+    "email": "timothy.turner1107@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(timothy.turner) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900035742}",
+    "status": 500
+  },
+  {
+    "user": "catherineroberts",
+    "email": "catherineroberts1260@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(catherineroberts) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900069336}",
+    "status": 500
+  },
+  {
+    "user": "jerrywilson",
+    "email": "jerrywilson1477@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(jerrywilson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900116793}",
+    "status": 500
+  },
+  {
+    "user": "janet_wright",
+    "email": "janet_wright1619@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(janet_wright) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900148268}",
+    "status": 500
+  },
+  {
+    "user": "richard.richardson",
+    "email": "richard.richardson1688@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(richard.richardson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900164678}",
+    "status": 500
+  },
+  {
+    "user": "kellyharris",
+    "email": "kellyharris1694@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(kellyharris) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900168086}",
+    "status": 500
+  },
+  {
+    "user": "marietaylor",
+    "email": "marietaylor1946@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(marietaylor) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900223188}",
+    "status": 500
+  },
+  {
+    "user": "ashleyedwards",
+    "email": "ashleyedwards1974@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(ashleyedwards) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900231234}",
+    "status": 500
+  },
+  {
+    "user": "brenda.howard",
+    "email": "brenda.howard1975@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(brenda.howard) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900233621}",
+    "status": 500
+  },
+  {
+    "user": "emma.martinez",
+    "email": "emma.martinez1982@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(emma.martinez) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900237362}",
+    "status": 500
+  },
+  {
+    "user": "david_watson",
+    "email": "david_watson2018@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(david_watson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900247011}",
+    "status": 500
+  },
+  {
+    "user": "joseph.nelson",
+    "email": "joseph.nelson2101@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(joseph.nelson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900265535}",
+    "status": 500
+  },
+  {
+    "user": "virginia_flores",
+    "email": "virginia_flores2221@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(virginia_flores) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900291328}",
+    "status": 500
+  },
+  {
+    "user": "melissacarter",
+    "email": "melissacarter2261@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(melissacarter) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900301414}",
+    "status": 500
+  },
+  {
+    "user": "thomasmoore",
+    "email": "thomasmoore2282@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(thomasmoore) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900307753}",
+    "status": 500
+  },
+  {
+    "user": "samuelbaker",
+    "email": "samuelbaker2380@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(samuelbaker) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900329634}",
+    "status": 500
+  },
+  {
+    "user": "martha_turner",
+    "email": "martha_turner2389@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(martha_turner) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900333852}",
+    "status": 500
+  },
+  {
+    "user": "evelynjames",
+    "email": "evelynjames2583@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(evelynjames) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900374590}",
+    "status": 500
+  },
+  {
+    "user": "alexanderstewart",
+    "email": "alexanderstewart2632@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(alexanderstewart) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900386305}",
+    "status": 500
+  },
+  {
+    "user": "jane_gray",
+    "email": "jane_gray2669@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(jane_gray) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900395770}",
+    "status": 500
+  },
+  {
+    "user": "marie_davis",
+    "email": "marie_davis2697@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(marie_davis) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900403455}",
+    "status": 500
+  },
+  {
+    "user": "christine_murphy",
+    "email": "christine_murphy2753@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(christine_murphy) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900416869}",
+    "status": 500
+  },
+  {
+    "user": "jamesmendoza",
+    "email": "jamesmendoza2779@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(jamesmendoza) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900424530}",
+    "status": 500
+  },
+  {
+    "user": "janet_hernandez",
+    "email": "janet_hernandez2949@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(janet_hernandez) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900460511}",
+    "status": 500
+  },
+  {
+    "user": "kevin_diaz",
+    "email": "kevin_diaz3026@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(kevin_diaz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900477812}",
+    "status": 500
+  },
+  {
+    "user": "angelaclark",
+    "email": "angelaclark3031@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(angelaclark) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900480996}",
+    "status": 500
+  },
+  {
+    "user": "robert.rodriguez",
+    "email": "robert.rodriguez3053@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(robert.rodriguez) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900487871}",
+    "status": 500
+  },
+  {
+    "user": "brandon_cruz",
+    "email": "brandon_cruz3089@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(brandon_cruz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900497307}",
+    "status": 500
+  },
+  {
+    "user": "mariediaz",
+    "email": "mariediaz3094@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(mariediaz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900500481}",
+    "status": 500
+  },
+  {
+    "user": "emma_ortiz",
+    "email": "emma_ortiz3124@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(emma_ortiz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900508645}",
+    "status": 500
+  },
+  {
+    "user": "ryan.morgan",
+    "email": "ryan.morgan3151@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(ryan.morgan) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900516618}",
+    "status": 500
+  },
+  {
+    "user": "raymond_diaz",
+    "email": "raymond_diaz3187@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(raymond_diaz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900526008}",
+    "status": 500
+  },
+  {
+    "user": "marie.watson",
+    "email": "marie.watson3235@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(marie.watson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900538138}",
+    "status": 500
+  },
+  {
+    "user": "marie.parker",
+    "email": "marie.parker3249@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(marie.parker) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900543485}",
+    "status": 500
+  },
+  {
+    "user": "williamnguyen",
+    "email": "williamnguyen3318@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(williamnguyen) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900559764}",
+    "status": 500
+  },
+  {
+    "user": "olivia.king",
+    "email": "olivia.king3382@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(olivia.king) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900574522}",
+    "status": 500
+  },
+  {
+    "user": "andrea_peterson",
+    "email": "andrea_peterson3425@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(andrea_peterson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900586705}",
+    "status": 500
+  },
+  {
+    "user": "julia_young",
+    "email": "julia_young3453@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(julia_young) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900595349}",
+    "status": 500
+  },
+  {
+    "user": "janet_brown",
+    "email": "janet_brown3467@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(janet_brown) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900600365}",
+    "status": 500
+  },
+  {
+    "user": "kevin_flores",
+    "email": "kevin_flores3474@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(kevin_flores) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900604186}",
+    "status": 500
+  },
+  {
+    "user": "megansmith",
+    "email": "megansmith3500@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(megansmith) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900611596}",
+    "status": 500
+  },
+  {
+    "user": "michelle_roberts",
+    "email": "michelle_roberts3537@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(michelle_roberts) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900621465}",
+    "status": 500
+  },
+  {
+    "user": "joseph_baker",
+    "email": "joseph_baker3593@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(joseph_baker) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900634759}",
+    "status": 500
+  },
+  {
+    "user": "charles.stewart",
+    "email": "charles.stewart3648@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(charles.stewart) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900647807}",
+    "status": 500
+  },
+  {
+    "user": "heather.allen",
+    "email": "heather.allen3697@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(heather.allen) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900659721}",
+    "status": 500
+  },
+  {
+    "user": "robert_evans",
+    "email": "robert_evans3698@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(robert_evans) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900662115}",
+    "status": 500
+  },
+  {
+    "user": "george.martin",
+    "email": "george.martin3760@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(george.martin) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900676824}",
+    "status": 500
+  },
+  {
+    "user": "kimberly_turner",
+    "email": "kimberly_turner3810@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(kimberly_turner) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900689247}",
+    "status": 500
+  },
+  {
+    "user": "brandonkelly",
+    "email": "brandonkelly3815@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(brandonkelly) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900692427}",
+    "status": 500
+  },
+  {
+    "user": "olivia.johnson",
+    "email": "olivia.johnson3823@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(olivia.johnson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900696300}",
+    "status": 500
+  },
+  {
+    "user": "samuel.jackson",
+    "email": "samuel.jackson3844@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(samuel.jackson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900702618}",
+    "status": 500
+  },
+  {
+    "user": "ronald_diaz",
+    "email": "ronald_diaz3880@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(ronald_diaz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900711940}",
+    "status": 500
+  },
+  {
+    "user": "mariamorgan",
+    "email": "mariamorgan3892@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(mariamorgan) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900716508}",
+    "status": 500
+  },
+  {
+    "user": "emily.brooks",
+    "email": "emily.brooks3900@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(emily.brooks) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900720296}",
+    "status": 500
+  },
+  {
+    "user": "john_king",
+    "email": "john_king4069@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(john_king) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900755986}",
+    "status": 500
+  },
+  {
+    "user": "maria_campbell",
+    "email": "maria_campbell4076@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(maria_campbell) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900759577}",
+    "status": 500
+  },
+  {
+    "user": "evelynbailey",
+    "email": "evelynbailey4109@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(evelynbailey) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900768416}",
+    "status": 500
+  },
+  {
+    "user": "raymond.taylor",
+    "email": "raymond.taylor4152@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(raymond.taylor) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900779810}",
+    "status": 500
+  },
+  {
+    "user": "michellebailey",
+    "email": "michellebailey4165@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(michellebailey) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900784718}",
+    "status": 500
+  },
+  {
+    "user": "teresa.cruz",
+    "email": "teresa.cruz4180@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(teresa.cruz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900791347}",
+    "status": 500
+  },
+  {
+    "user": "brian_rogers",
+    "email": "brian_rogers4223@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(brian_rogers) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900802392}",
+    "status": 500
+  },
+  {
+    "user": "gregory_brooks",
+    "email": "gregory_brooks4251@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(gregory_brooks) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900810247}",
+    "status": 500
+  },
+  {
+    "user": "timothy.turner",
+    "email": "timothy.turner4271@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(timothy.turner) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900816483}",
+    "status": 500
+  },
+  {
+    "user": "melissa.turner",
+    "email": "melissa.turner4334@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(melissa.turner) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900831444}",
+    "status": 500
+  },
+  {
+    "user": "julie.garcia",
+    "email": "julie.garcia4348@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(julie.garcia) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900836496}",
+    "status": 500
+  },
+  {
+    "user": "robert.ruiz",
+    "email": "robert.ruiz4355@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(robert.ruiz) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900840477}",
+    "status": 500
+  },
+  {
+    "user": "patrick_king",
+    "email": "patrick_king4356@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(patrick_king) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900842880}",
+    "status": 500
+  },
+  {
+    "user": "scottmorris",
+    "email": "scottmorris4361@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(scottmorris) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900846077}",
+    "status": 500
+  },
+  {
+    "user": "janetrogers",
+    "email": "janetrogers4382@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(janetrogers) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900852853}",
+    "status": 500
+  },
+  {
+    "user": "megan_davis",
+    "email": "megan_davis4475@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(megan_davis) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900874329}",
+    "status": 500
+  },
+  {
+    "user": "dianepeterson",
+    "email": "dianepeterson4501@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(dianepeterson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900881757}",
+    "status": 500
+  },
+  {
+    "user": "patrick_cooper",
+    "email": "patrick_cooper4657@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(patrick_cooper) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900915772}",
+    "status": 500
+  },
+  {
+    "user": "judy.sanders",
+    "email": "judy.sanders4663@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(judy.sanders) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900919180}",
+    "status": 500
+  },
+  {
+    "user": "brenda_brooks",
+    "email": "brenda_brooks4720@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(brenda_brooks) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900933195}",
+    "status": 500
+  },
+  {
+    "user": "briantaylor",
+    "email": "briantaylor4753@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(briantaylor) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900942196}",
+    "status": 500
+  },
+  {
+    "user": "samuel.nelson",
+    "email": "samuel.nelson4754@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(samuel.nelson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900944620}",
+    "status": 500
+  },
+  {
+    "user": "emily.edwards",
+    "email": "emily.edwards4817@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(emily.edwards) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900959942}",
+    "status": 500
+  },
+  {
+    "user": "jessica.campbell",
+    "email": "jessica.campbell4859@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(jessica.campbell) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900970987}",
+    "status": 500
+  },
+  {
+    "user": "alexandercarter",
+    "email": "alexandercarter4865@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(alexandercarter) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900974390}",
+    "status": 500
+  },
+  {
+    "user": "dennisgreen",
+    "email": "dennisgreen4872@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(dennisgreen) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900978003}",
+    "status": 500
+  },
+  {
+    "user": "judithwood",
+    "email": "judithwood4921@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(judithwood) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900990402}",
+    "status": 500
+  },
+  {
+    "user": "victoria.nelson",
+    "email": "victoria.nelson4929@gmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(victoria.nelson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764900994197}",
+    "status": 500
+  },
+  {
+    "user": "emmagray",
+    "email": "emmagray4949@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(emmagray) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764901000779}",
+    "status": 500
+  },
+  {
+    "user": "kelly_johnson",
+    "email": "kelly_johnson4979@hotmail.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(kelly_johnson) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764901009026}",
+    "status": 500
+  },
+  {
+    "user": "janice_clark",
+    "email": "janice_clark4993@yahoo.com",
+    "error": "Error: {\"errorCode\":\"INTERNAL_SERVER_ERROR\",\"errorMessage\":\"An unexpected error occurred: could not execute statement [ERROR: duplicate key value violates unique constraint \\\"ukr43af9ap4edm43mmtq01oddj6\\\"\\n  Detail: Key (username)=(janice_clark) already exists.] [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; SQL [insert into users (password,user_mail,user_phone_number,username,user_id) values (?,?,?,?,?)]; constraint [ukr43af9ap4edm43mmtq01oddj6]\",\"timestamp\":1764901014060}",
+    "status": 500
+  }
+]
