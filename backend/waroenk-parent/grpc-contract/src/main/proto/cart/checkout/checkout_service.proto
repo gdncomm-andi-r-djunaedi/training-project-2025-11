@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package cart.checkout;
+
+import "google/api/annotations.proto";
+import "common/base.proto";
+import "cart/checkout/checkout_messages.proto";
+
+option java_multiple_files = true;
+option java_package = "com.gdn.project.waroenk.cart";
+option java_outer_classname = "CheckoutServiceProto";
+
+service CheckoutService {
+    // Validate cart and reserve inventory for checkout
+    rpc ValidateAndReserve(ValidateCheckoutRequest) returns (ValidateCheckoutResponse) {
+        option (google.api.http) = {
+            post: "/api/checkout/validate"
+            body: "*"
+        };
+    }
+
+    // Invalidate/cancel checkout and release reservations
+    rpc InvalidateCheckout(InvalidateCheckoutRequest) returns (common.Basic) {
+        option (google.api.http) = {
+            post: "/api/checkout/invalidate"
+            body: "*"
+        };
+    }
+
+    // Get checkout by ID
+    rpc GetCheckout(GetCheckoutRequest) returns (CheckoutData) {
+        option (google.api.http) = {
+            get: "/api/checkout/{checkout_id}"
+        };
+    }
+
+    // Get checkout by user
+    rpc GetCheckoutByUser(GetCheckoutByUserRequest) returns (CheckoutData) {
+        option (google.api.http) = {
+            get: "/api/checkout/user/{user_id}"
+        };
+    }
+
+    // Finalize checkout after successful payment
+    rpc FinalizeCheckout(FinalizeCheckoutRequest) returns (FinalizeCheckoutResponse) {
+        option (google.api.http) = {
+            post: "/api/checkout/finalize"
+            body: "*"
+        };
+    }
+}
+
+
+
+
