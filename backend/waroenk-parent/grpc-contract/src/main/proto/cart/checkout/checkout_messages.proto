@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package cart.checkout;
+
+import "google/protobuf/timestamp.proto";
+import "cart/cart/cart_messages.proto";
+
+option java_multiple_files = true;
+option java_package = "com.gdn.project.waroenk.cart";
+option java_outer_classname = "CheckoutMessagesProto";
+
+// Checkout item data
+message CheckoutItemData {
+    string sku = 1;
+    int32 quantity = 2;
+    int64 price_snapshot = 3;
+    string title = 4;
+    bool reserved = 5;
+}
+
+// Complete checkout data
+message CheckoutData {
+    string checkout_id = 1;
+    string user_id = 2;
+    string source_cart_id = 3;
+    repeated CheckoutItemData items = 4;
+    int64 total_amount = 5;
+    string status = 6;
+    google.protobuf.Timestamp locked_at = 7;
+    google.protobuf.Timestamp expires_at = 8;
+    google.protobuf.Timestamp created_at = 9;
+}
+
+// Request to validate and reserve cart for checkout
+message ValidateCheckoutRequest {
+    string user_id = 1;
+}
+
+// Response from validate checkout
+message ValidateCheckoutResponse {
+    CheckoutData checkout = 1;
+    bool success = 2;
+    string message = 3;
+    repeated ValidationError errors = 4;
+}
+
+// Validation error for individual items
+message ValidationError {
+    string sku = 1;
+    string error_code = 2;
+    string message = 3;
+}
+
+// Request to invalidate/cancel checkout
+message InvalidateCheckoutRequest {
+    string checkout_id = 1;
+}
+
+// Request to get checkout by ID
+message GetCheckoutRequest {
+    string checkout_id = 1;
+}
+
+// Request to get checkout by user
+message GetCheckoutByUserRequest {
+    string user_id = 1;
+}
+
+// Request to finalize checkout (after payment)
+message FinalizeCheckoutRequest {
+    string checkout_id = 1;
+    string order_id = 2;
+}
+
+// Response for finalize checkout
+message FinalizeCheckoutResponse {
+    bool success = 1;
+    string message = 2;
+    string order_id = 3;
+}
+
+
+
+
