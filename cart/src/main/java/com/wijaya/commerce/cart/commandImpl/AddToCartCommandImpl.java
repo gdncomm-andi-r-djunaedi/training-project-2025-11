@@ -52,8 +52,8 @@ public class AddToCartCommandImpl implements AddToCartCommand {
             WebResponse<?> product = getProduct(request.getProductSku());
             checkProductExistAndActive(product);
 
-            // Extract product data after validation
-            GetDetailProductOutboundResponse productData = (GetDetailProductOutboundResponse) product.getData();
+            // Extract and convert product data after validation
+            GetDetailProductOutboundResponse productData = extractProductData(product);
 
             CartModelDb cartModelDb;
             if (request.getCartId() != null && request.getUserId() != null
@@ -153,27 +153,7 @@ public class AddToCartCommandImpl implements AddToCartCommand {
             throw new UserNotFoundException("User not found");
         }
 
-        GetDetailUserOutboundResponse userDetail;
-
-        // Handle different data types
-        if (user.getData() instanceof String) {
-            log.error("User not found - received error: {}", user.getData());
-            throw new UserNotFoundException("User not found");
-        } else if (user.getData() instanceof java.util.Map) {
-            // Jackson deserialized as LinkedHashMap, convert to proper type
-            try {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                userDetail = mapper.convertValue(user.getData(), GetDetailUserOutboundResponse.class);
-            } catch (Exception e) {
-                log.error("Failed to convert user data from Map", e);
-                throw new UserNotFoundException("Invalid user data format");
-            }
-        } else if (user.getData() instanceof GetDetailUserOutboundResponse) {
-            userDetail = (GetDetailUserOutboundResponse) user.getData();
-        } else {
-            log.error("Unexpected data type in user response: {}", user.getData().getClass());
-            throw new UserNotFoundException("User not found");
-        }
+        GetDetailUserOutboundResponse userDetail = extractUserData(user);
 
         if (!userDetail.getStatus().equals("ACTIVE")) {
             log.error("User is not active, status: {}", userDetail.getStatus());
@@ -187,32 +167,52 @@ public class AddToCartCommandImpl implements AddToCartCommand {
             log.error("Product validation failed - response is null or unsuccessful");
             throw new ProductNotFoundException("Product not found");
         }
+        
+        GetDetailProductOutboundResponse productDetail = extractProductData(product);
+        
+        if (!productDetail.getActive()) {
+            log.error("Product is not active for sku: {}", productDetail.getSku());
+            throw new ProductNotActiveException("Product not active");
+        }
+    }
 
-        GetDetailProductOutboundResponse productDetail;
+    private GetDetailUserOutboundResponse extractUserData(WebResponse<?> user) {
+        if (user.getData() instanceof String) {
+            throw new UserNotFoundException("User not found");
+        } else if (user.getData() instanceof java.util.Map) {
+            // Jackson deserialized as LinkedHashMap, convert to proper type
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                return mapper.convertValue(user.getData(), GetDetailUserOutboundResponse.class);
+            } catch (Exception e) {
+                log.error("Failed to convert user data from Map", e);
+                throw new UserNotFoundException("Invalid user data format");
+            }
+        } else if (user.getData() instanceof GetDetailUserOutboundResponse) {
+            return (GetDetailUserOutboundResponse) user.getData();
+        } else {
+            log.error("Unexpected data type in user response: {}", user.getData().getClass());
+            throw new UserNotFoundException("User not found");
+        }
+    }
 
-        // Handle different data types
+    private GetDetailProductOutboundResponse extractProductData(WebResponse<?> product) {
         if (product.getData() instanceof String) {
-            log.error("Product not found - received error: {}", product.getData());
             throw new ProductNotFoundException("Product not found");
         } else if (product.getData() instanceof java.util.Map) {
             // Jackson deserialized as LinkedHashMap, convert to proper type
             try {
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                productDetail = mapper.convertValue(product.getData(), GetDetailProductOutboundResponse.class);
+                return mapper.convertValue(product.getData(), GetDetailProductOutboundResponse.class);
             } catch (Exception e) {
                 log.error("Failed to convert product data from Map", e);
                 throw new ProductNotFoundException("Invalid product data format");
             }
         } else if (product.getData() instanceof GetDetailProductOutboundResponse) {
-            productDetail = (GetDetailProductOutboundResponse) product.getData();
+            return (GetDetailProductOutboundResponse) product.getData();
         } else {
             log.error("Unexpected data type in product response: {}", product.getData().getClass());
             throw new ProductNotFoundException("Product not found");
-        }
-
-        if (!productDetail.getActive()) {
-            log.error("Product is not active for sku: {}", productDetail.getSku());
-            throw new ProductNotActiveException("Product not active");
         }
     }
 
