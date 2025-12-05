@@ -21,8 +21,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
