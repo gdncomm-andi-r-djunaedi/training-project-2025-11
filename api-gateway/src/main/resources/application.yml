@@ -1,0 +1,93 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Member Service - Public Routes
+        - id: member-register
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/members/register
+          filters:
+            - RewritePath=/api/members/(?<segment>.*), /members/$\{segment}
+
+        - id: member-login
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/members/login
+          filters:
+            - RewritePath=/api/members/(?<segment>.*), /members/$\{segment}
+
+        # Member Service - Protected Routes
+        - id: member-profile
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/members/me
+          filters:
+            - RewritePath=/api/members/(?<segment>.*), /members/$\{segment}
+            - JwtAuthenticationFilter
+
+        # Product Service Routes (All Public)
+        - id: product-list
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/products
+          filters:
+            - RewritePath=/api/products, /products
+
+        - id: product-search
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/products/search
+          filters:
+            - RewritePath=/api/products/(?<segment>.*), /products/$\{segment}
+
+        - id: product-detail
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - RewritePath=/api/products/(?<segment>.*), /products/$\{segment}
+
+        # Cart Service Routes (All Protected)
+        - id: cart-operations
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/carts,/api/carts/**
+          filters:
+            - RewritePath=/api/carts/(?<segment>.*), /carts/$\{segment}
+            - RewritePath=/api/carts, /carts
+            - JwtAuthenticationFilter
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
+
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+server:
+  port: 8080
+
+# JWT Configuration (MUST match Member Service secret!)
+jwt:
+  secret: your-super-secret-key-please-change-this-to-a-very-long-random-string-at-least-256-bits
+  expiration: 86400000
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
