@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
@@ -51,9 +52,12 @@ class AuthServiceTest {
         private static final String TEST_PASSWORD = "password123";
         private static final String TEST_USER_ID = "user-123";
         private static final String TEST_JWT_TOKEN = "generated.jwt.token";
+        private static final String MEMBER_SERVICE_URL = "http://localhost:8081";
 
         @BeforeEach
         void setUp() {
+                // Set member service URL via reflection
+                ReflectionTestUtils.setField(authService, "memberServiceUrl", MEMBER_SERVICE_URL);
                 when(webClientBuilder.build()).thenReturn(webClient);
                 when(webClient.post()).thenReturn(requestBodyUriSpec);
                 when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
@@ -101,20 +105,20 @@ class AuthServiceTest {
                 request.setPassword("wrong-password");
 
                 VerifyCredentialsResponse verifyResponse = VerifyCredentialsResponse.builder()
-                        .success(false)
-                        .message("Invalid")
-                        .data(null)
-                        .build();
+                                .success(false)
+                                .message("Invalid")
+                                .data(null)
+                                .build();
 
                 when(responseSpec.bodyToMono(VerifyCredentialsResponse.class))
-                        .thenReturn(Mono.just(verifyResponse));
+                                .thenReturn(Mono.just(verifyResponse));
 
                 // Act
                 Mono<String> result = authService.login(request);
 
                 // Assert
                 StepVerifier.create(result)
-                        .verifyComplete();
+                                .verifyComplete();
 
                 verify(jwtUtil, never()).generateToken(any());
         }
@@ -233,6 +237,6 @@ class AuthServiceTest {
                 authService.login(request).subscribe();
 
                 // Assert
-                verify(requestBodyUriSpec).uri("http://localhost:8081/api/members/verify");
+                verify(requestBodyUriSpec).uri(MEMBER_SERVICE_URL + "/api/members/verify");
         }
 }

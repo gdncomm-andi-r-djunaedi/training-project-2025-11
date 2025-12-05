@@ -33,6 +33,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
+        // Allow POST /api/products for adding products (no auth required)
+        if (path.equals("/api/products") && method.equals("POST")) {
+            return chain.filter(exchange);
+        }
+
         // Allow GET /api/members/{memberId} for internal service-to-service calls
         if (path.matches("/api/members/[^/]+") && method.equals("GET")) {
             return chain.filter(exchange);

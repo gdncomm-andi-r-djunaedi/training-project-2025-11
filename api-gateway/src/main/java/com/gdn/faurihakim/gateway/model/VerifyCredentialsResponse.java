@@ -5,20 +5,24 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Response model matching Member Service's
+ * Response<VerifyCredentialsWebResponse>
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class VerifyCredentialsResponse {
-    private Data data;
-    private boolean success;
-    private String message;
+    private String code;
+    private String status;
+    private MemberData data;
 
     @lombok.Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Data {
+    public static class MemberData {
         private String memberId;
         private String email;
         private String fullName;
