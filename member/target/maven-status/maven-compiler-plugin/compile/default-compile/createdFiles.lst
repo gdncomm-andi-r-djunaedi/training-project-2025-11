@@ -1,0 +1,16 @@
+com\example\member\command\LoginCommand.class
+com\example\member\security\JwtUtil.class
+com\example\member\repo\UserRepository.class
+com\example\member\security\JwtFilter.class
+com\example\member\service\CustomUserDetailsService.class
+com\example\member\command\LogoutCommand.class
+com\example\member\security\InMemoryTokenBlacklist.class
+com\example\member\config\SwaggerConfig.class
+com\example\member\entity\User.class
+com\example\member\controller\AuthController.class
+com\example\member\controller\AuthController$LoginReq.class
+com\example\member\entity\User$UserBuilder.class
+com\example\member\security\SecurityConfig.class
+com\example\member\command\RegisterCommand.class
+com\example\member\MemberServiceApplication.class
+com\example\member\controller\AuthController$RegisterReq.class
