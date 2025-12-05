@@ -1,0 +1,45 @@
+# Exclude build artifacts
+**/target/
+*.jar
+*.war
+*.ear
+
+# Exclude IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.settings/
+.classpath
+.project
+
+# Exclude version control
+.git/
+.gitignore
+.gitattributes
+
+# Exclude test outputs
+**/test-output/
+**/*.log
+seed_test_output.txt
+seed_test_results.json
+smoke_output.txt
+
+# Exclude documentation
+*.md
+!README.md
+
+# Exclude Docker files from subdirectories
+**/.dockerignore
+**/Dockerfile
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude performance test results
+performance-tests/
+
+# Exclude scripts
+scripts/
