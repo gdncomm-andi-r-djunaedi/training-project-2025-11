@@ -1,0 +1,364 @@
+{{> header}}
+{{> navbar}}
+
+<main class="catalog-page">
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Shop Smart, Live Better</h1>
+                <p class="hero-subtitle">Discover amazing products at unbeatable prices</p>
+            </div>
+        </section>
+
+        {{#if error}}
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{error}}</span>
+        </div>
+        {{/if}}
+
+        <!-- Filters and Sort -->
+        <div class="catalog-controls">
+            <div class="catalog-filters">
+                <button class="filter-btn" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    Filters
+                </button>
+                
+                <div class="category-tabs">
+                    <a href="/" class="category-tab {{#unless search.category}}active{{/unless}}">
+                        All Products
+                    </a>
+                    <a href="/?category=Electronics" class="category-tab {{#eq search.category 'Electronics'}}active{{/eq}}">
+                        Electronics
+                    </a>
+                    <a href="/?category=Fashion" class="category-tab {{#eq search.category 'Fashion'}}active{{/eq}}">
+                        Fashion
+                    </a>
+                    <a href="/?category=Home" class="category-tab {{#eq search.category 'Home'}}active{{/eq}}">
+                        Home & Living
+                    </a>
+                    <a href="/?category=Sports" class="category-tab {{#eq search.category 'Sports'}}active{{/eq}}">
+                        Sports
+                    </a>
+                </div>
+            </div>
+
+            <div class="catalog-sort">
+                <label for="sortSelect" class="sort-label">
+                    <i class="fas fa-sort"></i>
+                    Sort by:
+                </label>
+                <select id="sortSelect" class="sort-select">
+                    <option value="name,asc" {{#eq search.sort 'name,asc'}}selected{{/eq}}>Name (A-Z)</option>
+                    <option value="name,desc" {{#eq search.sort 'name,desc'}}selected{{/eq}}>Name (Z-A)</option>
+                    <option value="price,asc" {{#eq search.sort 'price,asc'}}selected{{/eq}}>Price (Low to High)</option>
+                    <option value="price,desc" {{#eq search.sort 'price,desc'}}selected{{/eq}}>Price (High to Low)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-container">
+            <div class="loading-state" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #007bff;"></i>
+                <p>Loading products...</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+// Load products function - client-side API call
+async function loadProducts(name = '', category = '', sort = 'name,asc', page = 0) {
+    const container = document.getElementById('products-container');
+    const grid = document.getElementById('products-grid');
+    
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state" style="text-align: center; padding: 40px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #007bff;"></i>
+            <p>Loading products...</p>
+        </div>
+    `;
+    
+    try {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            size: '20',
+            sort: sort
+        });
+        if (name) params.set('name', name);
+        if (category) params.set('category', category);
+        
+        const response = await fetch(`/api/v1/products?${params.toString()}`, {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            renderProducts(data.data);
+            updatePagination(data.data, name, category, sort);
+        } else {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h2>Error Loading Products</h2>
+                    <p>${data.message || 'Unable to load products. Please try again later.'}</p>
+                    <a href="/" class="btn btn-primary">Reload</a>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h2>Error Loading Products</h2>
+                <p>Unable to load products. Please try again later.</p>
+                <a href="/" class="btn btn-primary">Reload</a>
+            </div>
+        `;
+    }
+}
+
+// Render products function
+function renderProducts(data) {
+    const container = document.getElementById('products-container');
+    const products = data.content || [];
+    const formatCurrency = window.formatCurrency || ((amount) => `$${amount.toFixed(2)}`);
+    
+    if (products.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h2>No Products Found</h2>
+                <p>We couldn't find any products matching your search.</p>
+                <a href="/" class="btn btn-primary">View All Products</a>
+            </div>
+        `;
+        return;
+    }
+    
+    const productsHtml = products.map((product, index) => {
+        const variant = product.variants && product.variants[0];
+        const price = variant ? variant.price : 0;
+        const sku = variant ? variant.sku : '';
+        const stock = variant ? variant.stock : 0;
+        const outOfStock = stock === 0;
+        
+        const variantInfo = [];
+        if (variant && variant.color) {
+            variantInfo.push(`<span class="variant-info"><i class="fas fa-palette"></i> ${product.variants.length} colors</span>`);
+        }
+        if (variant && variant.size) {
+            variantInfo.push(`<span class="variant-info"><i class="fas fa-ruler"></i> ${product.variants.length} sizes</span>`);
+        }
+        
+        return `
+            <div class="product-card" data-product-id="${product.productId}" data-product-url="/product/${product.productId}">
+                <div class="product-image">
+                    <img src="https://picsum.photos/seed/${product.productId}/300/300" alt="${product.name}" onerror="this.src='https://picsum.photos/300/300?random=${index}'">
+                    ${outOfStock ? '<span class="product-badge badge-out-of-stock">Out of Stock</span>' : ''}
+                </div>
+                <div class="product-content">
+                    <div class="product-category">${product.category || ''}</div>
+                    <h3 class="product-title">
+                        <a href="/product/${product.productId}">${product.name}</a>
+                    </h3>
+                    <p class="product-description">${product.description || ''}</p>
+                    <div class="product-variants-price">
+                        ${variant ? `
+                            <div class="product-variants">
+                                ${variantInfo.join('')}
+                            </div>
+                            <div class="product-price">${formatCurrency(price)}</div>
+                        ` : ''}
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-add-to-cart btn-sm" data-product-id="${product.productId}" data-sku="${sku}" data-price="${price}" data-name="${product.name}" ${outOfStock ? 'disabled' : ''}>
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <a href="/product/${product.productId}" class="btn btn-primary btn-sm" onclick="event.stopPropagation();">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = `
+        <div class="products-grid" id="products-grid">
+            ${productsHtml}
+        </div>
+    `;
+    
+    // Re-attach product card click handlers
+    attachProductCardHandlers();
+    attachAddToCartHandlers();
+}
+
+// Update pagination
+function updatePagination(data, name, category, sort) {
+    const currentPage = data.number || 0;
+    const totalPages = data.totalPages || 0;
+    
+    // Remove existing pagination
+    const existingPagination = document.querySelector('.pagination');
+    if (existingPagination) {
+        existingPagination.remove();
+    }
+    
+    if (totalPages <= 1) return;
+    
+    const container = document.getElementById('products-container');
+    const paginationHtml = `
+        <div class="pagination">
+            <div class="pagination-controls">
+                ${currentPage === 0 ? `
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </button>
+                ` : `
+                    <button class="pagination-btn" onclick="loadProducts('${name}', '${category}', '${sort}', ${currentPage - 1})">
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </button>
+                `}
+                <div class="pagination-pages">
+                    Page ${currentPage + 1} of ${totalPages}
+                </div>
+                ${currentPage >= totalPages - 1 ? `
+                    <button class="pagination-btn" disabled>
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                ` : `
+                    <button class="pagination-btn" onclick="loadProducts('${name}', '${category}', '${sort}', ${currentPage + 1})">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                `}
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', paginationHtml);
+}
+
+// Attach product card click handlers
+function attachProductCardHandlers() {
+    const productCards = document.querySelectorAll('.product-card');
+    productCards.forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-add-to-cart') || e.target.closest('.btn-primary') || e.target.closest('a')) {
+                return;
+            }
+            const productUrl = card.getAttribute('data-product-url');
+            if (productUrl) {
+                window.location.href = productUrl;
+            }
+        });
+    });
+}
+
+// Attach add to cart handlers
+function attachAddToCartHandlers() {
+    const addToCartButtons = document.querySelectorAll('.btn-add-to-cart');
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            if (this.disabled) return;
+            
+            const productId = this.dataset.productId;
+            const sku = this.dataset.sku;
+            const price = parseFloat(this.dataset.price);
+            const name = this.dataset.name;
+            
+            const originalText = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+            
+            try {
+                const response = await fetch('/api/v1/cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ sku, qty: 1 })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    if (window.showToast) {
+                        window.showToast(`${name} added to cart!`, 'success');
+                    }
+                    if (window.updateCartCount) {
+                        window.updateCartCount();
+                    } else {
+                        updateCartCount();
+                    }
+                } else {
+                    if (window.showToast) {
+                        window.showToast(data.message || 'Failed to add item to cart', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                if (window.showToast) {
+                    window.showToast('Failed to add item to cart. Please try again.', 'error');
+                }
+            } finally {
+                this.disabled = false;
+                this.innerHTML = originalText;
+            }
+        });
+    });
+}
+
+// Update cart count
+async function updateCartCount() {
+    try {
+        const response = await fetch('/cart-count', { credentials: 'include' });
+        const data = await response.json();
+        const cartBadge = document.querySelector('.cart-count');
+        if (cartBadge) {
+            cartBadge.textContent = data.count || 0;
+            cartBadge.style.display = data.count > 0 ? 'block' : 'none';
+        }
+    } catch (error) {
+        console.error('Failed to update cart count:', error);
+    }
+}
+
+window.loadProducts = loadProducts;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Load products on initial page load
+    const url = new URL(window.location);
+    const name = url.searchParams.get('name') || '';
+    const category = url.searchParams.get('category') || '';
+    const sort = url.searchParams.get('sort') || 'name,asc';
+    const page = parseInt(url.searchParams.get('page')) || 0;
+    
+    loadProducts(name, category, sort, page);
+    
+    const sortSelect = document.getElementById('sortSelect');
+    
+    // Handle sort change - use client-side loading
+    sortSelect?.addEventListener('change', (e) => {
+        const url = new URL(window.location);
+        const name = url.searchParams.get('name') || '';
+        const category = url.searchParams.get('category') || '';
+        url.searchParams.set('sort', e.target.value);
+        url.searchParams.set('page', '0');
+        window.history.pushState({}, '', url);
+        loadProducts(name, category, e.target.value, 0);
+    });
+});
+</script>
+
+{{> footer}}

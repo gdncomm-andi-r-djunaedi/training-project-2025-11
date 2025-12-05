@@ -1,0 +1,176 @@
+<nav class="navbar">
+    <div class="container">
+        <div class="navbar-content">
+            <!-- Logo -->
+            <div class="navbar-brand">
+                <a href="/" class="logo">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>BliMarket</span>
+                </a>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="navbar-search">
+                <form class="search-form" onsubmit="handleSearch(event)">
+                    <input 
+                        type="text" 
+                        name="name" 
+                        placeholder="Search for products..." 
+                        class="search-input"
+                        value="{{search.name}}"
+                        id="navbar-search-input"
+                    >
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Nav Links -->
+            <div class="navbar-actions">
+                {{#if isAuthenticated}}
+                    <a href="/cart" class="nav-link cart-link" title="Shopping Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </a>
+                    
+                    <div class="dropdown">
+                        <button class="nav-link dropdown-toggle" id="userDropdown">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="user-email">{{user.email}}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="userDropdownMenu">
+                            <a href="/profile" class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                My Profile
+                            </a>
+                            <a href="/logout" class="dropdown-item" onclick="event.preventDefault(); handleLogout();">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                {{else}}
+                    <button class="btn btn-outline" onclick="openModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </button>
+                    <button class="btn btn-primary" onclick="openModal('registerModal')">
+                        <i class="fas fa-user-plus"></i>
+                        Register
+                    </button>
+                {{/if}}
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+            <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-search">
+                <form class="search-form" onsubmit="handleSearch(event)">
+                    <input 
+                        type="text" 
+                        name="name" 
+                        placeholder="Search for products..." 
+                        class="search-input"
+                        value="{{search.name}}"
+                        id="mobile-search-input"
+                    >
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            {{#if isAuthenticated}}
+                <a href="/cart" class="mobile-menu-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    Shopping Cart
+                </a>
+                <a href="/profile" class="mobile-menu-item">
+                    <i class="fas fa-user"></i>
+                    My Profile
+                </a>
+                <a href="/logout" class="mobile-menu-item" onclick="event.preventDefault(); handleLogout();">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            {{else}}
+                <a href="#" class="mobile-menu-item" onclick="openModal('loginModal'); return false;">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </a>
+                <a href="#" class="mobile-menu-item" onclick="openModal('registerModal'); return false;">
+                    <i class="fas fa-user-plus"></i>
+                    Register
+                </a>
+            {{/if}}
+        </div>
+    </div>
+</nav>
+
+<script>
+    // Search handler - client-side API call
+    function handleSearch(event) {
+        event.preventDefault();
+        const form = event.target;
+        const input = form.querySelector('.search-input');
+        const searchTerm = input.value.trim();
+        
+        // Update URL and load products
+        const url = new URL(window.location.href);
+        if (searchTerm) {
+            url.searchParams.set('name', searchTerm);
+        } else {
+            url.searchParams.delete('name');
+        }
+        url.searchParams.set('page', '0'); // Reset to first page
+        
+        // If on home page, load products dynamically
+        if (window.location.pathname === '/') {
+            loadProducts(searchTerm, url.searchParams.get('category') || '', url.searchParams.get('sort') || 'name,asc');
+            // Update URL without reload
+            window.history.pushState({}, '', url);
+        } else {
+            // Navigate to home page with search
+            window.location.href = url.toString();
+        }
+    }
+    
+    window.handleSearch = handleSearch;
+    
+{{#if isAuthenticated}}
+    // Logout handler
+    async function handleLogout() {
+        try {
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+            
+            const data = await response.json();
+            
+            if (window.showToast) {
+                window.showToast('Logged out successfully', 'success');
+            }
+            
+            // Redirect to home page
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 500);
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Still redirect even if API call fails
+            window.location.href = '/';
+        }
+    }
+    
+    window.handleLogout = handleLogout;
+{{/if}}
+</script>
