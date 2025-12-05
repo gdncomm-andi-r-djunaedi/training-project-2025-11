@@ -10,4 +10,9 @@ class ProductsApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	void main() {
+		ProductApplication.main(new String[] {});
+	}
+
 }

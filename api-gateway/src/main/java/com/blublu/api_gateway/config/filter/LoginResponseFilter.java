@@ -29,17 +29,16 @@ public class LoginResponseFilter implements WebFilter {
 
   private final JwtUtil jwtUtil;
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final RedisService redisService;
 
-  @Autowired
-  RedisService redisService;
-
-  @Autowired
-  public LoginResponseFilter(JwtUtil jwtUtil) {
+  public LoginResponseFilter(JwtUtil jwtUtil, RedisService redisService) {
     this.jwtUtil = jwtUtil;
+    this.redisService = redisService;
   }
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    log.info("Start filter {} ", LoginResponseFilter.class);
     if (exchange.getRequest().getURI().getPath().contains("member/login") && exchange.getRequest()
         .getMethod()
         .equals(HttpMethod.POST)) {

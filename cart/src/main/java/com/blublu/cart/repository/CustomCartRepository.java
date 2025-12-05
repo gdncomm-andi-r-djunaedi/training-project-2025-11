@@ -3,8 +3,6 @@ package com.blublu.cart.repository;
 import com.blublu.cart.document.CartDocument;
 import com.blublu.cart.model.request.EditQtyRequest;
 
-import java.util.Optional;
-
 public interface CustomCartRepository {
   boolean addOrUpdateItem(String username, CartDocument.Item item);
   boolean editCartItem(String username, EditQtyRequest editQtyRequest);

@@ -12,26 +12,30 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Slf4j
 @Component
 public class LogoutResponseFilter implements WebFilter {
 
   private final JwtUtil jwtUtil;
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final RedisService redisService;
 
-  @Autowired
-  RedisService redisService;
-
-  @Autowired
-  public LogoutResponseFilter(JwtUtil jwtUtil) {
+  public LogoutResponseFilter(JwtUtil jwtUtil, RedisService redisService) {
     this.jwtUtil = jwtUtil;
+    this.redisService = redisService;
   }
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    log.info("Start filter {}", LogoutResponseFilter.class);
     if (verifyPathAndRequestValid(exchange)) {
-      log.info("removing redis key: {}", exchange.getRequest().getQueryParams().getFirst("username"));
-      redisService.deleteRedisByKey(jwtUtil.extractUsername(jwtUtil.getTokenFromAuthHeaders(exchange.getRequest())));
+      String userName = jwtUtil.extractUsername(jwtUtil.getTokenFromAuthHeaders(exchange.getRequest()));
+      if (!Objects.isNull(userName)) {
+        log.info("removing redis key: {}", userName);
+        redisService.deleteRedisByKey(userName);
+      }
     }
     return chain.filter(exchange);
   }
