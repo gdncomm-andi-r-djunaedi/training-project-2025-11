@@ -1,0 +1,68 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  
+  cloud:
+    gateway:
+      routes:
+        # Member Service Routes
+        - id: member-service
+          uri: ${MEMBER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/members/**
+          filters:
+            - StripPrefix=0
+
+        # Product Service Routes
+        - id: product-service
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - StripPrefix=0
+
+        # Cart Service Routes
+        - id: cart-service
+          uri: ${CART_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - StripPrefix=0
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+
+jwt:
+  access-token-validity: 3600000
+  refresh-token-validity: 86400000
+  rsa:
+    public-key: ${JWT_PUBLIC_KEY:-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnUcdaQBpzumEFFSyPuhZbmo4AwnRsi+1RwbzlSmkPa3FXRCuHduYXtp1wQcIk+ICzC02sengnSFP3lLrPz3sco3ch2f/9q6ulkiF3VU8wQmSIXd04PqY7E2nBjF4gYCteWrtQ1qP5VVPBwMVQRsZE3uMQZuIOUp/9ppfVtgMydGGJHSqSdE/dq/3ZWhkBGL/ipEYkuoyKbF/hYetfkVK5t+fJsHwrATAzFo8FCe/OyLUOF8ZPrEE53efUiwAgN54/76FaewmpWgJg9MRsfGATuwVxR5EOlJ+MTNPUljr7SvntQ68LijYjpE5FzsFUXm6HZjdKxwLDEE/vjMNz4NRrwIDAQAB-----END PUBLIC KEY-----}
+    private-key: ""
+
+logging:
+  level:
+    com.marketplace: DEBUG
+    org.springframework.cloud.gateway: DEBUG
