@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Component
-@FeignClient(name = "product", url = "localhost:8080/", path = "product", configuration = FeignConfig.class)
+@FeignClient(name = "product", url = "localhost:8080/api", path = "product", configuration = FeignConfig.class)
 public interface ProductFeignClient {
   @RequestMapping(value = "/{skuCode}/_detail", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   GenericBodyResponse<CartResponse.ItemResponse> getProductDetail(@PathVariable String skuCode);
