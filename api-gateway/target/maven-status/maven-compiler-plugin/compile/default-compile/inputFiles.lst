@@ -1,0 +1,6 @@
+/Users/sylvia.gunawan/Bootcamp Dev/training-project-2025-11/api-gateway/src/main/java/com/api/gateway/config/WebClientConfig.java
+/Users/sylvia.gunawan/Bootcamp Dev/training-project-2025-11/api-gateway/src/main/java/com/api/gateway/filter/JwtAuthGlobalFilter.java
+/Users/sylvia.gunawan/Bootcamp Dev/training-project-2025-11/api-gateway/src/main/java/com/api/gateway/security/JwtUtil.java
+/Users/sylvia.gunawan/Bootcamp Dev/training-project-2025-11/api-gateway/src/main/java/com/api/gateway/controller/LoginController.java
+/Users/sylvia.gunawan/Bootcamp Dev/training-project-2025-11/api-gateway/src/main/java/com/api/gateway/ApiGatewayApplication.java
+/Users/sylvia.gunawan/Bootcamp Dev/training-project-2025-11/api-gateway/src/main/java/com/api/gateway/config/SwaggerConfig.java

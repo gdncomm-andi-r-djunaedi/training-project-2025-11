@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: cart
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cart_db
+    username: appuser
+    password: apppassword
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+server:
+  port: 8082
+
+logging:
+  level:
+    root: INFO
+
+springdoc:
+  swagger-ui:
+    path: /cart/swagger
+    disable-swagger-default-url: true
+    use-root-path: false
+  api-docs:
+    path: /cart-docs

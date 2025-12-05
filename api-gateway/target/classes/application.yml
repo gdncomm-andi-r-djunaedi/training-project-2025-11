@@ -1,0 +1,60 @@
+server:
+  port: 8083
+
+product:
+  service:
+    url: http://localhost:8080/api/products
+
+customer:
+  service:
+    url: http://localhost:8081
+
+cart:
+  service:
+    url: http://localhost:8082/api/cart
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+        - id: customer-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/customers/**
+          filters:
+            - StripPrefix=1
+
+        - id: cart-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - StripPrefix=1
+
+        - id: product-service
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - StripPrefix=1
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    enabled: true
+
+jwt:
+  secret: bXktc3VwZXItc2VjcmV0LWtleS0xMjM0NTY3ODkwMTIzNDU2Nzg5MGFiY2Rl
+  expiration-ms: 3600000
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
