@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+jwt:
+  secret: testSecretKeyForJWTTokenGenerationMustBeAtLeast256BitsLong12345678
+  access-token-validity: 3600000
+  refresh-token-validity: 86400000
+
+logging:
+  level:
+    com.marketplace: DEBUG
+
