@@ -1,7 +1,7 @@
 package com.project.cart.config;
 
 import com.project.cart.security.JwtAuthenticationEntryPoint;
-import com.project.cart.security.JwtAuthenticationFilter;
+import com.project.cart.security.GatewayUserContextFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,14 +13,15 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Security configuration for JWT-based authentication
+ * Security configuration for microservices architecture
+ * Trusts the API Gateway for JWT validation
  */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final GatewayUserContextFilter gatewayUserContextFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
@@ -28,9 +29,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Public endpoints (Swagger, health checks)
                         .requestMatchers(
-                                "/v1/auth/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/api-docs/**",
@@ -38,7 +38,7 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/actuator/health/**"
                         ).permitAll()
-                        // All other endpoints require authentication
+                        // All other endpoints require authentication (validated by Gateway)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
@@ -47,7 +47,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // Use Gateway context filter instead of JWT filter
+                .addFilterBefore(gatewayUserContextFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -67,6 +67,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             // Extract user information from token
             String username = jwtUtil.extractUsername(token);
             String userId = jwtUtil.extractUserId(token);
+            
+            // If userId is not in token, use username (email) as userId
+            if (userId == null || userId.isEmpty()) {
+                userId = username;
+            }
 
             // Add user information to request headers for downstream services
             ServerHttpRequest modifiedRequest = request.mutate()
@@ -74,7 +79,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                     .header("X-Username", username != null ? username : "")
                     .build();
 
-            log.debug("JWT validated successfully for user: {} on path: {}", username, path);
+            log.debug("JWT validated successfully for user: {} (userId: {}) on path: {}", username, userId, path);
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
 
         } catch (Exception e) {
