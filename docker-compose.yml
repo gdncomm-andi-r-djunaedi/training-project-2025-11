@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # PostgreSQL for Member and Cart services
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_DB: ecommerce
+      POSTGRES_USER: ecommerce_user
+      POSTGRES_PASSWORD: ecommerce_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce-network
+
+  # MongoDB for Product service
+  mongodb:
+    image: mongo:7.0
+    container_name: ecommerce-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin_pass
+      MONGO_INITDB_DATABASE: product_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ecommerce-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecommerce-network
+
+  # Member Service
+  member-service:
+    build:
+      context: ./member-service
+      dockerfile: Dockerfile
+    container_name: member-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/member_db
+      SPRING_DATASOURCE_USERNAME: ecommerce_user
+      SPRING_DATASOURCE_PASSWORD: ecommerce_pass
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ecommerce-network
+
+  # Product Service
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://admin:admin_pass@mongodb:27017/product_db?authSource=admin
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ecommerce-network
+
+  # Cart Service
+  cart-service:
+    build:
+      context: ./cart-service
+      dockerfile: Dockerfile
+    container_name: cart-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/cart_db
+      SPRING_DATASOURCE_USERNAME: ecommerce_user
+      SPRING_DATASOURCE_PASSWORD: ecommerce_pass
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      PRODUCT_SERVICE_URL: http://product-service:8082
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - redis
+      - product-service
+    networks:
+      - ecommerce-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      MEMBER_SERVICE_URL: http://member-service:8081
+      PRODUCT_SERVICE_URL: http://product-service:8082
+      CART_SERVICE_URL: http://cart-service:8083
+    ports:
+      - "8084:8084"
+    depends_on:
+      - member-service
+      - product-service
+      - cart-service
+    networks:
+      - ecommerce-network
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+
+
+networks:
+  ecommerce-network:
+    driver: bridge
