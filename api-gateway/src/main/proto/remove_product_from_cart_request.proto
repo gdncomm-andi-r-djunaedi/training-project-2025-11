@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.cart.modal.request";
+
+// Request message for removing a product from the cart.
+message RemoveProductFromCartRequest {
+  string user_id = 1;
+  string product_id = 2;
+  int32 quantity = 3;
+}

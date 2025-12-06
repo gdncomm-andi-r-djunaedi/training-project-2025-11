@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.product.controller.modal.request";
+
+message GetProductListRequest{
+  string query = 1;
+  int32 page = 2;
+  int32 item_per_page = 3;
+}

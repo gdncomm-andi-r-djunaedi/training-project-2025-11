@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.product.entity";
+
+message Product{
+  string product_id = 1;
+  string product_name = 2;
+  double product_price = 3;
+  string product_detail = 4;
+  string product_notes = 5;
+  string product_image = 6;
+}

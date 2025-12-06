@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.member.controller.modal.response";
+
+message DefaultMemberResponse{
+  bool success = 1;
+  string message = 2;
+}
