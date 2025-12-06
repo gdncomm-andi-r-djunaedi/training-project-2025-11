@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "product_cart.proto";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.cart.modal.response";
+
+// Request message for viewing the cart.
+message ViewCartResponse {
+  string user_id = 1;
+  repeated ProductCart products = 2;
+}

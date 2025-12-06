@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.cart";
+option java_outer_classname = "CartProto";
+
+import "add_product_to_cart_request.proto";
+import "default_cart_response.proto";
+import "remove_product_from_cart_request.proto";
+import "view_cart_request.proto";
+import "view_cart_response.proto";
+
+// The cart service definition.
+service CartService {
+  // Adds a product to the cart.
+  rpc AddProductToCart(AddProductToCartRequest) returns (DefaultCartResponse);
+
+  // Retrieves the user's cart.
+  rpc ViewCart(ViewCartRequest) returns (ViewCartResponse);
+
+  // Removes a product from the cart.
+  rpc RemoveProductFromCart(RemoveProductFromCartRequest) returns (DefaultCartResponse);
+}
