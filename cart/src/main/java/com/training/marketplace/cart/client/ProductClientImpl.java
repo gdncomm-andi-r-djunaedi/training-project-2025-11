@@ -6,7 +6,7 @@ import com.training.marketplace.product.service.ProductServiceGrpc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.client.ImportGrpcClients;
 
-@ImportGrpcClients
+@ImportGrpcClients(target = "product")
 public class ProductClientImpl {
 
     @Autowired
