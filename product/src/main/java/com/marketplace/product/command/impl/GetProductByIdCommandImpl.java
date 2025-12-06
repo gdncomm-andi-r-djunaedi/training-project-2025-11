@@ -1,0 +1,44 @@
+package com.marketplace.product.command.impl;
+
+import com.marketplace.product.command.GetProductByIdCommand;
+import com.marketplace.product.document.Product;
+import com.marketplace.product.dto.request.GetProductByIdRequest;
+import com.marketplace.product.exception.ProductNotFoundException;
+import com.marketplace.product.repository.ProductRepository;
+import com.marketplace.product.service.ProductCacheService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class GetProductByIdCommandImpl implements GetProductByIdCommand {
+
+    private final ProductRepository productRepository;
+    private final ProductCacheService productCacheService;
+
+    @Override
+    public Product execute(GetProductByIdRequest request) {
+        var productId = request.getProductId();
+        
+        log.info("Fetching product with ID: {}", productId);
+        
+        // Try cache first
+        return productCacheService.getProduct(productId)
+                .orElseGet(() -> {
+                    log.debug("Fetching product {} from database", productId);
+                    Product product = productRepository.findById(productId)
+                            .orElseThrow(() -> {
+                                log.warn("Product not found with ID: {}", productId);
+                                return new ProductNotFoundException(productId);
+                            });
+                    
+                    // Cache the result
+                    productCacheService.cacheProduct(product);
+                    
+                    return product;
+                });
+    }
+}
+
