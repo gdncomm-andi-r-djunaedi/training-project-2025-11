@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.product.controller.modal.request";
+
+import "product_list_item.proto";
+
+message GetProductListResponse{
+  repeated ProductListItem product_list = 1;
+  int32 page = 2;
+  int32 item_per_page = 3;
+}
