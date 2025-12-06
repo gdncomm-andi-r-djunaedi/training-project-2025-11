@@ -69,7 +69,7 @@ public class ProductService extends ProductServiceGrpc.ProductServiceImplBase {
         if (parsedQuery.isEmpty() || parsedQuery == null){
             result = productRepository.findAll(pageable);
         } else {
-            result = productRepository.findByProductNameLike(request.getQuery(),pageable);
+            result = productRepository.findByProductNameLike("%" + request.getQuery() + "%", pageable);
         }
 
         List<ProductListItem> responseValue = new ArrayList<>();
@@ -85,7 +85,11 @@ public class ProductService extends ProductServiceGrpc.ProductServiceImplBase {
             );
         }
 
-        GetProductListResponse response = GetProductListResponse.newBuilder().addAllProductList(responseValue).build();
+        GetProductListResponse response = GetProductListResponse.newBuilder()
+                .addAllProductList(responseValue)
+                .setPage(request.getPage())
+                .setItemPerPage(request.getItemPerPage())
+                .build();
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();

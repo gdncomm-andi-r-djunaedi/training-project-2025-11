@@ -26,33 +26,33 @@ public class JwtServerInterceptor implements ServerInterceptor, Ordered {
 
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> serverCall, Metadata metadata, ServerCallHandler<ReqT, RespT> serverCallHandler) {
-
-        final String authHeader = metadata.get(Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER));
-
-        Status status = Status.OK;
-
-        if (authHeader == null) {
-            status = Status.UNAUTHENTICATED.withDescription("Authorization token is missing");
-        } else if (!authHeader.startsWith("Bearer ")) {
-            status = Status.UNAUTHENTICATED.withDescription("Unknown authorization type");
-        } else {
-            String token = authHeader.substring(7).trim();
-            String username = jwtUtils.extractUsernameFromToken(token);
-            if (username != null) {
-                if (jwtUtils.isValidToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    Context context = Context.current().withValue(Context.key("clientId"), username);
-                    return Contexts.interceptCall(context, serverCall, metadata, serverCallHandler);
-                }
-            }
-        }
-
-        serverCall.close(status, new Metadata());
+//
+//        final String authHeader = metadata.get(Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER));
+//
+//        Status status = Status.OK;
+//
+//        if (authHeader == null) {
+//            status = Status.UNAUTHENTICATED.withDescription("Authorization token is missing");
+//        } else if (!authHeader.startsWith("Bearer ")) {
+//            status = Status.UNAUTHENTICATED.withDescription("Unknown authorization type");
+//        } else {
+//            String token = authHeader.substring(7).trim();
+//            String username = jwtUtils.extractUsernameFromToken(token);
+//            if (username != null) {
+//                if (jwtUtils.isValidToken(token, userDetails)) {
+//                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+//                            userDetails,
+//                            null,
+//                            userDetails.getAuthorities()
+//                    );
+//                    SecurityContextHolder.getContext().setAuthentication(authToken);
+//                    Context context = Context.current().withValue(Context.key("clientId"), username);
+//                    return Contexts.interceptCall(context, serverCall, metadata, serverCallHandler);
+//                }
+//            }
+//        }
+//
+//        serverCall.close(status, new Metadata());
         return new ServerCall.Listener<ReqT>() {
             // noop
         };

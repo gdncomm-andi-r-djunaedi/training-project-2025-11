@@ -20,7 +20,7 @@ import lombok.AllArgsConstructor;
 public class CartEntity {
     
     @Id
-    private UUID id;
+    private String id;
 
     @Field(name = "user_id")
     private String userId;

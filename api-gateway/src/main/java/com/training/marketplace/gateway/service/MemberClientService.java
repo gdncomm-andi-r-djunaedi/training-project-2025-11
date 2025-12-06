@@ -1,6 +1,5 @@
-package com.training.marketplace.gateway.client;
+package com.training.marketplace.gateway.service;
 
-import com.training.marketplace.cart.modal.response.DefaultCartResponse;
 import com.training.marketplace.member.controller.modal.request.LoginRequest;
 import com.training.marketplace.member.controller.modal.request.LoginResponse;
 import com.training.marketplace.member.controller.modal.request.LogoutRequest;
@@ -9,12 +8,12 @@ import com.training.marketplace.member.controller.modal.response.DefaultMemberRe
 import com.training.marketplace.member.service.MemberServiceGrpc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.client.ImportGrpcClients;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 @ImportGrpcClients(target = "member")
-public class MemberClientImpl {
-
+public class MemberClientService {
+    @Autowired
     private MemberServiceGrpc.MemberServiceBlockingStub memberSvcStub;
 
     public DefaultMemberResponse register(RegisterRequest request){
@@ -29,4 +28,3 @@ public class MemberClientImpl {
         return memberSvcStub.logout(request);
     }
 }
-
