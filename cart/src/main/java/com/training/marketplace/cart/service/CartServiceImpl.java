@@ -1,7 +1,6 @@
 package com.training.marketplace.cart.service;
 
 import com.training.marketplace.cart.CartServiceGrpc;
-import com.training.marketplace.cart.client.ProductClientImpl;
 import com.training.marketplace.cart.entity.CartEntity;
 import com.training.marketplace.cart.entity.ProductCart;
 import com.training.marketplace.cart.entity.ProductEntity;
@@ -15,13 +14,14 @@ import com.training.marketplace.product.controller.modal.request.GetProductDetai
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.server.service.GrpcService;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-
+@Service
 @GrpcService
 public class CartServiceImpl extends CartServiceGrpc.CartServiceImplBase {
 
@@ -29,7 +29,7 @@ public class CartServiceImpl extends CartServiceGrpc.CartServiceImplBase {
     private CartRepository cartRepository;
 
     @Autowired
-    private ProductClientImpl productClient;
+    private ProductClientService productClient;
 
     @Override
     public void addProductToCart(AddProductToCartRequest request, StreamObserver<DefaultCartResponse> responseObserver) {
@@ -37,7 +37,7 @@ public class CartServiceImpl extends CartServiceGrpc.CartServiceImplBase {
 
         GetProductDetailResponse productDetailResponse = productClient.getProductDetail(request.getProductId());
 
-        CartEntity cart = Optional.ofNullable(cartRepository.findByUserId(userId).get()).orElse(new CartEntity(UUID.randomUUID(), userId, new ArrayList<>()));
+        CartEntity cart = Optional.ofNullable(cartRepository.findByUserId(userId).orElse(null)).orElse(new CartEntity(UUID.randomUUID().toString(), userId, new ArrayList<>()));
         List<ProductEntity> productCartList = cart.getCartProducts();
 
         if (productCartList.stream().filter(product -> product.getProductId().equals(request.getProductId())).count() == 0) {

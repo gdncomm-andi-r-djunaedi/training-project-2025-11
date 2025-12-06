@@ -45,16 +45,17 @@ public class SecurityConfiguration {
 
     }
 
-    @Bean
-    @GlobalServerInterceptor
-    public AuthenticationProcessInterceptor filterChain(GrpcSecurity grpc) throws Exception{
-        return grpc.authorizeRequests(
-                        auth -> auth
-                                .methods("/MemberService/Login").permitAll()
-                                .allRequests().authenticated())
-                .authenticationProvider(authProvider())
-                .build();
-    }
+//    @Bean
+//    @GlobalServerInterceptor
+//    public AuthenticationProcessInterceptor filterChain(GrpcSecurity grpc) throws Exception{
+//        return grpc.authorizeRequests(
+//                        auth -> auth
+//                                .methods("/MemberService/Login").permitAll()
+//                                .methods("/MemberService/Register").permitAll()
+//                                .allRequests().authenticated())
+//                .authenticationProvider(authProvider())
+//                .build();
+//    }
 
 //    @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{

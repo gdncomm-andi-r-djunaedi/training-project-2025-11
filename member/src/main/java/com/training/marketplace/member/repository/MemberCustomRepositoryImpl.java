@@ -27,6 +27,6 @@ public class MemberCustomRepositoryImpl implements MemberCustomRepository {
         criteriaQuery.where(condition);
 
         TypedQuery<MemberEntity> typedQuery = entityManager.createQuery(criteriaQuery);
-        return Optional.ofNullable(typedQuery.getSingleResult());
+        return Optional.ofNullable(typedQuery.getSingleResultOrNull());
     }
 }

@@ -1,6 +1,7 @@
 package com.training.marketplace.product.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +19,7 @@ import java.math.BigDecimal;
 public class ProductEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private String id;
 
     @Column(name = "product_id", nullable = false)
@@ -30,7 +31,7 @@ public class ProductEntity {
     private String productName;
 
     @Column(name = "product_price", nullable = false)
-    @NotBlank
+    @DecimalMin(value = "0.0")
     private BigDecimal productPrice;
 
     @Column(name = "product_detail", nullable = false)

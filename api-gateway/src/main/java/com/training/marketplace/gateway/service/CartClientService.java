@@ -1,4 +1,4 @@
-package com.training.marketplace.gateway.client;
+package com.training.marketplace.gateway.service;
 
 import com.training.marketplace.cart.CartServiceGrpc;
 import com.training.marketplace.cart.modal.request.AddProductToCartRequest;
@@ -8,12 +8,13 @@ import com.training.marketplace.cart.modal.response.DefaultCartResponse;
 import com.training.marketplace.cart.modal.response.ViewCartResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.client.ImportGrpcClients;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 @ImportGrpcClients(target = "cart")
-public class CartClientImpl {
+public class CartClientService {
 
+    @Autowired
     private CartServiceGrpc.CartServiceBlockingStub cartSvcStub;
 
     public DefaultCartResponse addProductToCart(AddProductToCartRequest request){

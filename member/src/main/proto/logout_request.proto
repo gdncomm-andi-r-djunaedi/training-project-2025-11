@@ -5,4 +5,5 @@ option java_package = "com.training.marketplace.member.controller.modal.request"
 
 message LogoutRequest{
   string member_id = 1;
+  string auth_token = 2;
 }
