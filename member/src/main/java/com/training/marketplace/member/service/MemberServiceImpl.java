@@ -4,7 +4,7 @@ import com.training.marketplace.member.controller.modal.request.LoginRequest;
 import com.training.marketplace.member.controller.modal.request.LoginResponse;
 import com.training.marketplace.member.controller.modal.request.LogoutRequest;
 import com.training.marketplace.member.controller.modal.request.RegisterRequest;
-import com.training.marketplace.member.controller.modal.response.DefaultResponse;
+import com.training.marketplace.member.controller.modal.response.DefaultMemberResponse;
 import com.training.marketplace.member.entity.MemberEntity;
 import com.training.marketplace.member.repository.MemberRepository;
 import com.training.marketplace.member.repository.UserTokenRepository;
@@ -15,7 +15,6 @@ import org.springframework.grpc.server.service.GrpcService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,13 +39,13 @@ public class MemberServiceImpl extends MemberServiceGrpc.MemberServiceImplBase {
     private JwtUtils jwtUtils;
 
     @Override
-    public void register(RegisterRequest request, StreamObserver<DefaultResponse> responseObserver) {
+    public void register(RegisterRequest request, StreamObserver<DefaultMemberResponse> responseObserver) {
         this.memberRepository.save(MemberEntity.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role("ROLE_CUSTOMER")
                 .build());
-        DefaultResponse response = DefaultResponse.newBuilder().setMessage("OK").build();
+        DefaultMemberResponse response = DefaultMemberResponse.newBuilder().setSuccess(true).setMessage("OK").build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
@@ -73,7 +72,7 @@ public class MemberServiceImpl extends MemberServiceGrpc.MemberServiceImplBase {
     }
 
     @Override
-    public void logout(LogoutRequest request, StreamObserver<DefaultResponse> responseObserver) {
+    public void logout(LogoutRequest request, StreamObserver<DefaultMemberResponse> responseObserver) {
         super.logout(request, responseObserver);
     }
 

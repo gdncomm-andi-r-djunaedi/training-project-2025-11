@@ -10,7 +10,7 @@ option java_multiple_files = true;
 option java_package = "com.training.marketplace.member.service";
 
 service MemberService{
-  rpc Register(RegisterRequest) returns (DefaultResponse);
+  rpc Register(RegisterRequest) returns (DefaultMemberResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Logout(LogoutRequest) returns (DefaultResponse);
+  rpc Logout(LogoutRequest) returns (DefaultMemberResponse);
 }
