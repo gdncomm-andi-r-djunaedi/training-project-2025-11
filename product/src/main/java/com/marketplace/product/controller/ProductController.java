@@ -75,8 +75,7 @@ public class ProductController extends BaseCommandController {
                 .pageable(pageable)
                 .build();
 
-        Page<Product> products = execute(SearchProductsCommand.class, request);
-        Page<ProductResponse> response = products.map(p -> mapperService.map(p, ProductResponse.class));
+        Page<ProductResponse> response = execute(SearchProductsCommand.class, request);
         return okResponse(response);
     }
 
@@ -97,8 +96,7 @@ public class ProductController extends BaseCommandController {
         log.info("Get product request for ID: {}", id);
 
         GetProductByIdRequest request = GetProductByIdRequest.builder().productId(id).build();
-        Product product = execute(GetProductByIdCommand.class, request);
-        ProductResponse response = mapperService.map(product, ProductResponse.class);
+        ProductResponse response = execute(GetProductByIdCommand.class, request);
         return okResponse(response);
     }
 }

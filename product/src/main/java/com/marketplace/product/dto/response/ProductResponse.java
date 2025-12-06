@@ -7,15 +7,11 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Response DTO for product information
- */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductResponse {
-
     private String id;
     private String name;
     private String description;

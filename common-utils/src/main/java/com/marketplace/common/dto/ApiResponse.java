@@ -83,4 +83,15 @@ public class ApiResponse<T> {
                 .message(message)
                 .build();
     }
+
+    /**
+     * Create an error response with a message and data (e.g. validation errors)
+     */
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .data(data)
+                .build();
+    }
 }

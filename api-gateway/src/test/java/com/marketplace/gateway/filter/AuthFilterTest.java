@@ -152,7 +152,9 @@ class AuthFilterTest {
         when(cookieUtil.getAuthCookieName()).thenReturn(AUTH_COOKIE_NAME);
         when(tokenBlacklistService.isBlacklisted(validToken)).thenReturn(Mono.just(false));
         when(jwtUtil.validateToken(validToken)).thenReturn(true);
-        when(chain.filter(exchange)).thenReturn(Mono.empty());
+        when(jwtUtil.extractUserId(validToken)).thenReturn(java.util.UUID.randomUUID());
+        when(jwtUtil.extractEmail(validToken)).thenReturn("test@example.com");
+        when(chain.filter(any(org.springframework.web.server.ServerWebExchange.class))).thenReturn(Mono.empty());
 
         // Act
         Mono<Void> result = authFilter.filter(exchange, chain);
@@ -162,7 +164,7 @@ class AuthFilterTest {
 
         verify(tokenBlacklistService).isBlacklisted(validToken);
         verify(jwtUtil).validateToken(validToken);
-        verify(chain).filter(exchange);
+        verify(chain).filter(any(org.springframework.web.server.ServerWebExchange.class));
     }
 
     @Test
@@ -217,7 +219,7 @@ class AuthFilterTest {
         // Arrange
         String cookieToken = "cookie.jwt.token";
         String headerToken = "header.jwt.token";
-        
+
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/cart")
                 .cookie(new HttpCookie(AUTH_COOKIE_NAME, cookieToken))
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + headerToken)
@@ -227,7 +229,9 @@ class AuthFilterTest {
         when(cookieUtil.getAuthCookieName()).thenReturn(AUTH_COOKIE_NAME);
         when(tokenBlacklistService.isBlacklisted(cookieToken)).thenReturn(Mono.just(false));
         when(jwtUtil.validateToken(cookieToken)).thenReturn(true);
-        when(chain.filter(exchange)).thenReturn(Mono.empty());
+        when(jwtUtil.extractUserId(cookieToken)).thenReturn(java.util.UUID.randomUUID());
+        when(jwtUtil.extractEmail(cookieToken)).thenReturn("test@example.com");
+        when(chain.filter(any(org.springframework.web.server.ServerWebExchange.class))).thenReturn(Mono.empty());
 
         // Act
         Mono<Void> result = authFilter.filter(exchange, chain);
@@ -240,16 +244,16 @@ class AuthFilterTest {
         verify(tokenBlacklistService, never()).isBlacklisted(headerToken);
         verify(jwtUtil).validateToken(cookieToken);
         verify(jwtUtil, never()).validateToken(headerToken);
-        verify(chain).filter(exchange);
+        verify(chain).filter(any(org.springframework.web.server.ServerWebExchange.class));
     }
 
     @Test
     void filter_EmptyCookie_FallsBackToHeader() {
         // Arrange
         String headerToken = "header.jwt.token";
-        
+
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/cart")
-                .cookie(new HttpCookie(AUTH_COOKIE_NAME, ""))  // Empty cookie
+                .cookie(new HttpCookie(AUTH_COOKIE_NAME, "")) // Empty cookie
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + headerToken)
                 .build();
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -257,7 +261,9 @@ class AuthFilterTest {
         when(cookieUtil.getAuthCookieName()).thenReturn(AUTH_COOKIE_NAME);
         when(tokenBlacklistService.isBlacklisted(headerToken)).thenReturn(Mono.just(false));
         when(jwtUtil.validateToken(headerToken)).thenReturn(true);
-        when(chain.filter(exchange)).thenReturn(Mono.empty());
+        when(jwtUtil.extractUserId(headerToken)).thenReturn(java.util.UUID.randomUUID());
+        when(jwtUtil.extractEmail(headerToken)).thenReturn("test@example.com");
+        when(chain.filter(any(org.springframework.web.server.ServerWebExchange.class))).thenReturn(Mono.empty());
 
         // Act
         Mono<Void> result = authFilter.filter(exchange, chain);
@@ -268,7 +274,7 @@ class AuthFilterTest {
         // Should fall back to header token
         verify(tokenBlacklistService).isBlacklisted(headerToken);
         verify(jwtUtil).validateToken(headerToken);
-        verify(chain).filter(exchange);
+        verify(chain).filter(any(org.springframework.web.server.ServerWebExchange.class));
     }
 
     @Test
@@ -277,4 +283,3 @@ class AuthFilterTest {
         assertEquals(-1, authFilter.getOrder());
     }
 }
-

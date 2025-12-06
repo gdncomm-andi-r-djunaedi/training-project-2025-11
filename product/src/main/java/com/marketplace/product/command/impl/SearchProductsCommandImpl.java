@@ -15,22 +15,25 @@ import org.springframework.stereotype.Component;
 public class SearchProductsCommandImpl implements SearchProductsCommand {
 
     private final ProductRepository productRepository;
+    private final com.marketplace.common.mapper.MapperService mapperService;
 
     @Override
-    public Page<Product> execute(SearchProductsRequest request) {
+    public Page<com.marketplace.product.dto.response.ProductResponse> execute(SearchProductsRequest request) {
         var name = request.getName();
         var pageable = request.getPageable();
-        
+
         log.info("Searching products with name containing: '{}', page: {}", name, pageable.getPageNumber());
 
+        Page<Product> results;
         if (name == null || name.trim().isEmpty()) {
             log.debug("No search term provided, returning all products");
-            return productRepository.findAll(pageable);
+            results = productRepository.findAll(pageable);
+        } else {
+            results = productRepository.findByNameContainingIgnoreCase(name, pageable);
         }
 
-        Page<Product> results = productRepository.findByNameContainingIgnoreCase(name, pageable);
         log.info("Found {} products matching search term", results.getTotalElements());
-        return results;
+        return results
+                .map(product -> mapperService.map(product, com.marketplace.product.dto.response.ProductResponse.class));
     }
 }
-

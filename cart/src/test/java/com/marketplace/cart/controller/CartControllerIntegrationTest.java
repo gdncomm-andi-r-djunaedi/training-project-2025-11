@@ -31,297 +31,298 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class CartControllerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Autowired
-    private CartRepository cartRepository;
+        @Autowired
+        private CartRepository cartRepository;
 
-    @MockBean
-    private ProductServiceClient productServiceClient;
+        @MockBean
+        private ProductServiceClient productServiceClient;
 
-    private static final String USER_ID_HEADER = "X-User-Id";
-    private UUID testUserId;
+        private static final String USER_ID_HEADER = "X-User-Id";
+        private UUID testUserId;
 
-    @BeforeEach
-    void setUp() {
-        cartRepository.deleteAll();
-        testUserId = UUID.randomUUID();
-    }
+        @BeforeEach
+        void setUp() {
+                cartRepository.deleteAll();
+                testUserId = UUID.randomUUID();
+        }
 
-    @Test
-    void addToCart_NewCart_ReturnsCreated() throws Exception {
-        String productId = "prod-123";
-        
-        when(productServiceClient.getProductById(productId)).thenReturn(
-                ProductDetailsResponse.builder()
-                        .id(productId)
-                        .name("Test Product")
-                        .price(new BigDecimal("49.99"))
-                        .build()
-        );
+        @Test
+        void addToCart_NewCart_ReturnsCreated() throws Exception {
+                String productId = "prod-123";
 
-        AddToCartRequest request = new AddToCartRequest();
-        request.setProductId(productId);
-        request.setQuantity(2);
+                when(productServiceClient.getProductById(productId)).thenReturn(
+                                ProductDetailsResponse.builder()
+                                                .id(productId)
+                                                .name("Test Product")
+                                                .price(new BigDecimal("49.99"))
+                                                .build());
 
-        mockMvc.perform(post("/api/cart/add")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Item added to cart"))
-                .andExpect(jsonPath("$.data.userId").value(testUserId.toString()))
-                .andExpect(jsonPath("$.data.items", hasSize(1)))
-                .andExpect(jsonPath("$.data.items[0].productId").value(productId))
-                .andExpect(jsonPath("$.data.items[0].productName").value("Test Product"))
-                .andExpect(jsonPath("$.data.items[0].quantity").value(2));
-    }
+                AddToCartRequest request = new AddToCartRequest();
+                request.setProductId(productId);
+                request.setQuantity(2);
 
-    @Test
-    void addToCart_ExistingCart_AddsItem() throws Exception {
-        // Create existing cart
-        Cart existingCart = Cart.builder()
-                .userId(testUserId)
-                .items(new ArrayList<>())
-                .build();
-        existingCart.addItem(CartItem.builder()
-                .productId("existing-prod")
-                .productName("Existing Product")
-                .price(new BigDecimal("19.99"))
-                .quantity(1)
-                .build());
-        cartRepository.save(existingCart);
+                mockMvc.perform(post("/api/cart/add")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.message").value("Item added to cart"))
+                                .andExpect(jsonPath("$.data.userId").value(testUserId.toString()))
+                                .andExpect(jsonPath("$.data.items", hasSize(1)))
+                                .andExpect(jsonPath("$.data.items[0].productId").value(productId))
+                                .andExpect(jsonPath("$.data.items[0].productName").value("Test Product"))
+                                .andExpect(jsonPath("$.data.items[0].quantity").value(2));
+        }
 
-        String newProductId = "new-prod";
-        when(productServiceClient.getProductById(newProductId)).thenReturn(
-                ProductDetailsResponse.builder()
-                        .id(newProductId)
-                        .name("New Product")
-                        .price(new BigDecimal("29.99"))
-                        .build()
-        );
+        @Test
+        void addToCart_ExistingCart_AddsItem() throws Exception {
+                // Create existing cart
+                Cart existingCart = Cart.builder()
+                                .userId(testUserId)
+                                .items(new ArrayList<>())
+                                .build();
+                existingCart.addItem(CartItem.builder()
+                                .productId("existing-prod")
+                                .productName("Existing Product")
+                                .price(new BigDecimal("19.99"))
+                                .quantity(1)
+                                .build());
+                cartRepository.save(existingCart);
 
-        AddToCartRequest request = new AddToCartRequest();
-        request.setProductId(newProductId);
-        request.setQuantity(1);
+                String newProductId = "new-prod";
+                when(productServiceClient.getProductById(newProductId)).thenReturn(
+                                ProductDetailsResponse.builder()
+                                                .id(newProductId)
+                                                .name("New Product")
+                                                .price(new BigDecimal("29.99"))
+                                                .build());
 
-        mockMvc.perform(post("/api/cart/add")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.items", hasSize(2)));
-    }
+                AddToCartRequest request = new AddToCartRequest();
+                request.setProductId(newProductId);
+                request.setQuantity(1);
 
-    @Test
-    void addToCart_ExistingItem_UpdatesQuantity() throws Exception {
-        String productId = "prod-123";
-        
-        // Create existing cart with same product
-        Cart existingCart = Cart.builder()
-                .userId(testUserId)
-                .items(new ArrayList<>())
-                .build();
-        existingCart.addItem(CartItem.builder()
-                .productId(productId)
-                .productName("Test Product")
-                .price(new BigDecimal("49.99"))
-                .quantity(2)
-                .build());
-        cartRepository.save(existingCart);
+                mockMvc.perform(post("/api/cart/add")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.items", hasSize(2)));
+        }
 
-        when(productServiceClient.getProductById(productId)).thenReturn(
-                ProductDetailsResponse.builder()
-                        .id(productId)
-                        .name("Test Product")
-                        .price(new BigDecimal("49.99"))
-                        .build()
-        );
+        @Test
+        void addToCart_ExistingItem_UpdatesQuantity() throws Exception {
+                String productId = "prod-123";
 
-        AddToCartRequest request = new AddToCartRequest();
-        request.setProductId(productId);
-        request.setQuantity(3);
+                // Create existing cart with same product
+                Cart existingCart = Cart.builder()
+                                .userId(testUserId)
+                                .items(new ArrayList<>())
+                                .build();
+                existingCart.addItem(CartItem.builder()
+                                .productId(productId)
+                                .productName("Test Product")
+                                .price(new BigDecimal("49.99"))
+                                .quantity(2)
+                                .build());
+                cartRepository.save(existingCart);
 
-        mockMvc.perform(post("/api/cart/add")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.items", hasSize(1)))
-                .andExpect(jsonPath("$.data.items[0].quantity").value(5));  // 2 + 3
-    }
+                when(productServiceClient.getProductById(productId)).thenReturn(
+                                ProductDetailsResponse.builder()
+                                                .id(productId)
+                                                .name("Test Product")
+                                                .price(new BigDecimal("49.99"))
+                                                .build());
 
-    @Test
-    void addToCart_MissingUserIdHeader_ReturnsUnauthorized() throws Exception {
-        AddToCartRequest request = new AddToCartRequest();
-        request.setProductId("prod-123");
-        request.setQuantity(1);
+                AddToCartRequest request = new AddToCartRequest();
+                request.setProductId(productId);
+                request.setQuantity(3);
 
-        // Missing required header now returns 401 Unauthorized
-        mockMvc.perform(post("/api/cart/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("MISSING_AUTH_HEADER"));
-    }
+                mockMvc.perform(post("/api/cart/add")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.items", hasSize(1)))
+                                .andExpect(jsonPath("$.data.items[0].quantity").value(5)); // 2 + 3
+        }
 
-    @Test
-    void getCart_ExistingCart_ReturnsCart() throws Exception {
-        Cart cart = Cart.builder()
-                .userId(testUserId)
-                .items(new ArrayList<>())
-                .build();
-        cart.addItem(CartItem.builder()
-                .productId("prod-1")
-                .productName("Product 1")
-                .price(new BigDecimal("19.99"))
-                .quantity(2)
-                .build());
-        cart.addItem(CartItem.builder()
-                .productId("prod-2")
-                .productName("Product 2")
-                .price(new BigDecimal("29.99"))
-                .quantity(1)
-                .build());
-        cartRepository.save(cart);
+        @Test
+        void addToCart_MissingUserIdHeader_ReturnsUnauthorized() throws Exception {
+                AddToCartRequest request = new AddToCartRequest();
+                request.setProductId("prod-123");
+                request.setQuantity(1);
 
-        mockMvc.perform(get("/api/cart")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Cart retrieved successfully"))
-                .andExpect(jsonPath("$.data.userId").value(testUserId.toString()))
-                .andExpect(jsonPath("$.data.items", hasSize(2)));
-    }
+                // Missing required header now returns 401 Unauthorized
+                mockMvc.perform(post("/api/cart/add")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.success").value(false))
+                                .andExpect(jsonPath("$.message").value(
+                                                "Required request header 'X-User-Id' for method parameter type String is not present"));
+        }
 
-    @Test
-    void getCart_NonExistingCart_ReturnsEmptyCart() throws Exception {
-        mockMvc.perform(get("/api/cart")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.userId").value(testUserId.toString()))
-                .andExpect(jsonPath("$.data.items", hasSize(0)));
-    }
+        @Test
+        void getCart_ExistingCart_ReturnsCart() throws Exception {
+                Cart cart = Cart.builder()
+                                .userId(testUserId)
+                                .items(new ArrayList<>())
+                                .build();
+                cart.addItem(CartItem.builder()
+                                .productId("prod-1")
+                                .productName("Product 1")
+                                .price(new BigDecimal("19.99"))
+                                .quantity(2)
+                                .build());
+                cart.addItem(CartItem.builder()
+                                .productId("prod-2")
+                                .productName("Product 2")
+                                .price(new BigDecimal("29.99"))
+                                .quantity(1)
+                                .build());
+                cartRepository.save(cart);
 
-    @Test
-    void removeFromCart_ExistingItem_RemovesItem() throws Exception {
-        String productIdToRemove = "prod-1";
-        
-        Cart cart = Cart.builder()
-                .userId(testUserId)
-                .items(new ArrayList<>())
-                .build();
-        cart.addItem(CartItem.builder()
-                .productId(productIdToRemove)
-                .productName("Product 1")
-                .price(new BigDecimal("19.99"))
-                .quantity(2)
-                .build());
-        cart.addItem(CartItem.builder()
-                .productId("prod-2")
-                .productName("Product 2")
-                .price(new BigDecimal("29.99"))
-                .quantity(1)
-                .build());
-        cartRepository.save(cart);
+                mockMvc.perform(get("/api/cart")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.message").value("Cart retrieved successfully"))
+                                .andExpect(jsonPath("$.data.userId").value(testUserId.toString()))
+                                .andExpect(jsonPath("$.data.items", hasSize(2)));
+        }
 
-        mockMvc.perform(delete("/api/cart/{productId}", productIdToRemove)
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Item removed from cart"))
-                .andExpect(jsonPath("$.data.items", hasSize(1)))
-                .andExpect(jsonPath("$.data.items[0].productId").value("prod-2"));
-    }
+        @Test
+        void getCart_NonExistingCart_ReturnsEmptyCart() throws Exception {
+                mockMvc.perform(get("/api/cart")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.data.userId").value(testUserId.toString()))
+                                .andExpect(jsonPath("$.data.items", hasSize(0)));
+        }
 
-    @Test
-    void removeFromCart_NonExistingCart_ReturnsNotFound() throws Exception {
-        mockMvc.perform(delete("/api/cart/{productId}", "prod-123")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("CART_NOT_FOUND"));
-    }
+        @Test
+        void removeFromCart_ExistingItem_RemovesItem() throws Exception {
+                String productIdToRemove = "prod-1";
 
-    @Test
-    void removeFromCart_LastItem_ReturnsEmptyCart() throws Exception {
-        String productId = "prod-1";
-        
-        Cart cart = Cart.builder()
-                .userId(testUserId)
-                .items(new ArrayList<>())
-                .build();
-        cart.addItem(CartItem.builder()
-                .productId(productId)
-                .productName("Product 1")
-                .price(new BigDecimal("19.99"))
-                .quantity(1)
-                .build());
-        cartRepository.save(cart);
+                Cart cart = Cart.builder()
+                                .userId(testUserId)
+                                .items(new ArrayList<>())
+                                .build();
+                cart.addItem(CartItem.builder()
+                                .productId(productIdToRemove)
+                                .productName("Product 1")
+                                .price(new BigDecimal("19.99"))
+                                .quantity(2)
+                                .build());
+                cart.addItem(CartItem.builder()
+                                .productId("prod-2")
+                                .productName("Product 2")
+                                .price(new BigDecimal("29.99"))
+                                .quantity(1)
+                                .build());
+                cartRepository.save(cart);
 
-        mockMvc.perform(delete("/api/cart/{productId}", productId)
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.items", hasSize(0)));
-    }
+                mockMvc.perform(delete("/api/cart/{productId}", productIdToRemove)
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.message").value("Item removed from cart"))
+                                .andExpect(jsonPath("$.data.items", hasSize(1)))
+                                .andExpect(jsonPath("$.data.items[0].productId").value("prod-2"));
+        }
 
-    @Test
-    void addToCart_InvalidQuantity_ReturnsBadRequest() throws Exception {
-        AddToCartRequest request = new AddToCartRequest();
-        request.setProductId("prod-123");
-        request.setQuantity(0);  // Invalid quantity
+        @Test
+        void removeFromCart_NonExistingCart_ReturnsNotFound() throws Exception {
+                mockMvc.perform(delete("/api/cart/{productId}", "prod-123")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.success").value(false))
+                                .andExpect(jsonPath("$.message").value("Cart not found for user: " + testUserId));
+        }
 
-        mockMvc.perform(post("/api/cart/add")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
+        @Test
+        void removeFromCart_LastItem_ReturnsEmptyCart() throws Exception {
+                String productId = "prod-1";
 
-    @Test
-    void addToCart_MissingProductId_ReturnsBadRequest() throws Exception {
-        AddToCartRequest request = new AddToCartRequest();
-        request.setQuantity(1);
-        // productId is missing
+                Cart cart = Cart.builder()
+                                .userId(testUserId)
+                                .items(new ArrayList<>())
+                                .build();
+                cart.addItem(CartItem.builder()
+                                .productId(productId)
+                                .productName("Product 1")
+                                .price(new BigDecimal("19.99"))
+                                .quantity(1)
+                                .build());
+                cartRepository.save(cart);
 
-        mockMvc.perform(post("/api/cart/add")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
+                mockMvc.perform(delete("/api/cart/{productId}", productId)
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.items", hasSize(0)));
+        }
 
-    @Test
-    void removeFromCart_ProductNotInCart_ReturnsNotFound() throws Exception {
-        // Create a cart with one product
-        Cart cart = Cart.builder()
-                .userId(testUserId)
-                .items(new ArrayList<>())
-                .build();
-        cart.addItem(CartItem.builder()
-                .productId("prod-1")
-                .productName("Product 1")
-                .price(new BigDecimal("19.99"))
-                .quantity(1)
-                .build());
-        cartRepository.save(cart);
+        @Test
+        void addToCart_InvalidQuantity_ReturnsBadRequest() throws Exception {
+                AddToCartRequest request = new AddToCartRequest();
+                request.setProductId("prod-123");
+                request.setQuantity(0); // Invalid quantity
 
-        // Try to remove a different product that's not in the cart
-        mockMvc.perform(delete("/api/cart/{productId}", "non-existent-product")
-                        .header(USER_ID_HEADER, testUserId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("CART_ITEM_NOT_FOUND"));
-    }
+                mockMvc.perform(post("/api/cart/add")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void addToCart_MissingProductId_ReturnsBadRequest() throws Exception {
+                AddToCartRequest request = new AddToCartRequest();
+                request.setQuantity(1);
+                // productId is missing
+
+                mockMvc.perform(post("/api/cart/add")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void removeFromCart_ProductNotInCart_ReturnsNotFound() throws Exception {
+                // Create a cart with one product
+                Cart cart = Cart.builder()
+                                .userId(testUserId)
+                                .items(new ArrayList<>())
+                                .build();
+                cart.addItem(CartItem.builder()
+                                .productId("prod-1")
+                                .productName("Product 1")
+                                .price(new BigDecimal("19.99"))
+                                .quantity(1)
+                                .build());
+                cartRepository.save(cart);
+
+                // Try to remove a different product that's not in the cart
+                mockMvc.perform(delete("/api/cart/{productId}", "non-existent-product")
+                                .header(USER_ID_HEADER, testUserId.toString())
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.success").value(false))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Cart item not found for product ID: non-existent-product"));
+        }
 }
-

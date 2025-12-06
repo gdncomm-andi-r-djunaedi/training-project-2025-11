@@ -17,28 +17,30 @@ public class GetProductByIdCommandImpl implements GetProductByIdCommand {
 
     private final ProductRepository productRepository;
     private final ProductCacheService productCacheService;
+    private final com.marketplace.common.mapper.MapperService mapperService;
 
     @Override
-    public Product execute(GetProductByIdRequest request) {
+    public com.marketplace.product.dto.response.ProductResponse execute(GetProductByIdRequest request) {
         var productId = request.getProductId();
-        
+
         log.info("Fetching product with ID: {}", productId);
-        
+
         // Try cache first
-        return productCacheService.getProduct(productId)
+        Product product = productCacheService.getProduct(productId)
                 .orElseGet(() -> {
                     log.debug("Fetching product {} from database", productId);
-                    Product product = productRepository.findById(productId)
+                    Product dbProduct = productRepository.findById(productId)
                             .orElseThrow(() -> {
                                 log.warn("Product not found with ID: {}", productId);
                                 return new ProductNotFoundException(productId);
                             });
-                    
+
                     // Cache the result
-                    productCacheService.cacheProduct(product);
-                    
-                    return product;
+                    productCacheService.cacheProduct(dbProduct);
+
+                    return dbProduct;
                 });
+
+        return mapperService.map(product, com.marketplace.product.dto.response.ProductResponse.class);
     }
 }
-
