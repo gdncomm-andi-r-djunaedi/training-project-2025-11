@@ -2,7 +2,7 @@ package com.marketplace.product.controller;
 
 import com.marketplace.common.controller.BaseCommandController;
 import com.marketplace.common.dto.ApiResponse;
-import com.marketplace.common.mapper.MapperService;
+
 import com.marketplace.product.command.GetProductByIdCommand;
 import com.marketplace.product.command.SearchProductsCommand;
 import com.marketplace.product.document.Product;
@@ -33,11 +33,8 @@ public class ProductController extends BaseCommandController {
 
     private static final int MAX_PAGE_SIZE = 100;
 
-    private final MapperService mapperService;
-
     @Autowired
-    public ProductController(MapperService mapperService) {
-        this.mapperService = mapperService;
+    public ProductController() {
     }
 
     /**
