@@ -9,11 +9,12 @@ import com.training.marketplace.member.controller.modal.response.DefaultMemberRe
 import com.training.marketplace.member.service.MemberServiceGrpc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.client.ImportGrpcClients;
+import org.springframework.stereotype.Component;
 
-@ImportGrpcClients(target = "member", prefix = "member")
+@Component
+@ImportGrpcClients(target = "member")
 public class MemberClientImpl {
 
-    @Autowired
     private MemberServiceGrpc.MemberServiceBlockingStub memberSvcStub;
 
     public DefaultMemberResponse register(RegisterRequest request){

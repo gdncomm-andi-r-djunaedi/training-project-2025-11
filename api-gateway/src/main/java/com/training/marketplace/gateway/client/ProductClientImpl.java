@@ -7,11 +7,12 @@ import com.training.marketplace.product.controller.modal.request.GetProductListR
 import com.training.marketplace.product.service.ProductServiceGrpc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.client.ImportGrpcClients;
+import org.springframework.stereotype.Component;
 
-@ImportGrpcClients(target = "product", prefix = "product")
+@Component
+@ImportGrpcClients(target = "product")
 public class ProductClientImpl {
 
-    @Autowired
     private ProductServiceGrpc.ProductServiceBlockingStub productSvcStub;
 
     public GetProductDetailResponse getProductDetail(GetProductDetailRequest request){

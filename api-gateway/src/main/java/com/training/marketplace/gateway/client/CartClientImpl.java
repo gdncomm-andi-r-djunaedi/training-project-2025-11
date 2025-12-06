@@ -8,11 +8,12 @@ import com.training.marketplace.cart.modal.response.DefaultCartResponse;
 import com.training.marketplace.cart.modal.response.ViewCartResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.client.ImportGrpcClients;
+import org.springframework.stereotype.Component;
 
-@ImportGrpcClients(target = "cart", prefix = "cart")
+@Component
+@ImportGrpcClients(target = "cart")
 public class CartClientImpl {
 
-    @Autowired
     private CartServiceGrpc.CartServiceBlockingStub cartSvcStub;
 
     public DefaultCartResponse addProductToCart(AddProductToCartRequest request){
