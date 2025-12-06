@@ -1,0 +1,65 @@
+// product-service/src/main/proto/product-service.proto
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.gdn.training.product.grpc";
+option java_outer_classname = "ProductServiceProto";
+
+package com.gdn.training.product;
+
+// =============
+//  HEALTH CHECK
+// =============
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string status = 1;   // e.g. "OK"
+  int64 timestamp = 2; // epoch millis
+}
+
+// =============
+//  PRODUCT API
+// =============
+message GetProductByIdRequest {
+  string product_id = 1;
+}
+
+message ProductResponse {
+  string product_id = 1;
+  string seller_id = 2;
+  string name = 3;
+  string description = 4;
+  string category = 5;
+  double price = 6;
+  int32 stock = 7;
+  string status = 8;
+  int64 created_at = 9; // epoch millis
+}
+
+message SearchProductsRequest {
+  string keyword = 1;
+  string category = 2;
+  double min_price = 3;
+  double max_price = 4;
+  int32 page = 5;
+  int32 size = 6;
+  string sort_by = 7; // e.g. price:asc
+}
+
+message SearchProductsResponse {
+  repeated ProductResponse products = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 size = 4;
+}
+
+// =============
+//  PRODUCT SERVICE
+// =============
+service ProductService {
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+
+  rpc GetProductById (GetProductByIdRequest) returns (ProductResponse);
+
+  rpc SearchProducts (SearchProductsRequest) returns (SearchProductsResponse);
+}

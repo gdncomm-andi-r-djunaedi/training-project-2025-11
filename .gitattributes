@@ -1,0 +1,43 @@
+# Normalize line endings across OS
+* text=auto eol=lf
+
+# Handle common file types
+*.bat     text eol=crlf
+*.sh      text eol=lf
+*.md      text
+*.yml     text
+*.yaml    text
+*.json    text
+*.properties text
+*.proto   text
+
+# Java & Source Code - merge-friendly
+*.java    text diff=java
+
+# Git treat protobuf like code
+*.proto   text diff=proto
+
+# Ignore binary for diff
+*.jar     binary
+*.war     binary
+*.zip     binary
+*.tar     binary
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.exe     binary
+
+# Improve GitHub linguist detection: ignore generated grpc sources
+src/main/generated/** linguist-generated=true
+src/main/java/**/grpc/** linguist-generated=true
+src/main/java/**/proto/** linguist-generated=true
+
+# Exclude IDE cache from GitHub language stats
+.idea/** linguist-vendored=true
+.vscode/** linguist-vendored=true
+
+# Optional: mark test resources as secondary
+src/test/** linguist-language=Java

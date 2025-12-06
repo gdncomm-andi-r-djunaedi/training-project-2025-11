@@ -1,0 +1,184 @@
+version: "3.9"
+
+services:
+  # ==========================================================
+  # PostgreSQL for Product Service
+  # ==========================================================
+  product-postgres:
+    image: postgres:16-alpine
+    container_name: product-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - product-postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d productdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==========================================================
+  # Solr for Product Search
+  # ==========================================================
+  solr:
+    image: solr:9.6
+    container_name: product-solr
+    restart: unless-stopped
+    ports:
+      - "8983:8983"
+    environment:
+      SOLR_HEAP: 1g
+    command: solr-precreate products
+    volumes:
+      - solr-data:/var/solr
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8983/solr/products/admin/ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ==========================================================
+  # Product Service (gRPC on 9096)
+  # ==========================================================
+  product-service:
+    build:
+      context: ./product   # adjust path if needed
+      dockerfile: Dockerfile
+    container_name: product-service
+    restart: unless-stopped
+    depends_on:
+      product-postgres:
+        condition: service_healthy
+      solr:
+        condition: service_healthy
+    ports:
+      - "9096:9096"   # gRPC
+      - "8080:8080"   # Actuator / HTTP (optional)
+    environment:
+      SPRING_APPLICATION_NAME: product-service
+      SERVER_PORT: 8080
+
+      # PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-postgres:5432/productdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+
+      # Flyway
+      SPRING_FLYWAY_ENABLED: true
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
+
+      # Solr
+      SOLR_HOST: http://solr:8983/solr
+      SOLR_COLLECTION: products
+
+      # gRPC
+      GRPC_SERVER_PORT: 9096
+
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75
+        -XX:+UseG1GC
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:9096"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ==========================================================
+  # PostgreSQL for Cart Service
+  # ==========================================================
+  cart-postgres:
+    image: postgres:16-alpine
+    container_name: cart-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cartdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - cart-postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cartdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==========================================================
+  # Cart Service (gRPC on 9095) — depends on product-service being healthy
+  # ==========================================================
+  cart-service:
+    build:
+      context: ./cart     # adjust path if needed
+      dockerfile: Dockerfile
+    container_name: cart-service
+    restart: unless-stopped
+    depends_on:
+      cart-postgres:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy    # waits for product-service gRPC health check
+    ports:
+      - "9095:9095"   # gRPC port
+      - "8081:8081"   # optional HTTP/actuator
+    environment:
+      SPRING_APPLICATION_NAME: cart-service
+      SERVER_PORT: 8081
+
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://cart-postgres:5432/cartdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_SHOW_SQL: false
+
+      # Flyway
+      SPRING_FLYWAY_ENABLED: true
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+
+      # gRPC Server Port
+      GRPC_SERVER_PORT: 9095
+
+      # Product Service gRPC client (used by cart-service to enrich items)
+      PRODUCT_SERVICE_HOST: product-service
+      PRODUCT_SERVICE_PORT: 9096
+
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75
+        -XX:+UseG1GC
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:9095"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+# ==========================================================
+# Networks & Volumes
+# ==========================================================
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  product-postgres-data:
+  cart-postgres-data:
+  solr-data:

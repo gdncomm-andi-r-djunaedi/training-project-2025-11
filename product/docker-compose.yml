@@ -1,0 +1,118 @@
+version: "3.9"
+
+services:
+  # ============================
+  # PostgreSQL for product-service
+  # ============================
+  product-postgres:
+    image: postgres:16
+    container_name: product-postgres
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - product-postgres-data:/var/lib/postgresql/data
+    networks:
+      - product-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d productdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ============================
+  # Solr for product search
+  # ============================
+  solr:
+    image: solr:9.6
+    container_name: product-solr
+    restart: always
+    ports:
+      - "8983:8983"
+    environment:
+      SOLR_HEAP: 1g
+    command:
+      - solr-precreate
+      - products
+    volumes:
+      - solr-data:/var/solr
+    networks:
+      - product-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8983/solr/products/admin/ping || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================
+  # Product Service
+  # ============================
+  product-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product-service
+    restart: always
+    depends_on:
+      product-postgres:
+        condition: service_healthy
+      solr:
+        condition: service_healthy
+    ports:
+      - "9096:9096"   # gRPC port (fixed)
+      - "8080:8080"   # HTTP/Actuator port (fixed)
+    environment:
+      # ---- Spring Boot App Info ----
+      SPRING_APPLICATION_NAME: product-service
+      SERVER_PORT: 8080
+
+      # ---- PostgreSQL ----
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-postgres:5432/productdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
+      # ---- Flyway ----
+      SPRING_FLYWAY_ENABLED: true
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
+
+      # ---- Solr ----
+      SOLR_HOST: http://solr:8983/solr
+      SOLR_COLLECTION: products
+
+      # ---- gRPC ----
+      GRPC_SERVER_PORT: 9096
+
+      # ---- JVM Options ----
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75
+        -XX:+UseG1GC
+        -Djava.security.egd=file:/dev/./urandom
+    networks:
+      - product-net
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:9096"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  product-net:
+    driver: bridge
+
+volumes:
+  product-postgres-data:
+    driver: local
+  solr-data:
+    driver: local

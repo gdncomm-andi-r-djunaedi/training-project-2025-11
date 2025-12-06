@@ -1,0 +1,9 @@
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\Integration\IntegrationDummyDataIT.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\unit\CachingMemberRepositoryImplTest.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\Integration\GrpcEndToEndIT.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\unit\GetMemberProfileUseCaseImplTest.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\Integration\RepositoryIntegrationIT.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\unit\RegisterMemberUseCaseImplTest.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\unit\PasswordHasherBcryptTest.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\MemberApplicationTests.java
+D:\office\training\training-project-2025-11\member\src\test\java\com\gdn\training\member\unit\LoginMemberUseCaseImplTest.java
