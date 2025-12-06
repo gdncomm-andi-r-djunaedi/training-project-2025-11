@@ -35,7 +35,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        
+
         // Skip authentication for public endpoints
         if (isPublicPath(path)) {
             return chain.filter(exchange);
@@ -51,41 +51,52 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
         // Check if token is blacklisted
         return tokenBlacklistService.isBlacklisted(token)
-            .flatMap(isBlacklisted -> {
-                if (isBlacklisted) {
-                    log.warn("Token is blacklisted for path: {}", path);
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
-                }
+                .flatMap(isBlacklisted -> {
+                    if (isBlacklisted) {
+                        log.warn("Token is blacklisted for path: {}", path);
+                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        return exchange.getResponse().setComplete();
+                    }
 
-                try {
-                    jwtUtil.validateToken(token);
-                } catch (Exception e) {
-                    log.warn("Invalid token for path {}: {}", path, e.getMessage());
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
-                }
+                    try {
+                        jwtUtil.validateToken(token);
 
-                return chain.filter(exchange);
-            });
+                        // Extract user info and inject headers
+                        java.util.UUID userId = jwtUtil.extractUserId(token);
+                        String email = jwtUtil.extractEmail(token);
+
+                        org.springframework.http.server.reactive.ServerHttpRequest request = exchange.getRequest()
+                                .mutate()
+                                .header("X-User-Id", userId.toString())
+                                .header("X-User-Email", email)
+                                .build();
+
+                        return chain.filter(exchange.mutate().request(request).build());
+
+                    } catch (Exception e) {
+                        log.warn("Invalid token for path {}: {}", path, e.getMessage());
+                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        return exchange.getResponse().setComplete();
+                    }
+                });
     }
 
     /**
      * Check if the path is public (no authentication required)
      */
     private boolean isPublicPath(String path) {
-        return path.startsWith("/api/member/register") 
-            || path.startsWith("/api/member/login")
-            || path.startsWith("/api/auth/login")
-            || path.startsWith("/api/auth/logout")
-            || path.startsWith("/api/product/")  // Product browsing is public
-            // Swagger/OpenAPI documentation paths
-            || path.startsWith("/swagger-ui")
-            || path.startsWith("/v3/api-docs")
-            || path.startsWith("/member/v3/api-docs")
-            || path.startsWith("/product/v3/api-docs")
-            || path.startsWith("/cart/v3/api-docs")
-            || path.startsWith("/webjars/");
+        return path.startsWith("/api/member/register")
+                || path.startsWith("/api/member/login")
+                || path.startsWith("/api/auth/login")
+                || path.startsWith("/api/auth/logout")
+                || path.startsWith("/api/product/") // Product browsing is public
+                // Swagger/OpenAPI documentation paths
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/member/v3/api-docs")
+                || path.startsWith("/product/v3/api-docs")
+                || path.startsWith("/cart/v3/api-docs")
+                || path.startsWith("/webjars/");
     }
 
     /**

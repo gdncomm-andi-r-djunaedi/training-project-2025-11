@@ -26,6 +26,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/member/register",
                                 "/api/member/validate-credentials", // Allow Gateway to call this
+                                "/actuator/**", // Allow health checks without authentication
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html")
