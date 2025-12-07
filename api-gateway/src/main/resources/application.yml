@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: member-service
+          uri: ${MEMBER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/auth/register
+        - id: product-service
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/products/**
+        - id: cart-service
+          uri: ${CART_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - Authentication
+
+jwt:
+  secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}
+
+member:
+  service:
+    base-url: ${MEMBER_SERVICE_URL:http://localhost:8081}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    urls:
+      - url: /member-service/v3/api-docs
+        name: member-service
+      - url: /product-service/v3/api-docs
+        name: product-service
+      - url: /cart-service/v3/api-docs
+        name: cart-service
