@@ -25,7 +25,7 @@ public class RemoveFromCartCommandImpl implements RemoveFromCartCommand {
     public CartResponse execute(RemoveFromCartRequest request) {
         var userId = request.getUserId();
         var productId = request.getProductId();
-        
+
         log.info("Removing product {} from cart for user: {}", productId, userId);
 
         Cart cart = cartRepository.findByUserId(userId)
@@ -38,12 +38,12 @@ public class RemoveFromCartCommandImpl implements RemoveFromCartCommand {
             log.warn("Product {} not found in cart for user: {}", productId, userId);
             throw new CartItemNotFoundException(productId);
         }
-        
+
         log.info("Removed product {} from cart for user: {}", productId, userId);
 
         Cart savedCart = cartRepository.save(cart);
         log.info("Cart updated successfully for user: {}", userId);
-        
+
         return CartMapper.toCartResponse(savedCart);
     }
 }

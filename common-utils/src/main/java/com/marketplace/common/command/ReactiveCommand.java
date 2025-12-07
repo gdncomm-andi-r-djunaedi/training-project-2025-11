@@ -4,7 +4,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * Reactive Command interface for Spring WebFlux.
- * 
+ *
  * @param <T> Request type
  * @param <R> Response type
  */

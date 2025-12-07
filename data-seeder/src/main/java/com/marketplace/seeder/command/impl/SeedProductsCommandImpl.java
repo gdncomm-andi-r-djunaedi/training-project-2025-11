@@ -27,55 +27,55 @@ public class SeedProductsCommandImpl implements SeedProductsCommand {
     private static final int BATCH_SIZE = 1000;
 
     private static final String[] CATEGORIES = {
-        "Electronics",
-        "Clothing",
-        "Home & Garden",
-        "Sports & Outdoors",
-        "Books",
-        "Toys & Games",
-        "Beauty & Personal Care",
-        "Automotive",
-        "Food & Beverages",
-        "Health & Wellness"
+            "Electronics",
+            "Clothing",
+            "Home & Garden",
+            "Sports & Outdoors",
+            "Books",
+            "Toys & Games",
+            "Beauty & Personal Care",
+            "Automotive",
+            "Food & Beverages",
+            "Health & Wellness"
     };
 
     private static final String[][] PRODUCT_TEMPLATES = {
-        // Electronics
-        {"Wireless %s Headphones", "Bluetooth %s Speaker", "Smart %s Watch", "%s Laptop", "%s Smartphone", 
-         "%s Tablet", "USB %s Charger", "%s Monitor", "%s Keyboard", "%s Mouse"},
-        // Clothing
-        {"Cotton %s T-Shirt", "%s Denim Jeans", "%s Hoodie", "%s Dress", "%s Jacket",
-         "%s Sneakers", "%s Boots", "%s Cap", "%s Scarf", "%s Sweater"},
-        // Home & Garden
-        {"%s Lamp", "%s Pillow Set", "%s Curtains", "%s Rug", "%s Plant Pot",
-         "%s Garden Tools", "%s Bedding Set", "%s Wall Art", "%s Storage Box", "%s Chair"},
-        // Sports & Outdoors
-        {"%s Yoga Mat", "%s Dumbbells", "%s Running Shoes", "%s Backpack", "%s Tent",
-         "%s Bicycle", "%s Football", "%s Tennis Racket", "%s Swimming Goggles", "%s Fitness Tracker"},
-        // Books
-        {"The Art of %s", "%s: A Complete Guide", "Learning %s", "%s for Beginners", "Advanced %s",
-         "The %s Cookbook", "%s Stories", "History of %s", "%s Encyclopedia", "The %s Journey"},
-        // Toys & Games
-        {"%s Building Blocks", "%s Board Game", "%s Puzzle", "%s Action Figure", "%s Doll",
-         "%s Remote Car", "%s Card Game", "%s Plush Toy", "%s Science Kit", "%s Art Set"},
-        // Beauty & Personal Care
-        {"%s Face Cream", "%s Shampoo", "%s Perfume", "%s Lipstick", "%s Foundation",
-         "%s Hair Oil", "%s Body Lotion", "%s Nail Polish", "%s Eye Shadow", "%s Sunscreen"},
-        // Automotive
-        {"%s Car Cover", "%s Floor Mats", "%s Phone Mount", "%s Seat Cushion", "%s Air Freshener",
-         "%s Dash Cam", "%s Tool Kit", "%s Jump Starter", "%s Tire Inflator", "%s Car Charger"},
-        // Food & Beverages
-        {"Organic %s Tea", "%s Coffee Beans", "Gourmet %s Chocolate", "%s Honey", "%s Olive Oil",
-         "%s Protein Powder", "%s Energy Bars", "%s Dried Fruits", "%s Spice Mix", "%s Snack Pack"},
-        // Health & Wellness
-        {"%s Vitamins", "%s Supplements", "%s Essential Oil", "%s Massage Tool", "%s First Aid Kit",
-         "%s Thermometer", "%s Blood Pressure Monitor", "%s Heating Pad", "%s Ice Pack", "%s Pill Organizer"}
+            // Electronics
+            {"Wireless %s Headphones", "Bluetooth %s Speaker", "Smart %s Watch", "%s Laptop", "%s Smartphone",
+                    "%s Tablet", "USB %s Charger", "%s Monitor", "%s Keyboard", "%s Mouse"},
+            // Clothing
+            {"Cotton %s T-Shirt", "%s Denim Jeans", "%s Hoodie", "%s Dress", "%s Jacket",
+                    "%s Sneakers", "%s Boots", "%s Cap", "%s Scarf", "%s Sweater"},
+            // Home & Garden
+            {"%s Lamp", "%s Pillow Set", "%s Curtains", "%s Rug", "%s Plant Pot",
+                    "%s Garden Tools", "%s Bedding Set", "%s Wall Art", "%s Storage Box", "%s Chair"},
+            // Sports & Outdoors
+            {"%s Yoga Mat", "%s Dumbbells", "%s Running Shoes", "%s Backpack", "%s Tent",
+                    "%s Bicycle", "%s Football", "%s Tennis Racket", "%s Swimming Goggles", "%s Fitness Tracker"},
+            // Books
+            {"The Art of %s", "%s: A Complete Guide", "Learning %s", "%s for Beginners", "Advanced %s",
+                    "The %s Cookbook", "%s Stories", "History of %s", "%s Encyclopedia", "The %s Journey"},
+            // Toys & Games
+            {"%s Building Blocks", "%s Board Game", "%s Puzzle", "%s Action Figure", "%s Doll",
+                    "%s Remote Car", "%s Card Game", "%s Plush Toy", "%s Science Kit", "%s Art Set"},
+            // Beauty & Personal Care
+            {"%s Face Cream", "%s Shampoo", "%s Perfume", "%s Lipstick", "%s Foundation",
+                    "%s Hair Oil", "%s Body Lotion", "%s Nail Polish", "%s Eye Shadow", "%s Sunscreen"},
+            // Automotive
+            {"%s Car Cover", "%s Floor Mats", "%s Phone Mount", "%s Seat Cushion", "%s Air Freshener",
+                    "%s Dash Cam", "%s Tool Kit", "%s Jump Starter", "%s Tire Inflator", "%s Car Charger"},
+            // Food & Beverages
+            {"Organic %s Tea", "%s Coffee Beans", "Gourmet %s Chocolate", "%s Honey", "%s Olive Oil",
+                    "%s Protein Powder", "%s Energy Bars", "%s Dried Fruits", "%s Spice Mix", "%s Snack Pack"},
+            // Health & Wellness
+            {"%s Vitamins", "%s Supplements", "%s Essential Oil", "%s Massage Tool", "%s First Aid Kit",
+                    "%s Thermometer", "%s Blood Pressure Monitor", "%s Heating Pad", "%s Ice Pack", "%s Pill Organizer"}
     };
 
     @Override
     public Integer execute(Integer targetCount) {
         long existingCount = productRepository.count();
-        
+
         if (existingCount >= targetCount) {
             log.info("Products already exist: {} (target: {}). Skipping seed.", existingCount, targetCount);
             return 0;
@@ -117,11 +117,11 @@ public class SeedProductsCommandImpl implements SeedProductsCommand {
         int categoryIndex = index % CATEGORIES.length;
         String category = CATEGORIES[categoryIndex];
         String[] templates = PRODUCT_TEMPLATES[categoryIndex];
-        
+
         String template = templates[faker.number().numberBetween(0, templates.length)];
         String adjective = faker.commerce().material();
         String productName = String.format(template, adjective);
-        
+
         // Add unique suffix to ensure uniqueness
         productName = productName + " " + faker.color().name() + " #" + (index + 1);
 
@@ -194,7 +194,7 @@ public class SeedProductsCommandImpl implements SeedProductsCommand {
         String quality = faker.options().option("Premium", "High-quality", "Professional", "Deluxe", "Essential", "Classic", "Modern", "Innovative");
         String feature1 = faker.options().option("durable", "lightweight", "ergonomic", "stylish", "eco-friendly", "versatile", "compact", "reliable");
         String feature2 = faker.options().option("easy to use", "long-lasting", "affordable", "top-rated", "best-selling", "customer favorite", "highly recommended", "value for money");
-        
+
         return String.format("%s %s in %s category. Features: %s and %s. %s",
                 quality, productName, category, feature1, feature2, faker.lorem().sentence(10));
     }

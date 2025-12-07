@@ -16,7 +16,7 @@ public class CommandExecutor {
 
     /**
      * Execute a command by its class type.
-     * 
+     *
      * @param commandClass The command class to execute
      * @param request      The request object
      * @return The command's response

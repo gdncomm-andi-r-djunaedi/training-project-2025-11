@@ -15,7 +15,7 @@ public class MapperService {
 
     /**
      * Map source object to target class.
-     * 
+     *
      * @param source      Source object
      * @param targetClass Target class type
      * @return Mapped object

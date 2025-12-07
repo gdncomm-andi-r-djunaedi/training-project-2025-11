@@ -141,7 +141,7 @@ class AuthControllerTest {
     void logout_WithTokenInCookie_BlacklistsTokenAndInvalidatesCookie() {
         // Arrange
         String token = "valid.jwt.token";
-        
+
         MockServerHttpRequest request = MockServerHttpRequest.post("/api/auth/logout")
                 .cookie(new HttpCookie(AUTH_COOKIE_NAME, token))
                 .build();
@@ -180,7 +180,7 @@ class AuthControllerTest {
     void logout_WithTokenInHeader_BlacklistsToken() {
         // Arrange
         String token = "valid.jwt.token";
-        
+
         MockServerHttpRequest request = MockServerHttpRequest.post("/api/auth/logout")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .build();
@@ -256,7 +256,7 @@ class AuthControllerTest {
         // Arrange
         String cookieToken = "cookie.jwt.token";
         String headerToken = "header.jwt.token";
-        
+
         MockServerHttpRequest request = MockServerHttpRequest.post("/api/auth/logout")
                 .cookie(new HttpCookie(AUTH_COOKIE_NAME, cookieToken))
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + headerToken)

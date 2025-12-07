@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "com.marketplace.member", "com.marketplace.common" })
+@ComponentScan(basePackages = {"com.marketplace.member", "com.marketplace.common"})
 public class MemberApplication {
 
     public static void main(String[] args) {

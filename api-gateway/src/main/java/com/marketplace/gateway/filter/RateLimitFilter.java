@@ -19,7 +19,7 @@ import java.util.Optional;
 /**
  * Rate limiting filter using Redis to prevent API abuse.
  * Implements a sliding window rate limiter per IP address.
- * 
+ * <p>
  * Configuration properties:
  * - ratelimit.requests-per-minute: Max requests per minute (default: 100)
  * - ratelimit.enabled: Enable/disable rate limiting (default: true)

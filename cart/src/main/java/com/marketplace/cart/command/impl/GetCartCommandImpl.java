@@ -20,15 +20,15 @@ public class GetCartCommandImpl implements GetCartCommand {
     @Override
     public CartResponse execute(GetCartRequest request) {
         var userId = request.getUserId();
-        
+
         log.info("Fetching cart for user: {}", userId);
-        
+
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> {
                     log.info("No cart found for user: {}, returning empty cart", userId);
                     return Cart.builder().userId(userId).build();
                 });
-        
+
         return CartMapper.toCartResponse(cart);
     }
 }

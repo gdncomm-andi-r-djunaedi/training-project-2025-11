@@ -16,7 +16,7 @@ import java.time.Instant;
  * - Correlation ID (from MDC)
  * - Execution time
  * - Success/failure status
- * 
+ * <p>
  * Usage: Annotate methods with @Auditable(action="ACTION_NAME")
  */
 @Slf4j

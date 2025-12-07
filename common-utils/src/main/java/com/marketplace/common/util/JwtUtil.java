@@ -22,7 +22,7 @@ import java.util.function.Function;
 /**
  * Shared JWT utility class for token generation and validation.
  * Used across Member Service, Cart Service, and API Gateway.
- * 
+ * <p>
  * Only instantiated when jwt.secret property is defined.
  */
 @Component

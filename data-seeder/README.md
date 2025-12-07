@@ -5,12 +5,14 @@ Standalone module for seeding test data into the marketplace databases.
 ## Overview
 
 This module generates realistic test data:
+
 - **5,000 Members** → PostgreSQL (`marketplace_member` database)
 - **50,000 Products** → MongoDB (`marketplace_product` database)
 
 ## Prerequisites
 
 Before running the seeder, ensure:
+
 1. PostgreSQL is running on `localhost:5432`
 2. MongoDB is running on `localhost:27017`
 3. Database `marketplace_member` exists in PostgreSQL
@@ -47,12 +49,14 @@ mvn spring-boot:run \
 ## Data Generated
 
 ### Members
+
 - Unique email addresses
 - Hashed passwords (default: `Password123!`)
 - Full names, addresses, phone numbers
 - Role: `ROLE_USER`
 
 ### Products
+
 - 10 categories: Electronics, Clothing, Home & Garden, Sports, Books, Toys, Beauty, Automotive, Food, Health
 - Realistic product names and descriptions
 - Category-appropriate pricing
@@ -61,12 +65,14 @@ mvn spring-boot:run \
 ## Configuration
 
 Edit `src/main/resources/application.properties` to customize:
+
 - Database connections
 - Logging levels
 
 ## Performance
 
 Typical execution time:
+
 - Members (5,000): ~10-20 seconds
 - Products (50,000): ~30-60 seconds
 - Total: ~1-2 minutes

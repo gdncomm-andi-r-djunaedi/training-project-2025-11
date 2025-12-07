@@ -154,9 +154,9 @@ class LoginCommandImplTest {
 
         // Assert
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> 
-                    throwable instanceof RuntimeException && 
-                    throwable.getMessage().equals(errorMessage))
+                .expectErrorMatches(throwable ->
+                        throwable instanceof RuntimeException &&
+                                throwable.getMessage().equals(errorMessage))
                 .verify();
 
         verify(memberServiceClient).validateCredentials(any(ValidateCredentialsRequest.class));
@@ -183,7 +183,7 @@ class LoginCommandImplTest {
                 .roles(roles)
                 .build();
 
-        ArgumentCaptor<ValidateCredentialsRequest> requestCaptor = 
+        ArgumentCaptor<ValidateCredentialsRequest> requestCaptor =
                 ArgumentCaptor.forClass(ValidateCredentialsRequest.class);
 
         when(memberServiceClient.validateCredentials(requestCaptor.capture()))

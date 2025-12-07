@@ -36,7 +36,7 @@ class PasswordValidatorTest {
     void setUp() {
         when(memberConfigProperties.getSecurity()).thenReturn(security);
         when(security.getPasswordMinLength()).thenReturn(8);
-        
+
         passwordValidator = new PasswordValidator(memberConfigProperties);
     }
 
@@ -140,7 +140,7 @@ class PasswordValidatorTest {
     })
     void isValid_VariousInvalidPasswords_ReturnsFalse(String password) {
         setupMocksForInvalidPassword();
-        
+
         boolean result = passwordValidator.isValid(password, context);
 
         assertFalse(result);
@@ -150,7 +150,7 @@ class PasswordValidatorTest {
     void isValid_AllSpecialCharacters_Recognized() {
         // Test various special characters
         String[] specialChars = {"!", "@", "#", "$", "%", "^", "&", "*", "(", ")", ",", ".", "?", "\"", ":", "{", "}", "|", "<", ">"};
-        
+
         for (String special : specialChars) {
             String password = "Password1" + special;
             boolean result = passwordValidator.isValid(password, context);

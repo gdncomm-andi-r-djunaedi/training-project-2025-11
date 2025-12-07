@@ -9,8 +9,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
-    "com.marketplace.seeder",
-    "com.marketplace.common"
+        "com.marketplace.seeder",
+        "com.marketplace.common"
 })
 @EntityScan(basePackages = "com.marketplace.member.entity")
 @EnableJpaRepositories(basePackages = "com.marketplace.member.repository")

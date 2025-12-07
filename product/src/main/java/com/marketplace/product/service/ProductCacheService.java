@@ -35,7 +35,7 @@ public class ProductCacheService {
         } catch (Exception e) {
             log.error("Error retrieving product from cache: {}", e.getMessage());
         }
-        
+
         log.debug("Cache MISS for product: {}", productId);
         return Optional.empty();
     }

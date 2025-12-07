@@ -31,7 +31,7 @@ public class SeedMembersCommandImpl implements SeedMembersCommand {
     @Transactional
     public Integer execute(Integer targetCount) {
         long existingCount = memberRepository.count();
-        
+
         if (existingCount >= targetCount) {
             log.info("Members already exist: {} (target: {}). Skipping seed.", existingCount, targetCount);
             return 0;
@@ -43,7 +43,7 @@ public class SeedMembersCommandImpl implements SeedMembersCommand {
         String hashedPassword = passwordEncoder.encode(DEFAULT_PASSWORD);
         Set<String> usedEmails = new HashSet<>();
         Set<String> usedPhoneNumbers = new HashSet<>();
-        
+
         // Load existing emails and phone numbers to avoid duplicates
         memberRepository.findAll().forEach(member -> {
             usedEmails.add(member.getEmail());
@@ -106,7 +106,7 @@ public class SeedMembersCommandImpl implements SeedMembersCommand {
             email = firstName + "." + lastName + randomNum + "@" + faker.internet().domainName();
             attempts++;
         } while (usedEmails.contains(email) && attempts < 100);
-        
+
         usedEmails.add(email);
         return email;
     }
@@ -118,7 +118,7 @@ public class SeedMembersCommandImpl implements SeedMembersCommand {
             phoneNumber = faker.phoneNumber().cellPhone();
             attempts++;
         } while (usedPhoneNumbers.contains(phoneNumber) && attempts < 100);
-        
+
         usedPhoneNumbers.add(phoneNumber);
         return phoneNumber;
     }

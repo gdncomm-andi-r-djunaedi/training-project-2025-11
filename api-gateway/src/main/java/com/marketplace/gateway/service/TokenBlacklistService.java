@@ -27,7 +27,7 @@ public class TokenBlacklistService {
         try {
             Date expiration = jwtUtil.extractExpiration(token);
             long ttlMillis = expiration.getTime() - System.currentTimeMillis();
-            
+
             if (ttlMillis <= 0) {
                 log.debug("Token already expired, no need to blacklist");
                 return Mono.just(true);
