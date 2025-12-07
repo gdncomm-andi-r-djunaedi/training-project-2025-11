@@ -140,7 +140,7 @@ class CartServiceImplTest {
 
         assertEquals("product added to cart successfully", result);
         assertEquals(1, cart.getItems().size());
-        assertEquals(5, cart.getItems().get(0).getQuantity()); // 2 + 3 = 5
+        assertEquals(3, cart.getItems().get(0).getQuantity());
         verify(cartRepository).save(cart);
     }
 

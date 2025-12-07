@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -38,17 +39,8 @@ class CartServiceIntegrationTest {
     @Autowired
     private CartRepository cartRepository;
 
-    @Autowired
+    @MockBean
     private ProductClient productClient;
-
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean
-        public ProductClient productClient() {
-            return Mockito.mock(ProductClient.class);
-        }
-    }
 
     private String userId;
 
@@ -97,7 +89,7 @@ class CartServiceIntegrationTest {
 
         Cart cart = cartRepository.findById(userId).orElseThrow();
         assertEquals(1, cart.getItems().size());
-        assertEquals(5, cart.getItems().get(0).getQuantity());
+        assertEquals(3, cart.getItems().get(0).getQuantity());
     }
 
     @Test

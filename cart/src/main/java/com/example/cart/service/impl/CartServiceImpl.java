@@ -123,7 +123,7 @@ public class CartServiceImpl implements CartService {
 
         if (itemMap.containsKey(productId)) {
             CartItem existingItem = itemMap.get(productId);
-            existingItem.setQuantity(existingItem.getQuantity() + quantity);
+            existingItem.setQuantity(quantity);
         } else {
             cart.getItems().add(new CartItem(productId, quantity));
         }

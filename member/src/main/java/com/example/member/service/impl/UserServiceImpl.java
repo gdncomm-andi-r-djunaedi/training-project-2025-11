@@ -32,6 +32,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO registerUser(UserRequestDto userRequestDto) {
+        if(userRequestDto.getEmail() == null || userRequestDto.getEmail().isEmpty())
+            throw new IllegalArgumentException("email can't be null or empty");
         userRepository.findByEmail(userRequestDto.getEmail())
                 .ifPresent(u -> {
                     throw new UserAlreadyExistsException(
