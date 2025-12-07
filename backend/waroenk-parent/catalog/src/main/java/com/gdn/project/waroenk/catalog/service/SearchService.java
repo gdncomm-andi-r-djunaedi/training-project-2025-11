@@ -8,14 +8,17 @@ import com.gdn.project.waroenk.catalog.entity.Merchant;
 import org.typesense.model.FacetCounts;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public interface SearchService {
 
   /**
-   * Search for products by query
+   * Search for products with query parameters map.
+   * Supports: q (query text), category, brand, merchantCode, merchantLocation
+   * Category filter uses categoryCodes for hierarchy matching.
    */
-  Result<AggregatedProductDto> searchProducts(String query, int size, String cursor, String sortBy, String sortOrder, Boolean buyable)
+  Result<AggregatedProductDto> searchProducts(Map<String, String> queries, int size, String cursor, String sortBy, String sortOrder, Boolean buyable)
       throws Exception;
 
   /**

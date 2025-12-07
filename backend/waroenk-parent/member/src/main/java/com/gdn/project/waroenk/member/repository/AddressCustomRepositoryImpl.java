@@ -1,6 +1,5 @@
 package com.gdn.project.waroenk.member.repository;
 
-import com.gdn.project.waroenk.member.dto.SortByDto;
 import com.gdn.project.waroenk.member.entity.Address;
 import com.gdn.project.waroenk.member.utility.ParserUtil;
 import jakarta.persistence.EntityManager;
@@ -11,7 +10,6 @@ import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.SortDirection;
 import org.springframework.stereotype.Service;
@@ -28,27 +26,18 @@ public class AddressCustomRepositoryImpl implements AddressCustomRepository {
   private final EntityManager entityManager;
 
   @Override
-  public List<Address> findAddressLike(String userId, String label, String cursor, int size, SortByDto sortBy) {
+  public List<Address> findAddressLike(String userId, String label, String cursor, int size, String sortField, String sortDirection) {
     size = Math.max(size, 0);
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Address> criteriaQuery = criteriaBuilder.createQuery(Address.class);
     Root<Address> root = criteriaQuery.from(Address.class);
-    Order order = criteriaBuilder.asc(root.get("id"));
 
-    if (ObjectUtils.isNotEmpty(sortBy)) {
-      String field = "id";
-      String direction = "asc";
-      if (StringUtils.isNotBlank(sortBy.field())) {
-        field = sortBy.field().trim();
-      }
-      if (StringUtils.isNotBlank(sortBy.direction())) {
-        direction = sortBy.direction().trim().toLowerCase();
-      }
+    String field = StringUtils.isNotBlank(sortField) ? sortField.trim() : "id";
+    String direction = StringUtils.isNotBlank(sortDirection) ? sortDirection.trim().toLowerCase() : "asc";
 
-      order = SortDirection.interpret(direction) == SortDirection.ASCENDING ?
-          criteriaBuilder.asc(root.get(field)) :
-          criteriaBuilder.desc(root.get(field));
-    }
+    Order order = SortDirection.interpret(direction) == SortDirection.ASCENDING ?
+        criteriaBuilder.asc(root.get(field)) :
+        criteriaBuilder.desc(root.get(field));
 
     List<Predicate> predicates = new ArrayList<>();
 

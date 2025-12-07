@@ -54,9 +54,3 @@ public class SystemParameterController extends SystemParameterServiceGrpc.System
     responseObserver.onCompleted();
   }
 }
-
-
-
-
-
-

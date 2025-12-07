@@ -45,11 +45,38 @@ public class JwtUtil {
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(token, claims -> {
+            // Try to get email first (member service includes this)
+            String email = claims.get("email", String.class);
+            if (email != null && !email.isBlank()) {
+                return email;
+            }
+            // Fallback to phone
+            String phone = claims.get("phone", String.class);
+            if (phone != null && !phone.isBlank()) {
+                return phone;
+            }
+            // Final fallback to subject (which is user ID in member service)
+            return claims.getSubject();
+        });
     }
 
     public String extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("user_id", String.class));
+        return extractClaim(token, claims -> {
+            // Try different claim keys for compatibility with member service
+            // Member service uses "userId" (camelCase) and also sets subject to user ID
+            String userId = claims.get("userId", String.class);
+            if (userId != null && !userId.isBlank()) {
+                return userId;
+            }
+            // Fallback to snake_case (for compatibility)
+            userId = claims.get("user_id", String.class);
+            if (userId != null && !userId.isBlank()) {
+                return userId;
+            }
+            // Final fallback: use subject claim (member service sets this to user ID)
+            return claims.getSubject();
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -111,6 +138,7 @@ public class JwtUtil {
         }
     }
 }
+
 
 
 

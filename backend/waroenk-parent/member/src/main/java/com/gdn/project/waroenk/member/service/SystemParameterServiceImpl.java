@@ -102,7 +102,8 @@ public class SystemParameterServiceImpl extends PageAble<SystemParameter, UUID> 
     };
 
     ResultData<SystemParameter> entries =
-        query(predicateBuilder, size, request.getCursor(), mapper.toSortByDto(request.getSortBy()));
+        query(predicateBuilder, size, request.getCursor(),
+            PageAble.SortInfo.of(request.getSortBy().getField(), request.getSortBy().getDirection()));
     Long total = entries.getTotal();
     String nextToken = null;
     Optional<SystemParameter> offset = entries.getOffset();

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package catalog.seed;
+
+import "common/base.proto";
+
+option java_multiple_files = true;
+option java_package = "com.gdn.project.waroenk.catalog";
+option java_outer_classname = "SeedMessagesProto";
+
+message SeedResponse {string status = 1;
+    string message = 2;}
+
+message SeedMerchantProductRequest {string merchant_code = 1;
+    int32 product_count = 2;}
+
+message SeedAllProductRequest {int32 product_per_merchant = 1;
+    optional int32 batch_start = 2;
+    optional int32 batch_end = 3;}

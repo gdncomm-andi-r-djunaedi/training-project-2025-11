@@ -11,21 +11,45 @@ option java_package = "com.gdn.project.waroenk.cart";
 option java_outer_classname = "CheckoutServiceProto";
 
 service CheckoutService {
-    // Validate cart and reserve inventory for checkout
-    rpc ValidateAndReserve(ValidateCheckoutRequest) returns (ValidateCheckoutResponse) {
+    // ============================================================
+    // Main Checkout Flow
+    // ============================================================
+
+    // Prepare checkout - bulk lock inventory from cart items
+    rpc PrepareCheckout(PrepareCheckoutRequest) returns (PrepareCheckoutResponse) {
         option (google.api.http) = {
-            post: "/api/checkout/validate"
+            post: "/api/checkout/prepare"
             body: "*"
         };
     }
 
-    // Invalidate/cancel checkout and release reservations
-    rpc InvalidateCheckout(InvalidateCheckoutRequest) returns (common.Basic) {
+    // Finalize checkout - select/create shipping address
+    rpc FinalizeCheckout(FinalizeCheckoutRequest) returns (FinalizeCheckoutResponse) {
         option (google.api.http) = {
-            post: "/api/checkout/invalidate"
+            post: "/api/checkout/{checkout_id}/finalize"
             body: "*"
         };
     }
+
+    // Pay checkout - simulate payment and commit inventory
+    rpc PayCheckout(PayCheckoutRequest) returns (PayCheckoutResponse) {
+        option (google.api.http) = {
+            post: "/api/checkout/{checkout_id}/pay"
+            body: "*"
+        };
+    }
+
+    // Cancel checkout - release inventory lock
+    rpc CancelCheckout(CancelCheckoutRequest) returns (CancelCheckoutResponse) {
+        option (google.api.http) = {
+            post: "/api/checkout/{checkout_id}/cancel"
+            body: "*"
+        };
+    }
+
+    // ============================================================
+    // Retrieval APIs
+    // ============================================================
 
     // Get checkout by ID
     rpc GetCheckout(GetCheckoutRequest) returns (CheckoutData) {
@@ -34,21 +58,41 @@ service CheckoutService {
         };
     }
 
-    // Get checkout by user
+    // Get active checkout by user
     rpc GetCheckoutByUser(GetCheckoutByUserRequest) returns (CheckoutData) {
         option (google.api.http) = {
             get: "/api/checkout/user/{user_id}"
         };
     }
 
-    // Finalize checkout after successful payment
-    rpc FinalizeCheckout(FinalizeCheckoutRequest) returns (FinalizeCheckoutResponse) {
+    // List checkouts with cursor pagination
+    rpc FilterCheckouts(FilterCheckoutRequest) returns (MultipleCheckoutResponse) {
         option (google.api.http) = {
-            post: "/api/checkout/finalize"
+            get: "/api/checkouts"
+        };
+    }
+
+    // ============================================================
+    // Legacy Support (Deprecated - for backward compatibility)
+    // ============================================================
+
+    // @deprecated Use PrepareCheckout instead
+    rpc ValidateAndReserve(ValidateCheckoutRequest) returns (ValidateCheckoutResponse) {
+        option (google.api.http) = {
+            post: "/api/checkout/validate"
+            body: "*"
+        };
+    }
+
+    // @deprecated Use CancelCheckout instead
+    rpc InvalidateCheckout(InvalidateCheckoutRequest) returns (common.Basic) {
+        option (google.api.http) = {
+            post: "/api/checkout/invalidate"
             body: "*"
         };
     }
 }
+
 
 
 

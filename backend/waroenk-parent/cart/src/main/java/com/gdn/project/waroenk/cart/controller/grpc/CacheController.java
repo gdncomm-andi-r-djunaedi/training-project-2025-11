@@ -28,7 +28,3 @@ public class CacheController extends CacheServiceGrpc.CacheServiceImplBase {
         responseObserver.onCompleted();
     }
 }
-
-
-
-

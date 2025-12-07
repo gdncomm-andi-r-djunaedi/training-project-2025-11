@@ -29,6 +29,10 @@ message AggregatedProductData {
     optional double price = 15;
     google.protobuf.Timestamp created_at = 16;
     google.protobuf.Timestamp updated_at = 17;
+    string merchant_code = 18;
+    string category_code = 19;
+    repeated string category_names = 20;
+    repeated string category_codes = 21;
 }
 
 // Merchant data for search results
@@ -73,11 +77,15 @@ message FacetStats {
 // Search products request with cursor pagination
 message SearchProductsRequest {
     optional string query = 1;
-    int32 size = 2;
-    optional string cursor = 3;
-    optional string sort_by = 4;
-    optional string sort_order = 5;
-    optional bool buyable = 6;
+    optional string category = 2;
+    optional string brand = 3;
+    optional string merchant = 4;
+    optional string location = 5;
+    int32 size = 6;
+    optional string cursor = 7;
+    optional string sort_by = 8;
+    optional string sort_order = 9;
+    optional bool buyable = 10;
 }
 
 // Search products response with cursor pagination
@@ -159,37 +167,35 @@ message MerchantDetail {
     optional string icon_url = 4;
     optional string location = 5;
     optional float rating = 6;
-    optional SearchContactInfo contact = 7;
 }
 
-// Stock info for product details
+// Stock info for product details (at product level)
 message StockInfo {
     int64 total_stock = 1;
     bool has_stock = 2;
-    google.protobuf.Timestamp updated_at = 3;
 }
 
-// Variant media for product details
-message ProductVariantMedia {
+// Price info for product details
+message PriceInfo {
+    double price = 1;
+    double discount = 2;
+}
+
+// Media for product details
+message ProductMedia {
     string url = 1;
     string type = 2;
     int32 sort_order = 3;
     optional string alt_text = 4;
 }
 
-// Variant info with full details
+// Simplified variant info
 message ProductVariantDetail {
     string id = 1;
     string sub_sku = 2;
-    string title = 3;
-    double price = 4;
-    bool is_default = 5;
-    google.protobuf.Struct attributes = 6;
-    optional string thumbnail = 7;
-    repeated ProductVariantMedia media = 8;
-    StockInfo stock_info = 9;
-    google.protobuf.Timestamp created_at = 10;
-    google.protobuf.Timestamp updated_at = 11;
+    optional string thumbnail = 3;
+    bool is_selected = 4;
+    bool has_stock = 5;
 }
 
 // Verbose product details response
@@ -206,16 +212,20 @@ message ProductDetailData {
     BrandDetail brand = 8;
     CategoryDetail category = 9;
     
-    // Variants with stock and images
+    // Simplified variants
     repeated ProductVariantDetail variants = 10;
     
-    // Aggregated stock info
-    int64 total_stock = 11;
-    bool has_stock = 12;
+    // Product-level medias
+    repeated ProductMedia medias = 11;
     
-    // Timestamps
-    google.protobuf.Timestamp created_at = 13;
-    google.protobuf.Timestamp updated_at = 14;
+    // Product-level stock info
+    StockInfo stock = 12;
+    
+    // Product-level price info
+    PriceInfo price = 13;
+    
+    // Product-level attributes
+    google.protobuf.Struct attributes = 14;
 }
 
 // Get product details by ID (subSku or sku)

@@ -12,4 +12,6 @@ public class TypeSenseModel {
   private String apiKey;
   private boolean initializeSchema;
   private String collectionName;
+  private int connectionRetries = 3;
+  private int retryIntervalInSeconds = 5;
 }

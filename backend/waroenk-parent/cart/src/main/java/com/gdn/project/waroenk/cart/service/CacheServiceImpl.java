@@ -19,7 +19,3 @@ public class CacheServiceImpl implements CacheService {
         return cacheUtil.flushKeysByPattern(pattern);
     }
 }
-
-
-
-

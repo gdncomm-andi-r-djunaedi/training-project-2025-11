@@ -194,7 +194,136 @@ public class GatewayRegistrationConfig {
                         "catalog.search.SearchService", "SearchMerchants",
                         "com.gdn.project.waroenk.catalog.SearchMerchantsRequest",
                         "com.gdn.project.waroenk.catalog.SearchMerchantsResponse",
-                        true, List.of()) // Public
+                        true, List.of()), // Public
+
+                // ==================== Merchant Service ====================
+                new Route("POST", "/api/merchant",
+                        "catalog.merchant.MerchantService", "CreateMerchant",
+                        "com.gdn.project.waroenk.catalog.CreateMerchantRequest",
+                        "com.gdn.project.waroenk.catalog.MerchantData",
+                        false, List.of()),
+
+                new Route("PUT", "/api/merchant",
+                        "catalog.merchant.MerchantService", "UpdateMerchant",
+                        "com.gdn.project.waroenk.catalog.UpdateMerchantRequest",
+                        "com.gdn.project.waroenk.catalog.MerchantData",
+                        false, List.of()),
+
+                new Route("DELETE", "/api/merchant",
+                        "catalog.merchant.MerchantService", "DeleteMerchant",
+                        "com.gdn.project.waroenk.common.Id",
+                        "com.gdn.project.waroenk.common.Basic",
+                        false, List.of()),
+
+                new Route("GET", "/api/merchant",
+                        "catalog.merchant.MerchantService", "FindMerchantById",
+                        "com.gdn.project.waroenk.common.Id",
+                        "com.gdn.project.waroenk.catalog.MerchantData",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/merchant/by-code",
+                        "catalog.merchant.MerchantService", "FindMerchantByCode",
+                        "com.gdn.project.waroenk.catalog.FindMerchantByCodeRequest",
+                        "com.gdn.project.waroenk.catalog.MerchantData",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/merchant/filter",
+                        "catalog.merchant.MerchantService", "FilterMerchant",
+                        "com.gdn.project.waroenk.catalog.FilterMerchantRequest",
+                        "com.gdn.project.waroenk.catalog.MultipleMerchantResponse",
+                        true, List.of()), // Public
+
+                // ==================== Category Service ====================
+                new Route("POST", "/api/category",
+                        "catalog.category.CategoryService", "CreateCategory",
+                        "com.gdn.project.waroenk.catalog.CreateCategoryRequest",
+                        "com.gdn.project.waroenk.catalog.CategoryData",
+                        false, List.of()),
+
+                new Route("PUT", "/api/category",
+                        "catalog.category.CategoryService", "UpdateCategory",
+                        "com.gdn.project.waroenk.catalog.UpdateCategoryRequest",
+                        "com.gdn.project.waroenk.catalog.CategoryData",
+                        false, List.of()),
+
+                new Route("DELETE", "/api/category",
+                        "catalog.category.CategoryService", "DeleteCategory",
+                        "com.gdn.project.waroenk.common.Id",
+                        "com.gdn.project.waroenk.common.Basic",
+                        false, List.of()),
+
+                new Route("GET", "/api/category",
+                        "catalog.category.CategoryService", "FindCategoryById",
+                        "com.gdn.project.waroenk.common.Id",
+                        "com.gdn.project.waroenk.catalog.CategoryData",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/category/by-slug",
+                        "catalog.category.CategoryService", "FindCategoryBySlug",
+                        "com.gdn.project.waroenk.catalog.FindCategoryBySlugRequest",
+                        "com.gdn.project.waroenk.catalog.CategoryData",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/category/filter",
+                        "catalog.category.CategoryService", "FilterCategory",
+                        "com.gdn.project.waroenk.catalog.FilterCategoryRequest",
+                        "com.gdn.project.waroenk.catalog.MultipleCategoryResponse",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/category/tree",
+                        "catalog.category.CategoryService", "GetCategoryTree",
+                        "com.gdn.project.waroenk.common.Empty",
+                        "com.gdn.project.waroenk.catalog.CategoryTreeResponse",
+                        true, List.of()), // Public
+
+                // ==================== Variant Service ====================
+                new Route("POST", "/api/variant",
+                        "catalog.variant.VariantService", "CreateVariant",
+                        "com.gdn.project.waroenk.catalog.CreateVariantRequest",
+                        "com.gdn.project.waroenk.catalog.VariantData",
+                        false, List.of()),
+
+                new Route("PUT", "/api/variant",
+                        "catalog.variant.VariantService", "UpdateVariant",
+                        "com.gdn.project.waroenk.catalog.UpdateVariantRequest",
+                        "com.gdn.project.waroenk.catalog.VariantData",
+                        false, List.of()),
+
+                new Route("DELETE", "/api/variant",
+                        "catalog.variant.VariantService", "DeleteVariant",
+                        "com.gdn.project.waroenk.common.Id",
+                        "com.gdn.project.waroenk.common.Basic",
+                        false, List.of()),
+
+                new Route("GET", "/api/variant",
+                        "catalog.variant.VariantService", "FindVariantById",
+                        "com.gdn.project.waroenk.common.Id",
+                        "com.gdn.project.waroenk.catalog.VariantData",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/variant/by-sub-sku",
+                        "catalog.variant.VariantService", "FindVariantBySubSku",
+                        "com.gdn.project.waroenk.catalog.FindVariantBySubSkuRequest",
+                        "com.gdn.project.waroenk.catalog.VariantData",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/variant/by-sku",
+                        "catalog.variant.VariantService", "FindVariantsBySku",
+                        "com.gdn.project.waroenk.catalog.FindVariantsBySkuRequest",
+                        "com.gdn.project.waroenk.catalog.MultipleVariantResponse",
+                        true, List.of()), // Public
+
+                new Route("GET", "/api/variant/filter",
+                        "catalog.variant.VariantService", "FilterVariant",
+                        "com.gdn.project.waroenk.catalog.FilterVariantRequest",
+                        "com.gdn.project.waroenk.catalog.MultipleVariantResponse",
+                        true, List.of()), // Public
+
+                new Route("PUT", "/api/variant/default",
+                        "catalog.variant.VariantService", "SetDefaultVariant",
+                        "com.gdn.project.waroenk.catalog.SetDefaultVariantRequest",
+                        "com.gdn.project.waroenk.catalog.VariantData",
+                        false, List.of()) // Admin only
         );
     }
 }

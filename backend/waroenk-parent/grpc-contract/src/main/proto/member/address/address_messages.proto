@@ -24,6 +24,7 @@ message AddressData {
     string details = 12;
     google.protobuf.Timestamp created_at = 13;
     google.protobuf.Timestamp updated_at = 14;
+    bool is_default = 15;
 }
 
 message UpsertAddressRequest {
@@ -39,11 +40,17 @@ message UpsertAddressRequest {
     float latitude = 10;
     float longitude = 11;
     string details = 12;
+    bool is_default = 13;
 }
 
 message FindUserAddressRequest {
     string user_id = 1;
     string label = 2;
+}
+
+message SetDefaultAddressRequest {
+    string user_id = 1;
+    string address_id = 2;
 }
 
 message FilterAddressRequest {

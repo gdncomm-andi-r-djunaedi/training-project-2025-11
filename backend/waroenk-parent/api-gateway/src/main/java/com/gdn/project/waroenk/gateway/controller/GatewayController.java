@@ -60,12 +60,16 @@ public class GatewayController {
         String method = request.getMethod();
         String path = request.getRequestURI();
         Map<String, String> queryParams = extractQueryParams(request);
+        
+        // Extract authenticated user context from JWT filter
+        String userId = (String) request.getAttribute("userId");
+        String username = (String) request.getAttribute("username");
 
         // Use debug level for per-request logging to reduce overhead
-        log.debug("Gateway request: {} {} params={}", method, path, queryParams);
+        log.debug("Gateway request: {} {} params={} userId={}", method, path, queryParams, userId);
 
         try {
-            String response = grpcProxyService.invoke(method, path, body, queryParams);
+            String response = grpcProxyService.invoke(method, path, body, queryParams, userId, username);
             
             // Return raw response without double-processing
             // The gRPC response is already valid JSON

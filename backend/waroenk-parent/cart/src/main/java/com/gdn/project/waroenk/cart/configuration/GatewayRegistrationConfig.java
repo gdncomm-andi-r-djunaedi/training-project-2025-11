@@ -94,13 +94,13 @@ public class GatewayRegistrationConfig {
                 new Route("POST", "/api/cart/add",
                         "cart.cart.CartService", "AddItem",
                         "com.gdn.project.waroenk.cart.AddCartItemRequest",
-                        "com.gdn.project.waroenk.cart.CartData",
+                        "com.gdn.project.waroenk.cart.AddCartItemResponse",
                         false, List.of()),
 
                 new Route("POST", "/api/cart/bulk-add",
                         "cart.cart.CartService", "BulkAddItems",
                         "com.gdn.project.waroenk.cart.BulkAddCartItemsRequest",
-                        "com.gdn.project.waroenk.cart.CartData",
+                        "com.gdn.project.waroenk.cart.BulkAddCartItemsResponse",
                         false, List.of()),
 
                 new Route("POST", "/api/cart/remove",
@@ -118,7 +118,7 @@ public class GatewayRegistrationConfig {
                 new Route("PUT", "/api/cart/update",
                         "cart.cart.CartService", "UpdateItem",
                         "com.gdn.project.waroenk.cart.UpdateCartItemRequest",
-                        "com.gdn.project.waroenk.cart.CartData",
+                        "com.gdn.project.waroenk.cart.AddCartItemResponse",
                         false, List.of()),
 
                 new Route("DELETE", "/api/cart/{user_id}",
@@ -134,18 +134,32 @@ public class GatewayRegistrationConfig {
                         false, List.of("ADMIN")), // Admin only
 
                 // ==================== Checkout Service ====================
-                new Route("POST", "/api/checkout/validate",
-                        "cart.checkout.CheckoutService", "ValidateAndReserve",
-                        "com.gdn.project.waroenk.cart.ValidateCheckoutRequest",
-                        "com.gdn.project.waroenk.cart.ValidateCheckoutResponse",
+                // Main Checkout Flow
+                new Route("POST", "/api/checkout/prepare",
+                        "cart.checkout.CheckoutService", "PrepareCheckout",
+                        "com.gdn.project.waroenk.cart.PrepareCheckoutRequest",
+                        "com.gdn.project.waroenk.cart.PrepareCheckoutResponse",
                         false, List.of()),
 
-                new Route("POST", "/api/checkout/invalidate",
-                        "cart.checkout.CheckoutService", "InvalidateCheckout",
-                        "com.gdn.project.waroenk.cart.InvalidateCheckoutRequest",
-                        "com.gdn.project.waroenk.common.Basic",
+                new Route("POST", "/api/checkout/{checkout_id}/finalize",
+                        "cart.checkout.CheckoutService", "FinalizeCheckout",
+                        "com.gdn.project.waroenk.cart.FinalizeCheckoutRequest",
+                        "com.gdn.project.waroenk.cart.FinalizeCheckoutResponse",
                         false, List.of()),
 
+                new Route("POST", "/api/checkout/{checkout_id}/pay",
+                        "cart.checkout.CheckoutService", "PayCheckout",
+                        "com.gdn.project.waroenk.cart.PayCheckoutRequest",
+                        "com.gdn.project.waroenk.cart.PayCheckoutResponse",
+                        false, List.of()),
+
+                new Route("POST", "/api/checkout/{checkout_id}/cancel",
+                        "cart.checkout.CheckoutService", "CancelCheckout",
+                        "com.gdn.project.waroenk.cart.CancelCheckoutRequest",
+                        "com.gdn.project.waroenk.cart.CancelCheckoutResponse",
+                        false, List.of()),
+
+                // Retrieval APIs
                 new Route("GET", "/api/checkout/{checkout_id}",
                         "cart.checkout.CheckoutService", "GetCheckout",
                         "com.gdn.project.waroenk.cart.GetCheckoutRequest",
@@ -158,10 +172,23 @@ public class GatewayRegistrationConfig {
                         "com.gdn.project.waroenk.cart.CheckoutData",
                         false, List.of()),
 
-                new Route("POST", "/api/checkout/finalize",
-                        "cart.checkout.CheckoutService", "FinalizeCheckout",
-                        "com.gdn.project.waroenk.cart.FinalizeCheckoutRequest",
-                        "com.gdn.project.waroenk.cart.FinalizeCheckoutResponse",
+                new Route("GET", "/api/checkouts",
+                        "cart.checkout.CheckoutService", "FilterCheckouts",
+                        "com.gdn.project.waroenk.cart.FilterCheckoutRequest",
+                        "com.gdn.project.waroenk.cart.MultipleCheckoutResponse",
+                        false, List.of()),
+
+                // Legacy Support (Deprecated - for backward compatibility)
+                new Route("POST", "/api/checkout/validate",
+                        "cart.checkout.CheckoutService", "ValidateAndReserve",
+                        "com.gdn.project.waroenk.cart.ValidateCheckoutRequest",
+                        "com.gdn.project.waroenk.cart.ValidateCheckoutResponse",
+                        false, List.of()),
+
+                new Route("POST", "/api/checkout/invalidate",
+                        "cart.checkout.CheckoutService", "InvalidateCheckout",
+                        "com.gdn.project.waroenk.cart.InvalidateCheckoutRequest",
+                        "com.gdn.project.waroenk.common.Basic",
                         false, List.of())
         );
     }

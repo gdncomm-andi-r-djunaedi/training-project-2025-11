@@ -39,8 +39,3 @@ public class Category {
   private Instant updatedAt;
 }
 
-
-
-
-
-

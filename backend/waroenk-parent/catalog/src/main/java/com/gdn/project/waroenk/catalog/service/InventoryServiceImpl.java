@@ -179,6 +179,14 @@ public class InventoryServiceImpl extends MongoPageAble<Inventory, String> imple
   }
 
   @Override
+  public List<Inventory> findBulkInventoriesBySubSkus(List<String> subSkus) {
+    if(ObjectUtils.isEmpty(subSkus)){
+      return new ArrayList<>();
+    }
+    return this.repository.findBySubSkuIn(subSkus);
+  }
+
+  @Override
   public MultipleInventoryResponse filterInventory(FilterInventoryRequest request) {
     int size = request.getSize() > 0 ? request.getSize() : defaultItemPerPage;
 

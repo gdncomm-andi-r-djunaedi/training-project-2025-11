@@ -1,6 +1,5 @@
 package com.gdn.project.waroenk.member.repository;
 
-import com.gdn.project.waroenk.member.dto.SortByDto;
 import com.gdn.project.waroenk.member.repository.model.ResultData;
 import com.gdn.project.waroenk.member.utility.CacheUtil;
 import com.gdn.project.waroenk.member.utility.ParserUtil;
@@ -35,6 +34,19 @@ public abstract class PageAble<D, I> {
   @FunctionalInterface
   public interface PredicateBuilder<D> {
     List<Predicate> build(Root<D> root, CriteriaBuilder criteriaBuilder);
+  }
+
+  public record SortInfo(String field, String direction) {
+    public static SortInfo of(String field, String direction) {
+      return new SortInfo(
+          StringUtils.isNotBlank(field) ? field : "id",
+          StringUtils.isNotBlank(direction) ? direction : "asc"
+      );
+    }
+    
+    public static SortInfo defaultSort() {
+      return new SortInfo("id", "asc");
+    }
   }
 
   private final String prefix;
@@ -73,13 +85,6 @@ public abstract class PageAble<D, I> {
     return new AbstractMap.SimpleEntry<>(data, index);
   }
 
-  /**
-   * <p>getParameterizedType.</p>
-   *
-   * @param inputClass a {@link java.lang.Class} object.
-   * @param index      a int.
-   * @return a {@link java.lang.reflect.Type} object.
-   */
   private Type getParameterizedType(Class<?> inputClass, int index) {
     if (index < 0) {
       return null;
@@ -111,26 +116,17 @@ public abstract class PageAble<D, I> {
     return entityManager.createQuery(query).getSingleResult();
   }
 
-  List<D> bulkFindDataByIds(List<String> ids, SortByDto sort) {
+  List<D> bulkFindDataByIds(List<String> ids, SortInfo sort) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<D> criteriaQuery = builder.createQuery(type);
     Root<D> root = criteriaQuery.from(type);
-    Order order = builder.asc(root.get("id"));
 
-    if (ObjectUtils.isNotEmpty(sort)) {
-      String field = "id";
-      String direction = "asc";
-      if (StringUtils.isNotBlank(sort.field())) {
-        field = sort.field().trim();
-      }
-      if (StringUtils.isNotBlank(sort.direction())) {
-        direction = sort.direction().trim().toLowerCase();
-      }
+    String field = sort.field();
+    String direction = sort.direction();
 
-      order = SortDirection.interpret(direction) == SortDirection.ASCENDING ?
-          builder.asc(root.get(field)) :
-          builder.desc(root.get(field));
-    }
+    Order order = SortDirection.interpret(direction) == SortDirection.ASCENDING ?
+        builder.asc(root.get(field)) :
+        builder.desc(root.get(field));
 
     CriteriaBuilder.In<I> inClause = builder.in(root.get("id"));
     for (String id : ids) {
@@ -148,7 +144,7 @@ public abstract class PageAble<D, I> {
     return typedQuery.getResultList();
   }
 
-  public ResultData<D> query(PredicateBuilder<D> predicateBuilder, int limit, String cursor, SortByDto sort) {
+  public ResultData<D> query(PredicateBuilder<D> predicateBuilder, int limit, String cursor, SortInfo sort) {
     ResultData.ResultDataBuilder<D> builder = ResultData.builder();
     if (limit < 1) {
       return builder.build();
@@ -190,23 +186,14 @@ public abstract class PageAble<D, I> {
   <T> Map.Entry<Root<D>, CriteriaQuery<T>> constructQuery(
       PredicateBuilder<D> predicateBuilder,
       String cursor,
-      SortByDto sort,
+      SortInfo sort,
       Class<T> output) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<T> criteriaQuery = builder.createQuery(output);
     Root<D> root = criteriaQuery.from(type);
     
-    // Determine sort direction for cursor comparison
-    String field = "id";
-    String direction = "asc";
-    if (ObjectUtils.isNotEmpty(sort)) {
-      if (StringUtils.isNotBlank(sort.field())) {
-        field = sort.field().trim();
-      }
-      if (StringUtils.isNotBlank(sort.direction())) {
-        direction = sort.direction().trim().toLowerCase();
-      }
-    }
+    String field = sort.field();
+    String direction = sort.direction();
     boolean isAscending = SortDirection.interpret(direction) == SortDirection.ASCENDING;
 
     List<Predicate> predicates = new ArrayList<>();
@@ -226,7 +213,6 @@ public abstract class PageAble<D, I> {
       criteriaQuery.where(builder.and(predicates.toArray(new Predicate[0])));
     }
 
-    // Only add ORDER BY for non-aggregate queries (not for COUNT)
     if (!Long.class.equals(output)) {
       Order order = isAscending ?
           builder.asc(root.get(field)) :
@@ -288,7 +274,7 @@ public abstract class PageAble<D, I> {
   }
 
   public ResultData<D> query(PredicateBuilder<D> predicateBuilder, int limit, String cursor) {
-    return query(predicateBuilder, limit, cursor, new SortByDto("id", "asc"));
+    return query(predicateBuilder, limit, cursor, SortInfo.defaultSort());
   }
 
   public ResultData<D> query(PredicateBuilder<D> predicateBuilder, int limit) {

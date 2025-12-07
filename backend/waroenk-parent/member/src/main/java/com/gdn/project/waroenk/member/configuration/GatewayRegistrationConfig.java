@@ -133,6 +133,18 @@ public class GatewayRegistrationConfig {
                         "com.gdn.project.waroenk.member.ChangePasswordResponse",
                         true, List.of()), // Public (uses reset token)
 
+                new Route("POST", "/api/user/logout",
+                        "member.user.UserService", "Logout",
+                        "com.gdn.project.waroenk.member.LogoutRequest",
+                        "com.gdn.project.waroenk.member.LogoutResponse",
+                        false, List.of()),
+
+                new Route("POST", "/api/user/refresh-token",
+                        "member.user.UserService", "RefreshToken",
+                        "com.gdn.project.waroenk.member.RefreshTokenRequest",
+                        "com.gdn.project.waroenk.member.RefreshTokenResponse",
+                        true, List.of()), // Public (uses refresh token)
+
                 // ==================== Address Service ====================
                 new Route("POST", "/api/address",
                         "member.address.AddressService", "UpsertAddress",
@@ -160,7 +172,7 @@ public class GatewayRegistrationConfig {
 
                 new Route("PUT", "/api/address/default",
                         "member.address.AddressService", "SetUserDefaultAddress",
-                        "com.gdn.project.waroenk.member.FindUserAddressRequest",
+                        "com.gdn.project.waroenk.member.SetDefaultAddressRequest",
                         "com.gdn.project.waroenk.common.Basic",
                         false, List.of()),
 

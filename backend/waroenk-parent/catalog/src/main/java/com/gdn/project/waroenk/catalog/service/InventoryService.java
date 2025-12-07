@@ -14,6 +14,8 @@ import com.gdn.project.waroenk.catalog.FilterInventoryRequest;
 import com.gdn.project.waroenk.catalog.MultipleInventoryResponse;
 import com.gdn.project.waroenk.catalog.entity.Inventory;
 
+import java.util.List;
+
 public interface InventoryService {
   Inventory createInventory(Inventory inventory);
   Inventory updateInventory(String id, Inventory inventory);
@@ -23,6 +25,7 @@ public interface InventoryService {
   Inventory findInventoryById(String id);
   Inventory findInventoryBySubSku(String subSku);
   boolean deleteInventory(String id);
+  List<Inventory> findBulkInventoriesBySubSkus(List<String> subSkus);
   MultipleInventoryResponse filterInventory(FilterInventoryRequest request);
 
   /**

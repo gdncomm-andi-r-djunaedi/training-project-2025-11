@@ -96,12 +96,13 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
 
   @Override
   @Transactional
-  public Address createAddress(String userId, Address address) {
+  public Address createAddress(String userId, Address address, boolean setAsDefault) {
     UUID userUuid = UUID.fromString(userId);
     User user = userRepository.findById(userUuid)
         .orElseThrow(() -> new ResourceNotFoundException("User with id: " + userId + " not found"));
 
     Optional<Address> existingAddress = addressRepository.findByUserIdAndLabel(userUuid, address.getLabel().trim());
+    Address saved;
 
     if (existingAddress.isPresent()) {
       // Update existing address
@@ -117,24 +118,26 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
       existing.setLatitude(address.getLatitude());
       existing.setLongitude(address.getLongitude());
 
-      Address saved = addressRepository.save(existing);
+      saved = addressRepository.save(existing);
       evictAddressCaches(saved, userId);
-      return saved;
     } else {
       // Create new address
       address.setUser(user);
-      Address saved = addressRepository.save(address);
-
-      // Auto-set as default if user has no default address yet
-      if (user.getDefaultAddress() == null) {
-        user.setDefaultAddress(saved);
-        userRepository.save(user);
-        evictUserAddressCaches(userId);
-      }
-
+      saved = addressRepository.save(address);
       evictAddressCaches(saved, userId);
-      return saved;
     }
+
+    // Handle default address setting:
+    // - If setAsDefault is true, set this address as default
+    // - If this is the user's first address, auto-set as default
+    boolean shouldSetDefault = setAsDefault || user.getDefaultAddress() == null;
+    if (shouldSetDefault) {
+      user.setDefaultAddress(saved);
+      userRepository.save(user);
+      evictUserAddressCaches(userId);
+    }
+
+    return saved;
   }
 
   @Override
@@ -153,6 +156,12 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
     int size = request.getSize() > 0 ? request.getSize() : defaultItemPerPage;
     UUID userUuid = UUID.fromString(userId);
 
+    // Fetch user to get default address ID
+    User user = userRepository.findById(userUuid).orElse(null);
+    UUID defaultAddressId = (user != null && user.getDefaultAddress() != null) 
+        ? user.getDefaultAddress().getId() 
+        : null;
+
     PredicateBuilder<Address> predicateBuilder = (root, criteriaBuilder) -> {
       List<Predicate> predicateList = new ArrayList<>();
       predicateList.add(criteriaBuilder.equal(root.get("user").get("id"), userUuid));
@@ -167,7 +176,8 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
       return predicateList;
     };
 
-    ResultData<Address> entries = query(predicateBuilder, size, request.getCursor(), mapper.toSortByDto(request.getSortBy()));
+    ResultData<Address> entries = query(predicateBuilder, size, request.getCursor(), 
+        PageAble.SortInfo.of(request.getSortBy().getField(), request.getSortBy().getDirection()));
     Long total = entries.getTotal();
     String nextToken = null;
     Optional<Address> offset = entries.getOffset();
@@ -176,7 +186,9 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
     }
 
     MultipleAddressResponse.Builder builder = MultipleAddressResponse.newBuilder();
-    entries.getDataList().iterator().forEachRemaining(item -> builder.addData(mapper.toAddressData(item)));
+    // Pass defaultAddressId to mapper to set is_default flag
+    UUID finalDefaultAddressId = defaultAddressId;
+    entries.getDataList().iterator().forEachRemaining(item -> builder.addData(mapper.toAddressData(item, finalDefaultAddressId)));
     if (StringUtils.isNotBlank(nextToken)) {
       builder.setNextToken(nextToken);
     }
@@ -187,17 +199,24 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
 
   @Override
   @Transactional
-  public boolean setDefaultAddress(String userId, String label) {
-    if (StringUtils.isBlank(userId) || StringUtils.isBlank(label)) {
-      throw new ValidationException("User ID and label are required");
+  public boolean setDefaultAddress(String userId, String addressId) {
+    if (StringUtils.isBlank(userId) || StringUtils.isBlank(addressId)) {
+      throw new ValidationException("User ID and address ID are required");
     }
 
     UUID userUuid = UUID.fromString(userId);
+    UUID addressUuid = UUID.fromString(addressId);
+    
     User user = userRepository.findById(userUuid)
         .orElseThrow(() -> new ResourceNotFoundException("User with id: " + userId + " not found"));
 
-    Address address = addressRepository.findByUserIdAndLabel(userUuid, label.trim())
-        .orElseThrow(() -> new ResourceNotFoundException("Address with label: " + label + " not found for user: " + userId));
+    Address address = addressRepository.findById(addressUuid)
+        .orElseThrow(() -> new ResourceNotFoundException("Address with id: " + addressId + " not found"));
+
+    // Verify the address belongs to the user
+    if (!address.getUser().getId().equals(userUuid)) {
+      throw new ValidationException("Address does not belong to this user");
+    }
 
     user.setDefaultAddress(address);
     userRepository.save(user);
@@ -216,13 +235,23 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
     String userId = address.getUser().getId().toString();
 
     User user = address.getUser();
-    if (user.getDefaultAddress() != null && user.getDefaultAddress().getId().equals(addressId)) {
+    boolean wasDefaultAddress = user.getDefaultAddress() != null 
+        && user.getDefaultAddress().getId().equals(addressId);
+    
+    if (wasDefaultAddress) {
+      // Clear the default address reference before deleting
       user.setDefaultAddress(null);
       userRepository.save(user);
     }
 
     addressRepository.delete(address);
     evictAddressCaches(address, userId);
+    
+    // Also invalidate user cache if we deleted the default address
+    if (wasDefaultAddress) {
+      evictUserAddressCaches(userId);
+    }
+    
     return true;
   }
 
@@ -240,6 +269,18 @@ public class AddressServiceImpl extends PageAble<Address, UUID> implements Addre
   private void evictUserAddressCaches(String userId) {
     stringCacheUtil.flushKeysByPattern(ADDRESS_PREFIX + ":user:" + userId + ":*");
     stringCacheUtil.flushKeysByPattern("user:id:" + userId);
+  }
+
+  @Override
+  public UUID getDefaultAddressId(String userId) {
+    if (StringUtils.isBlank(userId)) {
+      return null;
+    }
+    UUID userUuid = UUID.fromString(userId);
+    return userRepository.findById(userUuid)
+        .map(User::getDefaultAddress)
+        .map(Address::getId)
+        .orElse(null);
   }
 
   @Override

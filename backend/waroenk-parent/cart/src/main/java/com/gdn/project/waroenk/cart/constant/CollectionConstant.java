@@ -5,7 +5,3 @@ public final class CollectionConstant {
     public static final String CHECKOUT_ITEMS = "checkout_items";
     public static final String SYSTEM_PARAMETERS = "system_parameters";
 }
-
-
-
-

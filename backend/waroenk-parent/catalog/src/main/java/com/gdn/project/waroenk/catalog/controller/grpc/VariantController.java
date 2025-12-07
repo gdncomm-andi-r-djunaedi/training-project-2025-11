@@ -12,6 +12,7 @@ import com.gdn.project.waroenk.catalog.VariantMedia;
 import com.gdn.project.waroenk.catalog.VariantServiceGrpc;
 import com.gdn.project.waroenk.catalog.entity.Variant;
 import com.gdn.project.waroenk.catalog.mapper.VariantMapper;
+import com.gdn.project.waroenk.catalog.service.GrpcValidationService;
 import com.gdn.project.waroenk.catalog.service.VariantService;
 import com.gdn.project.waroenk.common.Basic;
 import com.gdn.project.waroenk.common.Id;
@@ -29,9 +30,12 @@ public class VariantController extends VariantServiceGrpc.VariantServiceImplBase
 
   private static final VariantMapper mapper = VariantMapper.INSTANCE;
   private final VariantService variantService;
+  private final GrpcValidationService validationService;
 
   @Override
   public void createVariant(CreateVariantRequest request, StreamObserver<VariantData> responseObserver) {
+    validationService.validateCreateVariant(request.getSku(), request.getTitle(), request.getPrice());
+    
     Variant variant = mapper.toEntity(request);
     VariantData response = mapper.toResponseGrpc(variantService.createVariant(variant));
     responseObserver.onNext(response);
@@ -40,6 +44,8 @@ public class VariantController extends VariantServiceGrpc.VariantServiceImplBase
 
   @Override
   public void updateVariant(UpdateVariantRequest request, StreamObserver<VariantData> responseObserver) {
+    validationService.validateUpdateVariant(request.getId(), request.getSku(), request.getTitle(), request.getPrice());
+    
     Variant.VariantBuilder builder = Variant.builder();
     builder.sku(request.getSku());
     builder.title(request.getTitle());
@@ -67,6 +73,8 @@ public class VariantController extends VariantServiceGrpc.VariantServiceImplBase
 
   @Override
   public void deleteVariant(Id request, StreamObserver<Basic> responseObserver) {
+    validationService.validateId(request.getValue(), "Variant ID");
+    
     boolean result = variantService.deleteVariant(request.getValue());
     Basic response = Basic.newBuilder().setStatus(result).build();
     responseObserver.onNext(response);
@@ -75,6 +83,8 @@ public class VariantController extends VariantServiceGrpc.VariantServiceImplBase
 
   @Override
   public void findVariantById(Id request, StreamObserver<VariantData> responseObserver) {
+    validationService.validateId(request.getValue(), "Variant ID");
+    
     VariantData response = mapper.toResponseGrpc(variantService.findVariantById(request.getValue()));
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -82,6 +92,8 @@ public class VariantController extends VariantServiceGrpc.VariantServiceImplBase
 
   @Override
   public void findVariantBySubSku(FindVariantBySubSkuRequest request, StreamObserver<VariantData> responseObserver) {
+    validationService.validateSubSku(request.getSubSku());
+    
     VariantData response = mapper.toResponseGrpc(variantService.findVariantBySubSku(request.getSubSku()));
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -90,6 +102,8 @@ public class VariantController extends VariantServiceGrpc.VariantServiceImplBase
   @Override
   public void findVariantsBySku(FindVariantsBySkuRequest request,
       StreamObserver<MultipleVariantResponse> responseObserver) {
+    validationService.validateSku(request.getSku());
+    
     MultipleVariantResponse response = variantService.findVariantsBySku(request);
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -104,6 +118,8 @@ public class VariantController extends VariantServiceGrpc.VariantServiceImplBase
 
   @Override
   public void setDefaultVariant(SetDefaultVariantRequest request, StreamObserver<VariantData> responseObserver) {
+    validationService.validateId(request.getVariantId(), "Variant ID");
+    
     Variant variant = variantService.setDefaultVariant(request.getVariantId());
     VariantData response = mapper.toResponseGrpc(variant);
     responseObserver.onNext(response);

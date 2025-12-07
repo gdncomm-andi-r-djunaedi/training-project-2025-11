@@ -1,13 +1,22 @@
 package com.gdn.project.waroenk.member.validation;
 
+import com.gdn.project.waroenk.member.service.GrpcValidationService;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.util.StringUtils;
+import org.springframework.stereotype.Component;
 
+/**
+ * Bean Validation constraint validator for requiring at least one contact method.
+ * Delegates actual validation logic to {@link GrpcValidationService} for consistency.
+ */
+@Component
+@RequiredArgsConstructor
 public class AtLeastOneContactValidator implements ConstraintValidator<AtLeastOneContact, Object> {
 
+  private final GrpcValidationService validationService;
   private String emailField;
   private String phoneField;
 
@@ -27,9 +36,6 @@ public class AtLeastOneContactValidator implements ConstraintValidator<AtLeastOn
     String email = (String) wrapper.getPropertyValue(emailField);
     String phone = (String) wrapper.getPropertyValue(phoneField);
 
-    boolean hasEmail = StringUtils.hasText(email);
-    boolean hasPhone = StringUtils.hasText(phone);
-
-    return hasEmail || hasPhone;
+    return validationService.hasAtLeastOneContact(email, phone);
   }
 }

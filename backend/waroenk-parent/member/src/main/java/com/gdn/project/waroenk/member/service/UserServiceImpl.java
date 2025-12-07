@@ -156,7 +156,8 @@ public class UserServiceImpl extends PageAble<User, UUID> implements UserService
       return predicateList;
     };
 
-    ResultData<User> entries = query(predicateBuilder, size, request.getCursor(), mapper.toSortByDto(request.getSortBy()));
+    ResultData<User> entries = query(predicateBuilder, size, request.getCursor(),
+        PageAble.SortInfo.of(request.getSortBy().getField(), request.getSortBy().getDirection()));
     Long total = entries.getTotal();
     String nextToken = null;
     Optional<User> offset = entries.getOffset();

@@ -19,11 +19,20 @@ public record ProductDetailDto(
     BrandDetailDto brand,
     CategoryDetailDto category,
     List<VariantDetailDto> variants,
-    long totalStock,
+    List<VariantDetailDto.VariantMediaDto> medias,  // Product-level media from selected variant
+    VariantDetailDto.StockInfoDto stock,
+    PriceDto price,  // Price info from selected variant
     boolean hasStock,
     Instant createdAt,
     Instant updatedAt
 ) {
+  
+  public record PriceDto(
+      Double price,
+      Double discount,
+      String currency
+  ) {}
+
   
   public record MerchantDetailDto(
       String id,

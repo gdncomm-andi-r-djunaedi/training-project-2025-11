@@ -9,6 +9,7 @@ import com.gdn.project.waroenk.catalog.MultipleMerchantResponse;
 import com.gdn.project.waroenk.catalog.UpdateMerchantRequest;
 import com.gdn.project.waroenk.catalog.entity.Merchant;
 import com.gdn.project.waroenk.catalog.mapper.MerchantMapper;
+import com.gdn.project.waroenk.catalog.service.GrpcValidationService;
 import com.gdn.project.waroenk.catalog.service.MerchantService;
 import com.gdn.project.waroenk.common.Basic;
 import com.gdn.project.waroenk.common.Id;
@@ -23,9 +24,12 @@ public class MerchantController extends MerchantServiceGrpc.MerchantServiceImplB
 
   private static final MerchantMapper mapper = MerchantMapper.INSTANCE;
   private final MerchantService merchantService;
+  private final GrpcValidationService validationService;
 
   @Override
   public void createMerchant(CreateMerchantRequest request, StreamObserver<MerchantData> responseObserver) {
+    validationService.validateCreateMerchant(request.getName(), request.getCode());
+    
     Merchant merchant = mapper.toEntity(request);
     MerchantData response = mapper.toResponseGrpc(merchantService.createMerchant(merchant));
     responseObserver.onNext(response);
@@ -34,6 +38,8 @@ public class MerchantController extends MerchantServiceGrpc.MerchantServiceImplB
 
   @Override
   public void updateMerchant(UpdateMerchantRequest request, StreamObserver<MerchantData> responseObserver) {
+    validationService.validateUpdateMerchant(request.getId(), request.getName(), request.getCode());
+    
     Merchant merchant = Merchant.builder()
         .name(request.getName())
         .code(request.getCode())
@@ -52,6 +58,8 @@ public class MerchantController extends MerchantServiceGrpc.MerchantServiceImplB
 
   @Override
   public void deleteMerchant(Id request, StreamObserver<Basic> responseObserver) {
+    validationService.validateId(request.getValue(), "Merchant ID");
+    
     boolean result = merchantService.deleteMerchant(request.getValue());
     Basic response = Basic.newBuilder().setStatus(result).build();
     responseObserver.onNext(response);
@@ -60,6 +68,8 @@ public class MerchantController extends MerchantServiceGrpc.MerchantServiceImplB
 
   @Override
   public void findMerchantById(Id request, StreamObserver<MerchantData> responseObserver) {
+    validationService.validateId(request.getValue(), "Merchant ID");
+    
     MerchantData response = mapper.toResponseGrpc(merchantService.findMerchantById(request.getValue()));
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -67,6 +77,8 @@ public class MerchantController extends MerchantServiceGrpc.MerchantServiceImplB
 
   @Override
   public void findMerchantByCode(FindMerchantByCodeRequest request, StreamObserver<MerchantData> responseObserver) {
+    validationService.validateRequired(request.getCode(), "Merchant code");
+    
     MerchantData response = mapper.toResponseGrpc(merchantService.findMerchantByCode(request.getCode()));
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -79,6 +91,9 @@ public class MerchantController extends MerchantServiceGrpc.MerchantServiceImplB
     responseObserver.onCompleted();
   }
 }
+
+
+
 
 
 

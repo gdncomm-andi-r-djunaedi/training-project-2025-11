@@ -7,7 +7,3 @@ public interface CacheService {
     boolean flushAll();
     boolean flushCacheWithPattern(String pattern);
 }
-
-
-
-

@@ -10,7 +10,6 @@ public interface VersionMapper {
 
   VersionMapper INSTANCE = Mappers.getMapper(VersionMapper.class);
 
-  VersionResponseDto toResponseDto(VersionResponse grpc);
 }
 
 

@@ -4,6 +4,7 @@ import com.gdn.project.waroenk.catalog.CategoryNode;
 import com.gdn.project.waroenk.catalog.CategoryTreeResponse;
 import com.gdn.project.waroenk.catalog.FilterCategoryRequest;
 import com.gdn.project.waroenk.catalog.MultipleCategoryResponse;
+import com.gdn.project.waroenk.catalog.dto.category.CategoryTreeNodeDto;
 import com.gdn.project.waroenk.catalog.entity.Category;
 import com.gdn.project.waroenk.catalog.exceptions.DuplicateResourceException;
 import com.gdn.project.waroenk.catalog.exceptions.ResourceNotFoundException;
@@ -31,19 +32,23 @@ import java.util.concurrent.TimeUnit;
 public class CategoryServiceImpl extends MongoPageAble<Category, String> implements CategoryService {
   private static final CategoryMapper mapper = CategoryMapper.INSTANCE;
   private static final String CATEGORY_PREFIX = "category";
+  private static final String CATEGORY_NODE_PREFIX = "categoryNodes";
   private final CategoryRepository repository;
   private final CacheUtil<Category> cacheUtil;
+  private final CacheUtil<CategoryTreeNodeDto> categoryTreeNodeCacheUtil;
 
   @Value("${default.item-per-page:10}")
   private Integer defaultItemPerPage;
 
   public CategoryServiceImpl(CategoryRepository repository,
       CacheUtil<Category> cacheUtil,
+      CacheUtil<CategoryTreeNodeDto> categoryTreeNodeCacheUtil,
       CacheUtil<String> stringCacheUtil,
       MongoTemplate mongoTemplate) {
     super(CATEGORY_PREFIX, stringCacheUtil, mongoTemplate, 10, TimeUnit.MINUTES, Category.class);
     this.repository = repository;
     this.cacheUtil = cacheUtil;
+    this.categoryTreeNodeCacheUtil = categoryTreeNodeCacheUtil;
   }
 
   @Override
@@ -61,7 +66,8 @@ public class CategoryServiceImpl extends MongoPageAble<Category, String> impleme
   public Category updateCategory(String id, Category category) {
     Category existing = findCategoryById(id);
 
-    if (category.getName() != null) existing.setName(category.getName());
+    if (category.getName() != null)
+      existing.setName(category.getName());
     if (category.getSlug() != null && !existing.getSlug().equals(category.getSlug())) {
       if (repository.existsBySlug(category.getSlug())) {
         throw new DuplicateResourceException("Category with slug " + category.getSlug() + " already exists");
@@ -69,11 +75,13 @@ public class CategoryServiceImpl extends MongoPageAble<Category, String> impleme
       cacheUtil.removeValue(CATEGORY_PREFIX + ":slug:" + existing.getSlug());
       existing.setSlug(category.getSlug());
     }
-    if (category.getParentId() != null) existing.setParentId(category.getParentId());
+    if (category.getParentId() != null)
+      existing.setParentId(category.getParentId());
 
     Category updated = repository.save(existing);
     cacheUtil.putValue(CATEGORY_PREFIX + ":" + updated.getId(), updated, 7, TimeUnit.DAYS);
     cacheUtil.putValue(CATEGORY_PREFIX + ":slug:" + updated.getSlug(), updated, 7, TimeUnit.DAYS);
+    clearCategoryNodeCache(updated);
     return updated;
   }
 
@@ -111,6 +119,7 @@ public class CategoryServiceImpl extends MongoPageAble<Category, String> impleme
     repository.deleteById(id);
     cacheUtil.removeValue(CATEGORY_PREFIX + ":" + id);
     cacheUtil.removeValue(CATEGORY_PREFIX + ":slug:" + existing.getSlug());
+    clearCategoryNodeCache(existing);
     return true;
   }
 
@@ -132,8 +141,8 @@ public class CategoryServiceImpl extends MongoPageAble<Category, String> impleme
       return criteriaList;
     };
 
-    ResultData<Category> entries = query(criteriaBuilder, size, request.getCursor(),
-        mapper.toSortByDto(request.getSortBy()));
+    ResultData<Category> entries =
+        query(criteriaBuilder, size, request.getCursor(), mapper.toSortByDto(request.getSortBy()));
     Long total = entries.getTotal();
     String nextToken = null;
     Optional<Category> offset = entries.getOffset();
@@ -155,23 +164,56 @@ public class CategoryServiceImpl extends MongoPageAble<Category, String> impleme
     List<Category> rootCategories = repository.findByParentIdIsNull();
     CategoryTreeResponse.Builder builder = CategoryTreeResponse.newBuilder();
     for (Category root : rootCategories) {
-      builder.addNodes(buildCategoryNode(root));
+      builder.addNodes(getCategoryNodes(root));
     }
     return builder.build();
   }
 
-  private CategoryNode buildCategoryNode(Category category) {
+  @Override
+  public CategoryNode getCategoryNodes(Category category) {
+    String key = CATEGORY_NODE_PREFIX + ":" + category.getId();
     CategoryNode.Builder nodeBuilder = CategoryNode.newBuilder();
+    if (ObjectUtils.isEmpty(category)) {
+      return nodeBuilder.build();
+    }
+
+    CategoryTreeNodeDto cached = categoryTreeNodeCacheUtil.getValue(key);
+    if (ObjectUtils.isNotEmpty(cached)) {
+      return mapper.toCategoryNodeGrpc(cached);
+    }
+
     nodeBuilder.setId(category.getId());
     nodeBuilder.setName(category.getName());
     nodeBuilder.setSlug(category.getSlug());
 
     List<Category> children = repository.findByParentId(category.getId());
     for (Category child : children) {
-      nodeBuilder.addChildren(buildCategoryNode(child));
+      nodeBuilder.addChildren(getCategoryNodes(child));
     }
 
-    return nodeBuilder.build();
+    CategoryNode categoryNode = nodeBuilder.build();
+    categoryTreeNodeCacheUtil.putValue(key, mapper.toTreeNodeDto(categoryNode), 7, TimeUnit.DAYS);
+    return categoryNode;
+  }
+
+  private void clearCategoryNodeCache(Category category) {
+    if (ObjectUtils.isEmpty(category)) {
+      return;
+    }
+
+    CategoryNode nodes = getCategoryNodes(category);
+    nodes.getChildrenList().forEach(child -> {
+      Category childCategory = findCategoryById(child.getId());
+      clearCategoryNodeCache(childCategory);
+    });
+
+    String key = CATEGORY_NODE_PREFIX + ":" + nodes.getId();
+    categoryTreeNodeCacheUtil.removeValue(key);
+
+    if (ObjectUtils.isNotEmpty(category.getParentId())) {
+      String parentKey = CATEGORY_NODE_PREFIX + ":" + category.getParentId();
+      categoryTreeNodeCacheUtil.removeValue(parentKey);
+    }
   }
 
   @Override

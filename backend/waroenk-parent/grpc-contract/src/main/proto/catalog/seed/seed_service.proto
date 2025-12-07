@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package catalog.seed;
+
+import "common/base.proto";
+import "google/api/annotations.proto";
+import "catalog/seed/seed_messages.proto";
+
+option java_multiple_files = true;
+option java_package = "com.gdn.project.waroenk.catalog";
+option java_outer_classname = "SeedServiceProto";
+
+service SeedService {
+    rpc SeedProductForSpecificMerchant(seed.SeedMerchantProductRequest) returns (seed.SeedResponse) {
+        option (google.api.http) = {
+            post: "/api/seed/products"
+            body: "*"
+        };
+    }
+
+    rpc SeedProductsForAllMerchants(seed.SeedAllProductRequest) returns (seed.SeedResponse) {
+        option (google.api.http) = {
+            post: "/api/seed/products/all"
+        };
+    }
+
+    rpc IndexMerchantsInTypeSense(common.Empty) returns (seed.SeedResponse) {
+        option (google.api.http) = {
+            post: "/api/index/merchants"
+        };
+    }
+
+    rpc IndexProductsInTypeSense(common.Empty) returns (seed.SeedResponse) {
+        option (google.api.http) = {
+            post: "/api/index/products"
+        };
+    }
+
+    rpc IndexAllInTypeSense(common.Empty) returns (seed.SeedResponse) {
+        option (google.api.http) = {
+            post: "/api/index/all"
+        };
+    }
+}
+
+

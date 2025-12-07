@@ -42,6 +42,9 @@ services:
       GATEWAY_REGISTRATION_ENABLED: ${GATEWAY_REGISTRATION_ENABLED:-true}
       GATEWAY_HOST: ${GATEWAY_HOST:-api-gateway}
       GATEWAY_GRPC_PORT: ${GATEWAY_GRPC_PORT:-6565}
+      # gRPC Client addresses (use Docker service names)
+      GRPC_CATALOG_ADDRESS: ${GRPC_CATALOG_ADDRESS:-static://catalog:9091}
+      GRPC_MEMBER_ADDRESS: ${GRPC_MEMBER_ADDRESS:-static://member:9090}
 
 networks:
   backend:
