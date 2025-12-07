@@ -1,9 +1,9 @@
 package com.marketplace.product.command.impl;
 
+import com.marketplace.common.exception.ResourceNotFoundException;
 import com.marketplace.product.command.GetProductByIdCommand;
 import com.marketplace.product.document.Product;
 import com.marketplace.product.dto.request.GetProductByIdRequest;
-import com.marketplace.product.exception.ProductNotFoundException;
 import com.marketplace.product.repository.ProductRepository;
 import com.marketplace.product.service.ProductCacheService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class GetProductByIdCommandImpl implements GetProductByIdCommand {
                     Product dbProduct = productRepository.findById(productId)
                             .orElseThrow(() -> {
                                 log.warn("Product not found with ID: {}", productId);
-                                return new ProductNotFoundException(productId);
+                                return new ResourceNotFoundException("Product", productId);
                             });
 
                     // Cache the result

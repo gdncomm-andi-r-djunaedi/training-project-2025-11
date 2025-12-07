@@ -1,6 +1,7 @@
-package com.marketplace.member.dto;
+package com.marketplace.member.dto.request;
 
 import com.marketplace.member.constant.MemberConstants;
+import com.marketplace.member.validation.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -16,10 +17,11 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = MemberConstants.ValidationMessages.PASSWORD_REQUIRED)
-    @com.marketplace.member.validation.ValidPassword
+    @ValidPassword
     private String password;
 
     private String fullName;
     private String address;
     private String phoneNumber;
 }
+

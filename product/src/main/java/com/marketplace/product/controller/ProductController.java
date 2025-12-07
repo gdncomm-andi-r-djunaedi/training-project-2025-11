@@ -5,7 +5,6 @@ import com.marketplace.common.dto.ApiResponse;
 
 import com.marketplace.product.command.GetProductByIdCommand;
 import com.marketplace.product.command.SearchProductsCommand;
-import com.marketplace.product.document.Product;
 import com.marketplace.product.dto.request.GetProductByIdRequest;
 import com.marketplace.product.dto.request.SearchProductsRequest;
 import com.marketplace.product.dto.response.ProductResponse;
@@ -14,7 +13,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,10 +30,6 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController extends BaseCommandController {
 
     private static final int MAX_PAGE_SIZE = 100;
-
-    @Autowired
-    public ProductController() {
-    }
 
     /**
      * Search products by name with pagination.

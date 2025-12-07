@@ -2,7 +2,7 @@ package com.marketplace.cart.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marketplace.cart.client.ProductServiceClient;
-import com.marketplace.cart.dto.AddToCartRequest;
+import com.marketplace.cart.dto.request.AddToCartRequest;
 import com.marketplace.cart.dto.response.ProductDetailsResponse;
 import com.marketplace.cart.entity.Cart;
 import com.marketplace.cart.entity.CartItem;

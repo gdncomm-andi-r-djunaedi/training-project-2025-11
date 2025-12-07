@@ -32,6 +32,12 @@ public class ApiResponse<T> {
     private String message;
 
     /**
+     * Machine-readable error code for client-side error handling.
+     * Only present in error responses.
+     */
+    private String errorCode;
+
+    /**
      * The actual response data
      */
     private T data;
@@ -85,12 +91,35 @@ public class ApiResponse<T> {
     }
 
     /**
+     * Create an error response with a message and error code
+     */
+    public static <T> ApiResponse<T> error(String message, String errorCode) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .errorCode(errorCode)
+                .build();
+    }
+
+    /**
      * Create an error response with a message and data (e.g. validation errors)
      */
     public static <T> ApiResponse<T> error(String message, T data) {
         return ApiResponse.<T>builder()
                 .success(false)
                 .message(message)
+                .data(data)
+                .build();
+    }
+
+    /**
+     * Create an error response with message, error code, and data
+     */
+    public static <T> ApiResponse<T> error(String message, String errorCode, T data) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .errorCode(errorCode)
                 .data(data)
                 .build();
     }

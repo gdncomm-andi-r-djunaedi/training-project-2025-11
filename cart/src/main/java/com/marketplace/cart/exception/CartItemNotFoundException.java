@@ -1,5 +1,6 @@
 package com.marketplace.cart.exception;
 
+import com.marketplace.cart.constant.CartConstants;
 import com.marketplace.common.exception.BaseException;
 import org.springframework.http.HttpStatus;
 
@@ -9,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public class CartItemNotFoundException extends BaseException {
 
     public CartItemNotFoundException(String productId) {
-        super(String.format(com.marketplace.cart.constant.CartConstants.ErrorMessages.CART_ITEM_NOT_FOUND, productId),
+        super(String.format(CartConstants.ErrorMessages.CART_ITEM_NOT_FOUND, productId),
                 HttpStatus.NOT_FOUND.value(),
                 "CART_ITEM_NOT_FOUND");
     }

@@ -2,7 +2,7 @@ package com.marketplace.member.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marketplace.common.dto.ValidateCredentialsRequest;
-import com.marketplace.member.dto.RegisterRequest;
+import com.marketplace.member.dto.request.RegisterRequest;
 import com.marketplace.member.entity.Member;
 import com.marketplace.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,7 +83,6 @@ class MemberControllerIntegrationTest {
                 mockMvc.perform(post("/api/member/register")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isConflict())
                                 .andExpect(status().isConflict())
                                 .andExpect(jsonPath("$.success").value(false))
                                 .andExpect(jsonPath("$.message")

@@ -1,7 +1,9 @@
 package com.marketplace.seeder.command.impl;
 
 import com.marketplace.product.document.Product;
+import com.marketplace.product.document.ProductSearchDoc;
 import com.marketplace.product.repository.ProductRepository;
+import com.marketplace.product.repository.ProductSearchRepository;
 import com.marketplace.seeder.command.SeedProductsCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,7 @@ import java.util.List;
 public class SeedProductsCommandImpl implements SeedProductsCommand {
 
     private final ProductRepository productRepository;
-    private final com.marketplace.seeder.repository.ProductSearchRepository productSearchRepository;
+    private final ProductSearchRepository productSearchRepository;
     private final Faker faker;
 
     private static final int BATCH_SIZE = 1000;
@@ -198,8 +200,8 @@ public class SeedProductsCommandImpl implements SeedProductsCommand {
     }
 
     private void saveToElasticSearch(List<Product> products) {
-        List<com.marketplace.seeder.document.ProductSearchDoc> searchDocs = products.stream()
-                .map(p -> com.marketplace.seeder.document.ProductSearchDoc.builder()
+        List<ProductSearchDoc> searchDocs = products.stream()
+                .map(p -> ProductSearchDoc.builder()
                         .id(p.getId())
                         .name(p.getName())
                         .description(p.getDescription())

@@ -1,8 +1,8 @@
 package com.marketplace.cart.client;
 
 import com.marketplace.cart.dto.response.ProductDetailsResponse;
-import com.marketplace.cart.exception.ProductNotFoundException;
 import com.marketplace.common.dto.ApiResponse;
+import com.marketplace.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,7 @@ public class ProductServiceClient {
      *
      * @param productId The product ID
      * @return Product details
-     * @throws ProductNotFoundException if product is not found
+     * @throws ResourceNotFoundException if product is not found
      */
     @SuppressWarnings("unchecked")
     public ProductDetailsResponse getProductById(String productId) {
@@ -39,7 +39,7 @@ public class ProductServiceClient {
 
             if (response == null || response.getData() == null) {
                 log.error("Product not found: {}", productId);
-                throw new ProductNotFoundException(productId);
+                throw new ResourceNotFoundException("Product", productId);
             }
 
             // Convert LinkedHashMap to ProductDetailsResponse
@@ -53,11 +53,11 @@ public class ProductServiceClient {
                         .build();
             }
 
-            throw new ProductNotFoundException(productId);
+            throw new ResourceNotFoundException("Product", productId);
 
         } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
             log.error("Product not found: {}", productId);
-            throw new ProductNotFoundException(productId);
+            throw new ResourceNotFoundException("Product", productId);
         } catch (Exception e) {
             log.error("Error fetching product {}: {}", productId, e.getMessage());
             throw new RuntimeException("Failed to fetch product details", e);

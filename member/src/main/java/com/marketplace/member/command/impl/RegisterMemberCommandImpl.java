@@ -2,8 +2,8 @@ package com.marketplace.member.command.impl;
 
 import com.marketplace.common.aspect.Auditable;
 import com.marketplace.member.command.RegisterMemberCommand;
-import com.marketplace.member.dto.MemberResponse;
-import com.marketplace.member.dto.RegisterRequest;
+import com.marketplace.member.dto.request.RegisterRequest;
+import com.marketplace.member.dto.response.MemberResponse;
 import com.marketplace.member.entity.Member;
 import com.marketplace.member.exception.UserAlreadyExistsException;
 import com.marketplace.member.repository.MemberRepository;

@@ -1,4 +1,4 @@
-package com.marketplace.member.dto;
+package com.marketplace.member.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -17,3 +17,4 @@ public class MemberResponse {
     private String address;
     private String phoneNumber;
 }
+

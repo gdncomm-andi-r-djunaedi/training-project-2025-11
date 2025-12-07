@@ -1,4 +1,4 @@
-package com.marketplace.cart.dto;
+package com.marketplace.cart.dto.request;
 
 import com.marketplace.cart.constant.CartConstants;
 import jakarta.validation.constraints.Min;
@@ -18,3 +18,4 @@ public class AddToCartRequest {
     @Min(value = 1, message = CartConstants.ValidationMessages.QUANTITY_MIN)
     private Integer quantity;
 }
+

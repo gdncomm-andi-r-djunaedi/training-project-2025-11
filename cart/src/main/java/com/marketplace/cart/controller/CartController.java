@@ -3,7 +3,7 @@ package com.marketplace.cart.controller;
 import com.marketplace.cart.command.AddToCartCommand;
 import com.marketplace.cart.command.GetCartCommand;
 import com.marketplace.cart.command.RemoveFromCartCommand;
-import com.marketplace.cart.dto.AddToCartRequest;
+import com.marketplace.cart.dto.request.AddToCartRequest;
 import com.marketplace.cart.dto.request.AddToCartCommandRequest;
 import com.marketplace.cart.dto.request.GetCartRequest;
 import com.marketplace.cart.dto.request.RemoveFromCartRequest;
