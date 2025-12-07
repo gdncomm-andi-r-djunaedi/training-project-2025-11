@@ -96,12 +96,10 @@ class MemberServiceTest {
 
 
         LoginValidationResponseDTO result = memberService.login(loginRequest);
-
         assertNotNull(result);
         assertTrue(result.isMember());
         assertEquals(1L, result.getUserId());
         assertEquals("john@example.com", result.getUserName());
-
 
         verify(memberRepository, times(1)).findByUserName("john@example.com");
         verify(passwordEncoder, times(1)).matches("password123", "$2a$10$encodedPasswordHash");
@@ -115,7 +113,6 @@ class MemberServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> {
             memberService.login(loginRequest);
         });
-
 
         verify(memberRepository, times(1)).findByUserName("john@example.com");
         verify(passwordEncoder, never()).matches(anyString(), anyString());

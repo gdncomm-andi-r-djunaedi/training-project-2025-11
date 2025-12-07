@@ -92,7 +92,6 @@ public class JwtFilter implements Filter {
     }
 
     private boolean requiresAuthentication(String path) {
-        // Public endpoints that don't require JWT authentication
         if (path.startsWith("/auth/login") ||
             path.startsWith("/member/register") ||
             path.startsWith("/member/login") ||
@@ -100,7 +99,6 @@ public class JwtFilter implements Filter {
             path.startsWith("/books")) {
             return false;
         }
-        // All other endpoints require authentication (including /member/{userId} for profile)
         return true;
     }
 
