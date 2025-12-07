@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleException(Exception ex) {
         ex.printStackTrace(); // Print stack trace to console
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Unexpected Error: " + ex.getMessage());
+                .body("Unexpected Error [" + ex.getClass().getSimpleName() + "]: " + ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

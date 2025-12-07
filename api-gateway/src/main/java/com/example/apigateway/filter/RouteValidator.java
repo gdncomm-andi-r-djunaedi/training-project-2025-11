@@ -16,7 +16,10 @@ public class RouteValidator {
                         "/product",
                         "/product/**",
                         "/api/products",
-                        "/api/products/**");
+                        "/v3/api-docs",
+                        "/swagger-ui",
+                        "/swagger-ui.html",
+                        "/webjars");
 
         public Predicate<ServerHttpRequest> isSecured = request -> {
                 String path = request.getURI().getPath();

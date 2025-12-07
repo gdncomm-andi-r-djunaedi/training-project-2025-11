@@ -12,6 +12,11 @@ public abstract class AbstractIntegrationTest {
 
     @Container
     @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0");
+
+    static {
+        // Disable Ryuk to avoid issues with Rancher Desktop / privileges
+        System.setProperty("TESTCONTAINERS_RYUK_DISABLED", "true");
+    }
 
 }

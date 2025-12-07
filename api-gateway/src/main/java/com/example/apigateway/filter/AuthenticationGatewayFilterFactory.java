@@ -10,10 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.core.io.buffer.DataBuffer;
+import reactor.core.publisher.Mono;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j
-public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config> {
+public class AuthenticationGatewayFilterFactory
+        extends AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config> {
 
     @Autowired
     private RouteValidator routeValidator;
@@ -50,14 +54,22 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
                                 log.error("Token validation failed: {}", e.getMessage());
                                 ServerHttpResponse response = exchange.getResponse();
                                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                                return response.setComplete();
+                                response.getHeaders().add("Content-Type", "application/json");
+                                String errorMessage = "{\"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Invalid or missing token\"}";
+                                DataBuffer buffer = response.bufferFactory()
+                                        .wrap(errorMessage.getBytes(StandardCharsets.UTF_8));
+                                return response.writeWith(Mono.just(buffer));
                             }
                         })
                         .orElseGet(() -> {
                             log.warn("Missing token for secured endpoint: {}", request.getURI().getPath());
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                            return response.setComplete();
+                            response.getHeaders().add("Content-Type", "application/json");
+                            String errorMessage = "{\"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Missing authorization header\"}";
+                            DataBuffer buffer = response.bufferFactory()
+                                    .wrap(errorMessage.getBytes(StandardCharsets.UTF_8));
+                            return response.writeWith(Mono.just(buffer));
                         });
             }
 
@@ -69,4 +81,3 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
         // Configuration properties if needed
     }
 }
-

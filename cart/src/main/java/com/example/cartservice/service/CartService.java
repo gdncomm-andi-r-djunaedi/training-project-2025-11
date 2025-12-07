@@ -66,6 +66,13 @@ public class CartService {
     }
 
     public Cart addToCart(Long userId, AddToCartRequest request) {
+        // Validate product exists
+        try {
+            productClient.getProduct(request.getProductId());
+        } catch (FeignException.NotFound e) {
+            throw new IllegalArgumentException("Product not found: " + request.getProductId());
+        }
+
         Cart cart = repository.findById(userId)
                 .orElse(new Cart(userId, new ArrayList<>()));
 

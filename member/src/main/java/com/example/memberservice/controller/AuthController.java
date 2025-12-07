@@ -29,23 +29,10 @@ public class AuthController {
                 .secure(true)
                 .sameSite("Strict")
                 .path("/")
-                .maxAge(30 * 60) // 30 minutes
+                .maxAge(30 * 60)
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
         return new AuthDto.AuthResponse(token, validationResponse.getUserId(), validationResponse.getUsername());
     }
 
-    @PostMapping("/logout")
-    public String logout(HttpServletResponse response) {
-        // Clear the JWT cookie
-        ResponseCookie deleteCookie = ResponseCookie.from("jwt", "")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-        response.addHeader("Set-Cookie", deleteCookie.toString());
-        return "Logged out";
-    }
 }

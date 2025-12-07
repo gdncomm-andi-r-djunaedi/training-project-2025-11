@@ -27,6 +27,9 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private JwtService jwtService;
+
     @InjectMocks
     private AuthService authService;
 
@@ -60,6 +63,20 @@ class AuthServiceTest {
         DuplicateUserException exception = assertThrows(DuplicateUserException.class,
                 () -> authService.saveUser(request));
         assertEquals("Email already exists: test@test.com", exception.getMessage());
+    }
+
+    @Test
+    void saveUser_shouldThrowException_whenUsernameExists() {
+        AuthDto.RegisterRequest request = new AuthDto.RegisterRequest();
+        request.setUsername("test");
+        request.setPassword("password");
+        request.setEmail("test@test.com");
+
+        when(repository.findByUsername("test")).thenReturn(Optional.of(new Member()));
+
+        DuplicateUserException exception = assertThrows(DuplicateUserException.class,
+                () -> authService.saveUser(request));
+        assertEquals("Username already exists: test", exception.getMessage());
     }
 
     @Test
@@ -109,5 +126,18 @@ class AuthServiceTest {
         InvalidPasswordException exception = assertThrows(InvalidPasswordException.class,
                 () -> authService.validateUser(request));
         assertEquals("Invalid password", exception.getMessage());
+    }
+
+    @Test
+    void generateToken_shouldReturnToken() {
+        String username = "test";
+        Long userId = 1L;
+        String expectedToken = "token";
+
+        when(jwtService.generateToken(username, "1")).thenReturn(expectedToken);
+
+        String result = authService.generateToken(username, userId);
+
+        assertEquals(expectedToken, result);
     }
 }

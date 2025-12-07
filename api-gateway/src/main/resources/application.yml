@@ -27,4 +27,17 @@ jwt:
 
 member:
   service:
-    base-url: http://localhost:8081
+    base-url: ${MEMBER_SERVICE_URL:http://localhost:8081}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    urls:
+      - url: /member-service/v3/api-docs
+        name: member-service
+      - url: /product-service/v3/api-docs
+        name: product-service
+      - url: /cart-service/v3/api-docs
+        name: cart-service

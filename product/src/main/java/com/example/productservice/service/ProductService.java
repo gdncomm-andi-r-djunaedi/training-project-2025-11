@@ -18,7 +18,9 @@ public class ProductService {
     }
 
     public Product getProduct(String id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+        return repository.findById(id)
+                .orElseThrow(() -> new com.example.productservice.exception.ResourceNotFoundException(
+                        "Product not found with id: " + id));
     }
 
     public Page<Product> searchProducts(String name, int page, int size) {

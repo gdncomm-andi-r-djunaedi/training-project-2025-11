@@ -34,39 +34,6 @@ public class JwtService {
                 .compact();
     }
 
-    /**
-     * Validate a JWT token and extract the username.
-     * 
-     * @param token the JWT token to validate
-     * @return the username from the token
-     */
-    public String extractUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSignKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-    }
-
-    /**
-     * Validate if a token is valid and not expired.
-     * 
-     * @param token the JWT token to validate
-     * @return true if valid, false otherwise
-     */
-    public boolean isTokenValid(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSignKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);

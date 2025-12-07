@@ -74,6 +74,35 @@ class CartServiceTest {
     }
 
     @Test
+    void getCart_shouldHandleGenericException_whenEnrichingItem() {
+        Long userId = 1L;
+        CartItem item = new CartItem("p1", 2);
+        Cart cart = new Cart(userId, new ArrayList<>());
+        cart.getItems().add(item);
+
+        when(repository.findById(userId)).thenReturn(Optional.of(cart));
+        when(productClient.getProduct("p1")).thenThrow(new RuntimeException("Unexpected error"));
+
+        CartDTO result = cartService.getCart(userId);
+
+        assertEquals(1, result.getItems().size());
+        assertEquals("Product details unavailable", result.getItems().get(0).getProductName());
+        assertEquals("Unable to load product information", result.getItems().get(0).getDescription());
+    }
+
+    @Test
+    void addToCart_shouldThrowException_whenProductNotFound() {
+        Long userId = 1L;
+        AddToCartRequest request = new AddToCartRequest("invalid-product", 1);
+
+        when(productClient.getProduct("invalid-product")).thenThrow(FeignException.NotFound.class);
+
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            cartService.addToCart(userId, request);
+        });
+    }
+
+    @Test
     void addToCart_shouldAddNewItem() {
         Long userId = 1L;
         Cart cart = new Cart(userId, new ArrayList<>());

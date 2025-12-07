@@ -12,6 +12,11 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 public abstract class AbstractIntegrationTest {
 
+    static {
+        // Disable Ryuk to avoid issues with Rancher Desktop / privileges
+        System.setProperty("TESTCONTAINERS_RYUK_DISABLED", "true");
+    }
+
     @SuppressWarnings("resource")
     @Container
     @ServiceConnection(name = "redis")

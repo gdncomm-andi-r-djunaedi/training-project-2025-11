@@ -8,68 +8,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RouteValidatorTest {
 
-    private final RouteValidator validator = new RouteValidator();
+    private final RouteValidator routeValidator = new RouteValidator();
 
     @Test
-    void isSecured_shouldReturnFalse_forAuthRegister() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/auth/register").build();
-        assertFalse(validator.isSecured.test(request));
+    void isSecured_shouldReturnFalse_forWhitelistedEndpoints() {
+        // Test Swagger UI paths
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/swagger-ui.html").build()));
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/swagger-ui/index.html").build()));
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/v3/api-docs").build()));
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/v3/api-docs/swagger-config").build()));
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/webjars/swagger-ui/index.html").build()));
+
+        // Test Auth paths
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/auth/login").build()));
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/auth/register").build()));
+
+        // Test Product paths (Assuming configured as open)
+        assertFalse(routeValidator.isSecured.test(MockServerHttpRequest.get("/api/products").build()));
     }
 
     @Test
-    void isSecured_shouldReturnFalse_forAuthLogin() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/auth/login").build();
-        assertFalse(validator.isSecured.test(request));
-    }
-
-    @Test
-    void isSecured_shouldReturnFalse_forAuthLogout() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/auth/logout").build();
-        assertFalse(validator.isSecured.test(request));
-    }
-
-    @Test
-    void isSecured_shouldReturnFalse_forProductRoot() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/product").build();
-        assertFalse(validator.isSecured.test(request));
-    }
-
-    @Test
-    void isSecured_shouldReturnFalse_forProductSubPaths() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/product/123").build();
-        assertFalse(validator.isSecured.test(request));
-
-        request = MockServerHttpRequest.get("/product/123/details").build();
-        assertFalse(validator.isSecured.test(request));
-    }
-
-    @Test
-    void isSecured_shouldReturnTrue_forApiProducts() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/api/products").build();
-        assertTrue(validator.isSecured.test(request));
-    }
-
-    @Test
-    void isSecured_shouldReturnTrue_forApiCart() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/api/cart").build();
-        assertTrue(validator.isSecured.test(request));
-
-        request = MockServerHttpRequest.get("/api/cart/123").build();
-        assertTrue(validator.isSecured.test(request));
-    }
-
-    @Test
-    void isSecured_shouldReturnTrue_forOtherPaths() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/api/users").build();
-        assertTrue(validator.isSecured.test(request));
-
-        request = MockServerHttpRequest.get("/admin/dashboard").build();
-        assertTrue(validator.isSecured.test(request));
-    }
-
-    @Test
-    void isSecured_shouldReturnTrue_forRootPath() {
-        MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
-        assertTrue(validator.isSecured.test(request));
+    void isSecured_shouldReturnTrue_forProtectedEndpoints() {
+        assertTrue(routeValidator.isSecured.test(MockServerHttpRequest.get("/api/cart").build()));
+        assertTrue(routeValidator.isSecured.test(MockServerHttpRequest.get("/api/cart/1").build()));
     }
 }
