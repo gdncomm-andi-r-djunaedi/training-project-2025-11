@@ -2,6 +2,7 @@ package com.demo.cart.controller;
 
 import com.demo.cart.DTO.AddItemRequestDTO;
 import com.demo.cart.DTO.AddToCartResponseDTO;
+import com.demo.cart.DTO.DecreaseQuantityRequestDTO;
 import com.demo.cart.DTO.GdnBaseResponse;
 import com.demo.cart.DTO.CartResponseDTO;
 import com.demo.cart.DTO.UpdateItemRequestDTO;
@@ -155,6 +156,46 @@ public class CartController {
         } catch (Exception e) {
             log.error("Error removing item from cart - userId: {}, cartItemId: {}", 
                     userId, cartItemId, e);
+            throw e;
+        }
+    }
+
+    @PutMapping("/decrease-quantity")
+    public ResponseEntity<GdnBaseResponse<CartResponseDTO>> decreaseQuantity(
+            @RequestHeader(value = "X-User-Id", required = false) Long userId, 
+            @RequestBody(required = false) DecreaseQuantityRequestDTO request) {
+        
+        log.info("Received decrease quantity request - userId: {}, cartItemId: {}, quantity: {}", 
+                userId, request != null ? request.getCartItemId() : "null", 
+                request != null ? request.getQuantity() : "null");
+        
+        if (userId == null) {
+            log.warn("Decrease quantity failed: X-User-Id header is missing");
+            throw new IllegalArgumentException("X-User-Id header is required");
+        }
+        if (request == null) {
+            log.warn("Decrease quantity failed: Request body is missing for userId: {}", userId);
+            throw new IllegalArgumentException("Request body is required");
+        }
+        if (request.getCartItemId() == null || request.getCartItemId().trim().isEmpty()) {
+            log.warn("Decrease quantity failed: Cart Item ID is missing for userId: {}", userId);
+            throw new IllegalArgumentException("Cart Item ID is required");
+        }
+        if (request.getQuantity() == null || request.getQuantity() <= 0) {
+            log.warn("Decrease quantity failed: Invalid quantity {} for userId: {}, cartItemId: {}", 
+                    request.getQuantity(), userId, request.getCartItemId());
+            throw new IllegalArgumentException("Quantity to decrease must be greater than 0");
+        }
+        
+        try {
+            CartResponseDTO cart = cartService.decreaseQuantity(userId, request);
+            log.info("Quantity decreased successfully - userId: {}, cartItemId: {}, quantity decreased by: {}", 
+                    userId, request.getCartItemId(), request.getQuantity());
+            GdnBaseResponse<CartResponseDTO> response = GdnBaseResponse.success(cart, "Quantity decreased successfully", HttpStatus.OK.value());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error decreasing quantity - userId: {}, cartItemId: {}", 
+                    userId, request.getCartItemId(), e);
             throw e;
         }
     }

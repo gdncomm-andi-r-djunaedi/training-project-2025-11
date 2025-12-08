@@ -2,6 +2,7 @@ package com.demo.cart.service;
 
 import com.demo.cart.DTO.AddItemRequestDTO;
 import com.demo.cart.DTO.CartResponseDTO;
+import com.demo.cart.DTO.DecreaseQuantityRequestDTO;
 import com.demo.cart.DTO.UpdateItemRequestDTO;
 
 public interface CartService {
@@ -10,4 +11,5 @@ public interface CartService {
     CartResponseDTO getCart(Long userId);
     CartResponseDTO updateCart(Long userId, UpdateItemRequestDTO request);
     void removeItem(Long userId, String cartItemId);
+    CartResponseDTO decreaseQuantity(Long userId, DecreaseQuantityRequestDTO request);
 }

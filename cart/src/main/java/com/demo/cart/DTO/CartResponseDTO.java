@@ -9,4 +9,6 @@ public class CartResponseDTO {
     private String cartId;
     private Long userId;
     private List<ItemResponseDTO> items;
+    private Double totalPrice;
+    private Integer totalItems;
 }

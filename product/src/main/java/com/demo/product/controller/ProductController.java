@@ -60,7 +60,8 @@ public class ProductController {
         log.info("Received book search request - keyword: {}, page: {}, size: {}", 
                 keyword, page, size);
 
-        if (keyword == null || keyword.trim().isEmpty()) {
+        String trimmedKeyword = keyword != null ? keyword.trim() : null;
+        if (trimmedKeyword == null || trimmedKeyword.isEmpty()) {
             log.warn("Book search failed: Keyword is missing");
             throw new IllegalArgumentException("Keyword parameter is required for search");
         }
@@ -74,13 +75,13 @@ public class ProductController {
         }
 
         try {
-            Page<BookResponseDTO> books = bookService.search(keyword, page, size);
+            Page<BookResponseDTO> books = bookService.search(trimmedKeyword, page, size);
             log.info("Book search completed for keyword '{}' - found {} books, total pages: {}", 
-                    keyword, books.getTotalElements(), books.getTotalPages());
+                    trimmedKeyword, books.getTotalElements(), books.getTotalPages());
             GdnBaseResponse<Page<BookResponseDTO>> response = GdnBaseResponse.success(books, "Books retrieved successfully", HttpStatus.OK.value());
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("Error during book search for keyword: {}", keyword, e);
+            log.error("Error during book search for keyword: {}", trimmedKeyword, e);
             throw e;
         }
     }

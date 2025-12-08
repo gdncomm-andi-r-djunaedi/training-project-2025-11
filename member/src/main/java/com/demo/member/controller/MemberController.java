@@ -6,6 +6,7 @@ import com.demo.member.DTO.LoginValidationResponseDTO;
 import com.demo.member.DTO.MemberRegisterRequestDTO;
 import com.demo.member.DTO.MemberResponseDTO;
 import com.demo.member.service.MemberService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,23 +23,15 @@ public class MemberController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<GdnBaseResponse<MemberResponseDTO>> register(@RequestBody MemberRegisterRequestDTO request) {
+    public ResponseEntity<GdnBaseResponse<MemberResponseDTO>> register(@Valid @RequestBody MemberRegisterRequestDTO request) {
         log.info("Received registration request for email: {}", request != null ? request.getUserName() : "null");
-        if (request == null) {
-            log.warn("Registration request failed: Request body is null");
-            throw new IllegalArgumentException("Request body is required");
-        }
-        if (request.getUserName() == null || request.getUserName().trim().isEmpty()) {
-            log.warn("Registration request failed: Email is missing");
-            throw new IllegalArgumentException("Email is required");
-        }
-        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
-            log.warn("Registration request failed: Password is missing for email: {}", request.getUserName());
-            throw new IllegalArgumentException("Password is required");
-        }
-        if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
-            log.warn("Registration request failed: Full name is missing for email: {}", request.getUserName());
-            throw new IllegalArgumentException("Full name is required");
+        
+        // Additional validation for trimmed email
+        if (request != null && request.getUserName() != null) {
+            String trimmedEmail = request.getUserName().trim();
+            if (!trimmedEmail.equals(request.getUserName())) {
+                request.setUserName(trimmedEmail);
+            }
         }
 
         try {
@@ -48,7 +41,7 @@ public class MemberController {
             GdnBaseResponse<MemberResponseDTO> response = GdnBaseResponse.success(memberResponseDTO, "User registered successfully", HttpStatus.OK.value());
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("Error during user registration for email: {}", request.getUserName(), e);
+            log.error("Error during user registration for email: {}", request != null ? request.getUserName() : "null", e);
             throw e;
         }
     }

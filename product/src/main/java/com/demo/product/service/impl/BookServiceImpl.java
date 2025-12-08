@@ -42,6 +42,10 @@ public class BookServiceImpl implements BookService {
     @Override
     @Cacheable(value = "books", key = "'search:' + #keyword + ':page:' + #page + ':size:' + #size")
     public Page<BookResponseDTO> search(String keyword, int page, int size) {
+        if (keyword == null || keyword.isEmpty()) {
+            Pageable pageable = PageRequest.of(page, size);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
 
         List<Books> merged = new ArrayList<>();
 

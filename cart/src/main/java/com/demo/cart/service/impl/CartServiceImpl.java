@@ -84,6 +84,8 @@ public class CartServiceImpl implements CartService {
             empty.setUserId(userId);
             empty.setItems(new ArrayList<>());
             empty.setCartId(null);
+            empty.setTotalPrice(0.0);
+            empty.setTotalItems(0);
             return empty;
         }
         
@@ -143,6 +145,55 @@ public class CartServiceImpl implements CartService {
         cart.getItems().removeIf(item -> item.getCartItemId().equals(cartItemId));
 
         cartRepository.save(cart);
+    }
+
+    @Override
+    public CartResponseDTO decreaseQuantity(Long userId, DecreaseQuantityRequestDTO request) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user ID: " + userId));
+
+        CartItem item = cart.getItems().stream()
+                .filter(i -> i.getCartItemId().equals(request.getCartItemId()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found with ID: " + request.getCartItemId()));
+
+        if (request.getQuantity() == null || request.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity to decrease must be greater than 0");
+        }
+
+        int currentQuantity = item.getQuantity();
+        int decreaseAmount = request.getQuantity();
+        
+        if (decreaseAmount >= currentQuantity) {
+            log.info("Decrease amount {} is greater than or equal to current quantity {} for cartItemId: {}, removing item",
+                    decreaseAmount, currentQuantity, request.getCartItemId());
+            cart.getItems().removeIf(i -> i.getCartItemId().equals(request.getCartItemId()));
+        } else {
+            int newQuantity = currentQuantity - decreaseAmount;
+            try {
+                GdnBaseResponse<BookResponseDTO> bookResponse = productClient.getBook(item.getBookId());
+                if (bookResponse == null || !bookResponse.isSuccess() || bookResponse.getData() == null) {
+                    throw new ResourceNotFoundException("Book not found with ID: " + item.getBookId());
+                }
+                BookResponseDTO book = bookResponse.getData();
+                item.setQuantity(newQuantity);
+                item.setUnitPrice(book.getPrice());
+                item.setTotalPrice(book.getPrice() * newQuantity);
+                log.info("Decreased quantity for cartItemId: {} from {} to {} (decreased by {})", 
+                        request.getCartItemId(), currentQuantity, newQuantity, decreaseAmount);
+            } catch (FeignException e) {
+                if (e.status() == 404) {
+                    log.warn("Book {} no longer exists, removing cart item {} for userId: {}",
+                            item.getBookId(), request.getCartItemId(), userId);
+                    cart.getItems().removeIf(i -> i.getCartItemId().equals(request.getCartItemId()));
+                    cartRepository.save(cart);
+                    throw new ResourceNotFoundException("Book no longer exists. Cart item has been removed.");
+                }
+                throw e;
+            }
+        }
+
+        return convertToDTO(cartRepository.save(cart));
     }
 
     private boolean refreshCartItemPrices(Cart cart) {
@@ -254,6 +305,17 @@ public class CartServiceImpl implements CartService {
                 .filter(dto -> dto != null)
                 .collect(Collectors.toList());
         response.setItems(itemResponses);
+        
+        Double totalPrice = itemResponses.stream()
+                .mapToDouble(item -> item.getTotalPrice() != null ? item.getTotalPrice() : 0.0)
+                .sum();
+        response.setTotalPrice(totalPrice);
+        
+        Integer totalItems = itemResponses.stream()
+                .mapToInt(item -> item.getQuantity() != null ? item.getQuantity() : 0)
+                .sum();
+        response.setTotalItems(totalItems);
+        
         return response;
     }
 }
