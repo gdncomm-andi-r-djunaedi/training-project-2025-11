@@ -16,9 +16,10 @@ import com.gdn.project.waroenk.catalog.GetProductSummaryRequest;
 import com.gdn.project.waroenk.catalog.GetProductSummaryResponse;
 import com.gdn.project.waroenk.catalog.InventoryCheckItem;
 import com.gdn.project.waroenk.catalog.MerchantDetail;
+import com.gdn.project.waroenk.catalog.PriceInfo;
 import com.gdn.project.waroenk.catalog.ProductDetailData;
+import com.gdn.project.waroenk.catalog.ProductMedia;
 import com.gdn.project.waroenk.catalog.ProductVariantDetail;
-import com.gdn.project.waroenk.catalog.ProductVariantMedia;
 import com.gdn.project.waroenk.catalog.SearchContactInfo;
 import com.gdn.project.waroenk.catalog.SearchMerchantData;
 import com.gdn.project.waroenk.catalog.SearchMerchantsRequest;
@@ -39,6 +40,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.apache.commons.lang3.ObjectUtils;
 import org.typesense.model.FacetCounts;
 
 import java.time.Instant;
@@ -81,8 +83,26 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
     try {
       // Only pass buyable if explicitly set in the request (optional field)
       Boolean buyable = request.hasBuyable() ? request.getBuyable() : null;
-      
-      SearchService.Result<AggregatedProductDto> result = searchService.searchProducts(request.getQuery(),
+
+      // Build queries map from request fields
+      java.util.Map<String, String> queries = new java.util.HashMap<>();
+      if (request.hasQuery() && !request.getQuery().isEmpty()) {
+        queries.put("q", request.getQuery());
+      }
+      if (request.hasCategory() && !request.getCategory().isEmpty()) {
+        queries.put("category", request.getCategory());
+      }
+      if (request.hasBrand() && !request.getBrand().isEmpty()) {
+        queries.put("brand", request.getBrand());
+      }
+      if (request.hasMerchant() && !request.getMerchant().isEmpty()) {
+        queries.put("merchantCode", request.getMerchant());
+      }
+      if (request.hasLocation() && !request.getLocation().isEmpty()) {
+        queries.put("merchantLocation", request.getLocation());
+      }
+
+      SearchService.Result<AggregatedProductDto> result = searchService.searchProducts(queries,
           request.getSize(),
           request.getCursor(),
           request.getSortBy(),
@@ -175,6 +195,8 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
       builder.setId(dto.id());
     if (dto.merchantName() != null)
       builder.setMerchantName(dto.merchantName());
+    if (dto.merchantCode() != null)
+      builder.setMerchantCode(dto.merchantCode());
     if (dto.merchantLocation() != null)
       builder.setMerchantLocation(dto.merchantLocation());
     if (dto.title() != null)
@@ -185,6 +207,12 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
       builder.setBrand(dto.brand());
     if (dto.category() != null)
       builder.setCategory(dto.category());
+    if (dto.categoryCode() != null)
+      builder.setCategoryCode(dto.categoryCode());
+    if (dto.categoryNames() != null)
+      builder.addAllCategoryNames(dto.categoryNames());
+    if (dto.categoryCodes() != null)
+      builder.addAllCategoryCodes(dto.categoryCodes());
     if (dto.thumbnail() != null)
       builder.setThumbnail(dto.thumbnail());
     if (dto.slug() != null)
@@ -197,6 +225,12 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
       builder.setPrice(dto.price());
     if (dto.variantKeywords() != null)
       builder.addAllVariantKeywords(dto.variantKeywords());
+    if (dto.attributes() != null)
+      builder.setAttributes(mapToStruct(dto.attributes()));
+    if (dto.createdAt() != null)
+      builder.setCreatedAt(toTimestamp(dto.createdAt()));
+    if (dto.updatedAt() != null)
+      builder.setUpdatedAt(toTimestamp(dto.updatedAt()));
 
     return builder.build();
   }
@@ -278,8 +312,7 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
     try {
       SearchService.ProductDetailsResult result = searchService.getProductDetails(request.getId());
 
-      GetProductDetailsResponse.Builder responseBuilder = GetProductDetailsResponse.newBuilder()
-          .setTook(result.took());
+      GetProductDetailsResponse.Builder responseBuilder = GetProductDetailsResponse.newBuilder().setTook(result.took());
 
       if (result.product() != null) {
         responseBuilder.setProduct(mapToProductDetailData(result.product()));
@@ -289,9 +322,8 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
       responseObserver.onCompleted();
     } catch (Exception e) {
       log.error("Error getting product details for id: {}", request.getId(), e);
-      responseObserver.onError(io.grpc.Status.INTERNAL
-          .withDescription("Failed to get product details: " + e.getMessage())
-          .asRuntimeException());
+      responseObserver.onError(io.grpc.Status.INTERNAL.withDescription(
+          "Failed to get product details: " + e.getMessage()).asRuntimeException());
     }
   }
 
@@ -307,24 +339,20 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
           .setTook(result.took());
 
       if (result.products() != null) {
-        responseBuilder.addAllProducts(result.products().stream()
-            .map(this::mapToAggregatedProductData)
-            .toList());
+        responseBuilder.addAllProducts(result.products().stream().map(this::mapToAggregatedProductData).toList());
       }
 
       responseObserver.onNext(responseBuilder.build());
       responseObserver.onCompleted();
     } catch (Exception e) {
       log.error("Error getting product summary", e);
-      responseObserver.onError(io.grpc.Status.INTERNAL
-          .withDescription("Failed to get product summary: " + e.getMessage())
-          .asRuntimeException());
+      responseObserver.onError(io.grpc.Status.INTERNAL.withDescription(
+          "Failed to get product summary: " + e.getMessage()).asRuntimeException());
     }
   }
 
   @Override
-  public void checkInventory(CheckInventoryRequest request,
-      StreamObserver<CheckInventoryResponse> responseObserver) {
+  public void checkInventory(CheckInventoryRequest request, StreamObserver<CheckInventoryResponse> responseObserver) {
     try {
       SearchService.InventoryCheckResult result = searchService.checkInventory(request.getSubSkusList());
 
@@ -334,17 +362,14 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
           .setTook(result.took());
 
       if (result.items() != null) {
-        responseBuilder.addAllItems(result.items().stream()
-            .map(this::mapToInventoryCheckItem)
-            .toList());
+        responseBuilder.addAllItems(result.items().stream().map(this::mapToInventoryCheckItem).toList());
       }
 
       responseObserver.onNext(responseBuilder.build());
       responseObserver.onCompleted();
     } catch (Exception e) {
       log.error("Error checking inventory", e);
-      responseObserver.onError(io.grpc.Status.INTERNAL
-          .withDescription("Failed to check inventory: " + e.getMessage())
+      responseObserver.onError(io.grpc.Status.INTERNAL.withDescription("Failed to check inventory: " + e.getMessage())
           .asRuntimeException());
     }
   }
@@ -354,18 +379,24 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
   // ============================================================
 
   private ProductDetailData mapToProductDetailData(ProductDetailDto dto) {
-    ProductDetailData.Builder builder = ProductDetailData.newBuilder()
-        .setTotalStock(dto.totalStock())
-        .setHasStock(dto.hasStock());
+    StockInfo.Builder stockInfoBuilder = StockInfo.newBuilder();
+    if (ObjectUtils.isNotEmpty(dto.stock())) {
+      stockInfoBuilder.setHasStock(dto.hasStock()).setTotalStock(dto.stock().totalStock());
+    }
+    ProductDetailData.Builder builder = ProductDetailData.newBuilder().setStock(stockInfoBuilder.build());
 
-    if (dto.id() != null) builder.setId(dto.id());
-    if (dto.sku() != null) builder.setSku(dto.sku());
-    if (dto.title() != null) builder.setTitle(dto.title());
-    if (dto.shortDescription() != null) builder.setShortDescription(dto.shortDescription());
-    if (dto.tags() != null) builder.addAllTags(dto.tags());
-    if (dto.detailRef() != null) builder.setDetailRef(dto.detailRef());
-    if (dto.createdAt() != null) builder.setCreatedAt(toTimestamp(dto.createdAt()));
-    if (dto.updatedAt() != null) builder.setUpdatedAt(toTimestamp(dto.updatedAt()));
+    if (dto.id() != null)
+      builder.setId(dto.id());
+    if (dto.sku() != null)
+      builder.setSku(dto.sku());
+    if (dto.title() != null)
+      builder.setTitle(dto.title());
+    if (dto.shortDescription() != null)
+      builder.setShortDescription(dto.shortDescription());
+    if (dto.tags() != null)
+      builder.addAllTags(dto.tags());
+    if (dto.detailRef() != null)
+      builder.setDetailRef(dto.detailRef());
 
     if (dto.merchant() != null) {
       builder.setMerchant(mapToMerchantDetail(dto.merchant()));
@@ -377,92 +408,102 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
       builder.setCategory(mapToCategoryDetail(dto.category()));
     }
     if (dto.variants() != null) {
-      builder.addAllVariants(dto.variants().stream()
-          .map(this::mapToProductVariantDetail)
-          .toList());
+      builder.addAllVariants(dto.variants().stream().map(this::mapToProductVariantDetail).toList());
+    }
+    
+    // Map medias from selected variant
+    if (dto.medias() != null && !dto.medias().isEmpty()) {
+      builder.addAllMedias(dto.medias().stream().map(this::mapToProductMedia).toList());
+    }
+    
+    // Map price from selected variant
+    if (dto.price() != null) {
+      builder.setPrice(mapToPriceInfo(dto.price()));
     }
 
+    return builder.build();
+  }
+  
+  private ProductMedia mapToProductMedia(ProductDetailDto.VariantDetailDto.VariantMediaDto dto) {
+    ProductMedia.Builder builder = ProductMedia.newBuilder();
+    if (dto.url() != null)
+      builder.setUrl(dto.url());
+    if (dto.type() != null)
+      builder.setType(dto.type());
+    if (dto.sortOrder() != null)
+      builder.setSortOrder(dto.sortOrder());
+    if (dto.altText() != null)
+      builder.setAltText(dto.altText());
+    return builder.build();
+  }
+  
+  private PriceInfo mapToPriceInfo(ProductDetailDto.PriceDto dto) {
+    PriceInfo.Builder builder = PriceInfo.newBuilder();
+    if (dto.price() != null)
+      builder.setPrice(dto.price());
+    if (dto.discount() != null)
+      builder.setDiscount(dto.discount());
     return builder.build();
   }
 
   private MerchantDetail mapToMerchantDetail(ProductDetailDto.MerchantDetailDto dto) {
     MerchantDetail.Builder builder = MerchantDetail.newBuilder();
-    if (dto.id() != null) builder.setId(dto.id());
-    if (dto.name() != null) builder.setName(dto.name());
-    if (dto.code() != null) builder.setCode(dto.code());
-    if (dto.iconUrl() != null) builder.setIconUrl(dto.iconUrl());
-    if (dto.location() != null) builder.setLocation(dto.location());
-    if (dto.rating() != null) builder.setRating(dto.rating());
-    if (dto.contact() != null) {
-      SearchContactInfo.Builder contactBuilder = SearchContactInfo.newBuilder();
-      if (dto.contact().phone() != null) contactBuilder.setPhone(dto.contact().phone());
-      if (dto.contact().email() != null) contactBuilder.setEmail(dto.contact().email());
-      builder.setContact(contactBuilder.build());
-    }
+    if (dto.id() != null)
+      builder.setId(dto.id());
+    if (dto.name() != null)
+      builder.setName(dto.name());
+    if (dto.code() != null)
+      builder.setCode(dto.code());
+    if (dto.iconUrl() != null)
+      builder.setIconUrl(dto.iconUrl());
+    if (dto.location() != null)
+      builder.setLocation(dto.location());
+    if (dto.rating() != null)
+      builder.setRating(dto.rating());
     return builder.build();
   }
 
   private BrandDetail mapToBrandDetail(ProductDetailDto.BrandDetailDto dto) {
     BrandDetail.Builder builder = BrandDetail.newBuilder();
-    if (dto.id() != null) builder.setId(dto.id());
-    if (dto.name() != null) builder.setName(dto.name());
-    if (dto.slug() != null) builder.setSlug(dto.slug());
-    if (dto.iconUrl() != null) builder.setIconUrl(dto.iconUrl());
+    if (dto.id() != null)
+      builder.setId(dto.id());
+    if (dto.name() != null)
+      builder.setName(dto.name());
+    if (dto.slug() != null)
+      builder.setSlug(dto.slug());
+    if (dto.iconUrl() != null)
+      builder.setIconUrl(dto.iconUrl());
     return builder.build();
   }
 
   private CategoryDetail mapToCategoryDetail(ProductDetailDto.CategoryDetailDto dto) {
     CategoryDetail.Builder builder = CategoryDetail.newBuilder();
-    if (dto.id() != null) builder.setId(dto.id());
-    if (dto.name() != null) builder.setName(dto.name());
-    if (dto.slug() != null) builder.setSlug(dto.slug());
-    if (dto.iconUrl() != null) builder.setIconUrl(dto.iconUrl());
-    if (dto.parentId() != null) builder.setParentId(dto.parentId());
+    if (dto.id() != null)
+      builder.setId(dto.id());
+    if (dto.name() != null)
+      builder.setName(dto.name());
+    if (dto.slug() != null)
+      builder.setSlug(dto.slug());
+    if (dto.iconUrl() != null)
+      builder.setIconUrl(dto.iconUrl());
+    if (dto.parentId() != null)
+      builder.setParentId(dto.parentId());
     return builder.build();
   }
 
   private ProductVariantDetail mapToProductVariantDetail(ProductDetailDto.VariantDetailDto dto) {
     ProductVariantDetail.Builder builder = ProductVariantDetail.newBuilder();
-    if (dto.id() != null) builder.setId(dto.id());
-    if (dto.subSku() != null) builder.setSubSku(dto.subSku());
-    if (dto.title() != null) builder.setTitle(dto.title());
-    if (dto.price() != null) builder.setPrice(dto.price());
-    if (dto.isDefault() != null) builder.setIsDefault(dto.isDefault());
-    if (dto.thumbnail() != null) builder.setThumbnail(dto.thumbnail());
-    if (dto.createdAt() != null) builder.setCreatedAt(toTimestamp(dto.createdAt()));
-    if (dto.updatedAt() != null) builder.setUpdatedAt(toTimestamp(dto.updatedAt()));
+    if (dto.id() != null)
+      builder.setId(dto.id());
+    if (dto.subSku() != null)
+      builder.setSubSku(dto.subSku());
+    if (dto.thumbnail() != null)
+      builder.setThumbnail(dto.thumbnail());
+    if (dto.isDefault() != null)
+      builder.setIsSelected(dto.isDefault());
+    if (dto.stockInfo() != null)
+      builder.setHasStock(dto.stockInfo().hasStock());
 
-    if (dto.attributes() != null) {
-      builder.setAttributes(mapToStruct(dto.attributes()));
-    }
-
-    if (dto.media() != null) {
-      builder.addAllMedia(dto.media().stream()
-          .map(this::mapToProductVariantMedia)
-          .toList());
-    }
-
-    if (dto.stockInfo() != null) {
-      builder.setStockInfo(mapToStockInfo(dto.stockInfo()));
-    }
-
-    return builder.build();
-  }
-
-  private ProductVariantMedia mapToProductVariantMedia(ProductDetailDto.VariantDetailDto.VariantMediaDto dto) {
-    ProductVariantMedia.Builder builder = ProductVariantMedia.newBuilder();
-    if (dto.url() != null) builder.setUrl(dto.url());
-    if (dto.type() != null) builder.setType(dto.type());
-    if (dto.sortOrder() != null) builder.setSortOrder(dto.sortOrder());
-    if (dto.altText() != null) builder.setAltText(dto.altText());
-    return builder.build();
-  }
-
-  private StockInfo mapToStockInfo(ProductDetailDto.VariantDetailDto.StockInfoDto dto) {
-    StockInfo.Builder builder = StockInfo.newBuilder()
-        .setTotalStock(dto.totalStock())
-        .setHasStock(dto.hasStock());
-    if (dto.updatedAt() != null) builder.setUpdatedAt(toTimestamp(dto.updatedAt()));
     return builder.build();
   }
 
@@ -471,15 +512,13 @@ public class SearchController extends SearchServiceGrpc.SearchServiceImplBase {
         .setSubSku(dto.subSku())
         .setStock(dto.stock() != null ? dto.stock() : 0)
         .setHasStock(dto.hasStock());
-    if (dto.updatedAt() != null) builder.setUpdatedAt(toTimestamp(dto.updatedAt()));
+    if (dto.updatedAt() != null)
+      builder.setUpdatedAt(toTimestamp(dto.updatedAt()));
     return builder.build();
   }
 
   private Timestamp toTimestamp(Instant instant) {
-    return Timestamp.newBuilder()
-        .setSeconds(instant.getEpochSecond())
-        .setNanos(instant.getNano())
-        .build();
+    return Timestamp.newBuilder().setSeconds(instant.getEpochSecond()).setNanos(instant.getNano()).build();
   }
 
   private Struct mapToStruct(Map<String, Object> map) {

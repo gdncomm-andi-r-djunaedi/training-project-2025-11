@@ -21,7 +21,7 @@ service AddressService {
             delete: "/api/address"
         };
     }
-    rpc SetUserDefaultAddress(FindUserAddressRequest) returns (common.Basic){
+    rpc SetUserDefaultAddress(SetDefaultAddressRequest) returns (common.Basic){
         option (google.api.http) = {
             put: "/api/address/default"
         };

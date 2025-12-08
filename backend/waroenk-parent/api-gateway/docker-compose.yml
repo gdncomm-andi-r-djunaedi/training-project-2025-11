@@ -35,18 +35,22 @@ services:
       DB_USERNAME: ${DB_USERNAME:-admin}
       DB_PASSWORD: ${DB_PASSWORD:-admin}
       MIGRATE_DATABASE: ${MIGRATE_DATABASE:-true}
-      REDIS_HOST: ${REDIS_HOST:-redis-master}
+      REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      REDIS_SENTINEL_MASTER: ${REDIS_SENTINEL_MASTER:-mymaster}
-      REDIS_SENTINEL_NODES: ${REDIS_SENTINEL_NODES:-sentinel-1:26379,sentinel-2:26379,sentinel-3:26379}
+      # To enable Sentinel mode, set these env vars:
+      # REDIS_SENTINEL_MASTER: mymaster
+      # REDIS_SENTINEL_NODES: sentinel-1:26379,sentinel-2:26379,sentinel-3:26379
       JWT_SECRET: ${JWT_SECRET:-c2VjdXJlLXNlY3JldC1rZXktZm9yLWp3dC10b2tlbi1nZW5lcmF0aW9uLW1pbmltdW0tMjU2LWJpdHM=}
       MEMBER_GRPC_HOST: ${MEMBER_GRPC_HOST:-member}
       MEMBER_GRPC_PORT: ${MEMBER_GRPC_PORT:-9090}
+      MEMBER_HTTP_PORT: ${MEMBER_HTTP_PORT:-8081}
       CATALOG_GRPC_HOST: ${CATALOG_GRPC_HOST:-catalog}
       CATALOG_GRPC_PORT: ${CATALOG_GRPC_PORT:-9091}
+      CATALOG_HTTP_PORT: ${CATALOG_HTTP_PORT:-8082}
       CART_GRPC_HOST: ${CART_GRPC_HOST:-cart}
       CART_GRPC_PORT: ${CART_GRPC_PORT:-9092}
+      CART_HTTP_PORT: ${CART_HTTP_PORT:-8083}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${HTTP_REST_PORT:-8080}/health"]
       interval: 30s

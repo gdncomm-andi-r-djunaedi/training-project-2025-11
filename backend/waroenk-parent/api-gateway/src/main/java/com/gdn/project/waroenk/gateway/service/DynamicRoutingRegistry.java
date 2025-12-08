@@ -370,11 +370,17 @@ public class DynamicRoutingRegistry {
         return pathMatcher.match(patternPath, actualPath);
     }
 
+    /**
+     * Compute a hash of the route definition for change detection.
+     * NOTE: request_type and response_type are NO LONGER included in the hash
+     * because they are now optional - the gateway uses reflection to discover types.
+     */
     private String computeRouteHash(RouteDefinitionDto routeDef) {
         try {
+            // Only include essential routing information in the hash
+            // request_type and response_type are optional (discovered via reflection)
             String content = routeDef.httpMethod() + ":" + routeDef.path() + ":" +
                     routeDef.grpcService() + ":" + routeDef.grpcMethod() + ":" +
-                    routeDef.requestType() + ":" + routeDef.responseType() + ":" +
                     routeDef.publicEndpoint();
 
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

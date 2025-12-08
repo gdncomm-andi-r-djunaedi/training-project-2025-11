@@ -1,11 +1,26 @@
 <script>
+  import { onMount } from 'svelte';
   import { cartStore, cartTotal } from '../lib/stores/cart.js';
   import { isAuthenticated } from '../lib/stores/auth.js';
   import { toastStore } from '../lib/stores/toast.js';
-  import { EmptyState } from '../lib/components/index.js';
+  import { EmptyState, Loading } from '../lib/components/index.js';
   import { navigate } from '../lib/router/index.js';
 
   let cart = $derived($cartStore);
+  let loading = $state(true);
+  let actionLoading = $state(false);
+
+  onMount(async () => {
+    if ($isAuthenticated) {
+      try {
+        await cartStore.init();
+      } catch (e) {
+        console.error('Failed to load cart:', e);
+        toastStore.error('Failed to load cart');
+      }
+    }
+    loading = false;
+  });
 
   function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', {
@@ -15,23 +30,49 @@
     }).format(price || 0);
   }
 
-  function updateQuantity(sku, newQuantity) {
-    if (newQuantity < 1) {
-      removeItem(sku);
-    } else {
-      cartStore.updateQuantity(sku, newQuantity);
+  async function updateQuantity(sku, newQuantity) {
+    if (actionLoading) return;
+    actionLoading = true;
+    
+    try {
+      if (newQuantity < 1) {
+        await removeItem(sku);
+      } else {
+        await cartStore.updateQuantity(sku, newQuantity);
+      }
+    } catch (e) {
+      toastStore.error('Failed to update quantity');
+    } finally {
+      actionLoading = false;
     }
   }
 
-  function removeItem(sku) {
-    cartStore.removeItem(sku);
-    toastStore.success('Item removed');
+  async function removeItem(sku) {
+    if (actionLoading) return;
+    actionLoading = true;
+    
+    try {
+      await cartStore.removeItem(sku);
+      toastStore.success('Item removed');
+    } catch (e) {
+      toastStore.error('Failed to remove item');
+    } finally {
+      actionLoading = false;
+    }
   }
 
-  function clearCart() {
-    if (confirm('Clear your cart?')) {
-      cartStore.clear();
+  async function clearCart() {
+    if (actionLoading) return;
+    if (!confirm('Clear your cart?')) return;
+    
+    actionLoading = true;
+    try {
+      await cartStore.clear();
       toastStore.success('Cart cleared');
+    } catch (e) {
+      toastStore.error('Failed to clear cart');
+    } finally {
+      actionLoading = false;
     }
   }
 
@@ -54,7 +95,26 @@
       Shopping Cart
     </h1>
 
-    {#if cart.length === 0}
+    {#if !$isAuthenticated}
+      <!-- Not authenticated -->
+      <div class="text-center py-12">
+        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-[var(--color-border-light)] flex items-center justify-center">
+          <svg class="w-10 h-10 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-[var(--color-text)] mb-2">Login Required</h2>
+        <p class="text-[var(--color-text-muted)] mb-6 max-w-md mx-auto">
+          Please login to view your cart and add items to it.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a href="/login?redirect=/cart" class="btn btn-primary">Login</a>
+          <a href="/register" class="btn btn-outline">Create Account</a>
+        </div>
+      </div>
+    {:else if loading}
+      <Loading text="Loading your cart..." />
+    {:else if cart.length === 0}
       <EmptyState 
         title="Your cart is empty" 
         message="Start shopping to add items"
@@ -68,9 +128,12 @@
         <!-- Cart Items -->
         <div class="lg:col-span-2 space-y-3">
           {#each cart as item (item.sku)}
-            <div class="bg-white rounded-xl border border-[var(--color-border)] p-4 flex gap-4 animate-fade-in">
-              <!-- Image -->
-              <div class="w-20 h-20 bg-[var(--color-bg)] rounded-lg overflow-hidden flex-shrink-0">
+            <div class="bg-white rounded-xl border border-[var(--color-border)] p-4 flex gap-4 animate-fade-in {actionLoading ? 'opacity-60 pointer-events-none' : ''}">
+              <!-- Image - Clickable -->
+              <a 
+                href="/product/{item.subSku || item.sku}"
+                class="w-20 h-20 bg-[var(--color-bg)] rounded-lg overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity"
+              >
                 {#if item.image}
                   <img src={item.image} alt={item.title} class="w-full h-full object-cover" />
                 {:else}
@@ -80,13 +143,16 @@
                     </svg>
                   </div>
                 {/if}
-              </div>
+              </a>
 
               <!-- Details -->
               <div class="flex-1 min-w-0">
-                <h3 class="text-sm font-medium text-[var(--color-text)] truncate">
+                <a 
+                  href="/product/{item.subSku || item.sku}"
+                  class="text-sm font-medium text-[var(--color-text)] truncate block hover:text-[var(--color-primary)] transition-colors"
+                >
                   {item.title}
-                </h3>
+                </a>
                 <p class="text-xs text-[var(--color-text-muted)] mb-2">SKU: {item.sku}</p>
                 <p class="text-sm font-semibold text-[var(--color-text)]">
                   {formatPrice(item.price)}
@@ -97,7 +163,8 @@
                   <div class="flex items-center border border-[var(--color-border)] rounded-lg">
                     <button 
                       onclick={() => updateQuantity(item.sku, item.quantity - 1)}
-                      class="w-7 h-7 flex items-center justify-center hover:bg-[var(--color-bg)] transition-colors"
+                      disabled={actionLoading}
+                      class="w-7 h-7 flex items-center justify-center hover:bg-[var(--color-bg)] transition-colors disabled:opacity-50"
                       aria-label="Decrease quantity"
                     >
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +174,8 @@
                     <span class="w-8 text-center text-xs font-medium">{item.quantity}</span>
                     <button 
                       onclick={() => updateQuantity(item.sku, item.quantity + 1)}
-                      class="w-7 h-7 flex items-center justify-center hover:bg-[var(--color-bg)] transition-colors"
+                      disabled={actionLoading}
+                      class="w-7 h-7 flex items-center justify-center hover:bg-[var(--color-bg)] transition-colors disabled:opacity-50"
                       aria-label="Increase quantity"
                     >
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +186,8 @@
 
                   <button 
                     onclick={() => removeItem(item.sku)}
-                    class="text-xs text-[var(--color-error)] hover:underline"
+                    disabled={actionLoading}
+                    class="text-xs text-[var(--color-error)] hover:underline disabled:opacity-50"
                   >
                     Remove
                   </button>
@@ -139,7 +208,8 @@
           <div class="text-right">
             <button 
               onclick={clearCart}
-              class="text-xs text-[var(--color-error)] hover:underline"
+              disabled={actionLoading}
+              class="text-xs text-[var(--color-error)] hover:underline disabled:opacity-50"
             >
               Clear Cart
             </button>
@@ -171,9 +241,10 @@
 
             <button 
               onclick={proceedToCheckout}
-              class="btn btn-primary w-full py-2.5"
+              disabled={actionLoading}
+              class="btn btn-primary w-full py-2.5 disabled:opacity-50"
             >
-              {$isAuthenticated ? 'Checkout' : 'Login to Checkout'}
+              Checkout
             </button>
 
             <a href="/products" class="block text-center text-xs text-[var(--color-primary)] hover:underline mt-3">

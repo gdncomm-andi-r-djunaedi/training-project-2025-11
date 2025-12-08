@@ -22,7 +22,7 @@
     </svg>
   </div>
   <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">{title}</h3>
-  <p class="text-sm text-[var(--color-text-muted)] max-w-sm mx-auto mb-6">{message}</p>
+  <p class="text-sm text-[var(--color-text-muted)] max-w-sm mx-auto {action ? 'mb-6' : ''}">{message}</p>
   
   {#if action}
     <button onclick={action} class="btn btn-primary">

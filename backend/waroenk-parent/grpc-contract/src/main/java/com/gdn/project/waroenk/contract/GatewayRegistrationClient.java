@@ -298,7 +298,12 @@ public class GatewayRegistrationClient {
     }
 
     /**
-     * Route definition for registration
+     * Route definition for registration.
+     * 
+     * With gRPC Server Reflection enabled on target services, the gateway can
+     * dynamically discover request/response types at runtime. Therefore:
+     * - requestType and responseType are now OPTIONAL (can be null or empty)
+     * - Only httpMethod, path, grpcService, and grpcMethod are required
      */
     public record Route(
             String httpMethod,
@@ -310,9 +315,29 @@ public class GatewayRegistrationClient {
             boolean publicEndpoint,
             List<String> requiredRoles
     ) {
+        /**
+         * Full constructor with request/response types (backward compatible)
+         */
         public Route(String httpMethod, String path, String grpcService, String grpcMethod,
                      String requestType, String responseType, boolean publicEndpoint) {
             this(httpMethod, path, grpcService, grpcMethod, requestType, responseType, publicEndpoint, List.of());
+        }
+
+        /**
+         * Simplified constructor WITHOUT request/response types.
+         * Uses gRPC Server Reflection to discover types at runtime.
+         * This is the recommended approach for new routes.
+         */
+        public Route(String httpMethod, String path, String grpcService, String grpcMethod,
+                     boolean publicEndpoint, List<String> requiredRoles) {
+            this(httpMethod, path, grpcService, grpcMethod, null, null, publicEndpoint, requiredRoles);
+        }
+
+        /**
+         * Minimal constructor for public endpoints without roles.
+         */
+        public Route(String httpMethod, String path, String grpcService, String grpcMethod, boolean publicEndpoint) {
+            this(httpMethod, path, grpcService, grpcMethod, null, null, publicEndpoint, List.of());
         }
     }
 
@@ -356,10 +381,23 @@ public class GatewayRegistrationClient {
             return this;
         }
 
+        /**
+         * Add a route with explicit request/response types (backward compatible)
+         */
         public ServiceBuilder addRoute(String httpMethod, String path, String grpcService, String grpcMethod,
                                         String requestType, String responseType, boolean publicEndpoint) {
             routes.add(new Route(httpMethod, path, grpcService, grpcMethod,
                     requestType, responseType, publicEndpoint, List.of()));
+            return this;
+        }
+
+        /**
+         * Add a route WITHOUT request/response types (uses reflection).
+         * This is the recommended approach for new routes.
+         */
+        public ServiceBuilder addRoute(String httpMethod, String path, String grpcService, String grpcMethod,
+                                        boolean publicEndpoint) {
+            routes.add(new Route(httpMethod, path, grpcService, grpcMethod, publicEndpoint));
             return this;
         }
 

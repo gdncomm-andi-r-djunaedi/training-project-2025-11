@@ -1,5 +1,16 @@
 <script>
   let { category, index = 0 } = $props();
+  let imageLoaded = $state(false);
+  let imageError = $state(false);
+
+  function handleImageLoad() {
+    imageLoaded = true;
+  }
+
+  function handleImageError() {
+    imageError = true;
+    imageLoaded = true;
+  }
 </script>
 
 <a 
@@ -8,13 +19,19 @@
   style="opacity: 0;"
 >
   <!-- Icon -->
-  <div class="w-12 h-12 rounded-2xl overflow-hidden bg-[var(--color-border-light)] mb-3 transition-transform duration-300 group-hover:scale-110">
-    {#if category.icon_url}
+  <div class="w-12 h-12 rounded-2xl overflow-hidden bg-[var(--color-border-light)] mb-3 transition-transform duration-300 group-hover:scale-110 relative">
+    {#if category.icon_url && !imageError}
+      <!-- Loading skeleton -->
+      {#if !imageLoaded}
+        <div class="absolute inset-0 skeleton rounded-2xl"></div>
+      {/if}
       <img 
         src={category.icon_url} 
         alt={category.name}
-        class="w-full h-full object-cover"
+        class="w-full h-full object-cover {imageLoaded ? 'opacity-100' : 'opacity-0'}"
         loading="lazy"
+        onload={handleImageLoad}
+        onerror={handleImageError}
       />
     {:else}
       <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5">

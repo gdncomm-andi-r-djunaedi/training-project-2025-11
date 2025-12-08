@@ -22,6 +22,7 @@ import com.gdn.project.waroenk.member.UserTokenResponse;
 import com.gdn.project.waroenk.member.entity.User;
 import com.gdn.project.waroenk.member.exceptions.ValidationException;
 import com.gdn.project.waroenk.member.mapper.UserMapper;
+import com.gdn.project.waroenk.member.service.GrpcValidationService;
 import com.gdn.project.waroenk.member.service.UserService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class UserController extends UserServiceGrpc.UserServiceImplBase {
 
   private final UserService userService;
   private final PasswordEncoder passwordEncoder;
+  private final GrpcValidationService validationService;
 
   @Override
   public void register(CreateUserRequest request, StreamObserver<CreateUserResponse> responseObserver) {
@@ -119,27 +121,15 @@ public class UserController extends UserServiceGrpc.UserServiceImplBase {
   }
 
   private void validateCreateUserRequest(CreateUserRequest request) {
-    if (StringUtils.isBlank(request.getFullName())) {
-      throw new ValidationException("Full name is required");
-    }
-    if (StringUtils.isBlank(request.getEmail()) && StringUtils.isBlank(request.getPhone())) {
-      throw new ValidationException("At least one contact (email or phone) is required");
-    }
-    if (StringUtils.isBlank(request.getPassword())) {
-      throw new ValidationException("Password is required");
-    }
+    validationService.validateRequired(request.getFullName(), "Full name");
+    validationService.validateAtLeastOneContact(request.getEmail(), request.getPhone());
+    validationService.validateStrongPassword(request.getPassword());
   }
 
   private void validateUpdateUserRequest(UpdateUserRequest request) {
-    if (StringUtils.isBlank(request.getId())) {
-      throw new ValidationException("User ID is required");
-    }
-    if (StringUtils.isBlank(request.getFullName())) {
-      throw new ValidationException("Full name is required");
-    }
-    if (StringUtils.isBlank(request.getEmail()) && StringUtils.isBlank(request.getPhone())) {
-      throw new ValidationException("At least one contact (email or phone) is required");
-    }
+    validationService.validateRequired(request.getId(), "User ID");
+    validationService.validateRequired(request.getFullName(), "Full name");
+    validationService.validateAtLeastOneContact(request.getEmail(), request.getPhone());
   }
 
   @Override

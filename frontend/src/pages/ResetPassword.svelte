@@ -1,5 +1,6 @@
 <script>
   import { authApi } from '../lib/api/index.js';
+  import { isAuthenticated } from '../lib/stores/index.js';
   import { toastStore } from '../lib/stores/toast.js';
   import { navigate } from '../lib/router/index.js';
 
@@ -15,6 +16,13 @@
   let success = $state(false);
   let showNewPassword = $state(false);
   let showConfirmPassword = $state(false);
+
+  // Redirect to homepage if already logged in
+  $effect(() => {
+    if ($isAuthenticated) {
+      navigate('/', true);
+    }
+  });
 
   // Password requirements
   const requirements = [
@@ -259,6 +267,8 @@
     </div>
   </div>
 </div>
+
+
 
 
 

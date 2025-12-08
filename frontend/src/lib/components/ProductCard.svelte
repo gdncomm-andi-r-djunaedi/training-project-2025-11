@@ -4,6 +4,8 @@
 
   let { product, index = 0 } = $props();
   let isAdding = $state(false);
+  let imageLoaded = $state(false);
+  let imageError = $state(false);
 
   function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', {
@@ -13,25 +15,41 @@
     }).format(price || 0);
   }
 
+  function handleImageLoad() {
+    imageLoaded = true;
+  }
+
+  function handleImageError() {
+    imageError = true;
+    imageLoaded = true;
+  }
+
   async function addToCart(e) {
     e.preventDefault();
     e.stopPropagation();
     
+    if (isAdding) return;
     isAdding = true;
     
-    // Simulate slight delay for feedback
-    await new Promise(r => setTimeout(r, 200));
-    
-    cartStore.addItem({
-      sku: product.sku || product.sub_sku,
-      title: product.title,
-      price: product.price || 0,
-      image: product.thumbnail || '/placeholder.jpg',
-      quantity: 1
-    });
-    
-    toastStore.success('Added to cart');
-    isAdding = false;
+    try {
+      const response = await cartStore.addItem({
+        sku: product.sku || product.sub_sku,
+        subSku: product.sub_sku || product.sku, // variant sub-SKU for stock validation
+        quantity: 1
+      });
+      
+      // Check if response indicates success (AddCartItemResponse has success field)
+      if (response?.success === false) {
+        toastStore.error(response.message || 'Failed to add to cart');
+      } else {
+        toastStore.success('Added to cart');
+      }
+    } catch (e) {
+      console.error('Failed to add to cart:', e);
+      toastStore.error(e.message || 'Failed to add to cart');
+    } finally {
+      isAdding = false;
+    }
   }
 </script>
 
@@ -42,12 +60,18 @@
 >
   <!-- Image Container -->
   <div class="aspect-square overflow-hidden bg-[var(--color-bg)] relative rounded-t-[var(--card-radius)]">
-    {#if product.thumbnail}
+    {#if product.thumbnail && !imageError}
+      <!-- Loading skeleton -->
+      {#if !imageLoaded}
+        <div class="absolute inset-0 skeleton"></div>
+      {/if}
       <img 
         src={product.thumbnail} 
         alt={product.title}
-        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 {imageLoaded ? 'opacity-100' : 'opacity-0'}"
         loading="lazy"
+        onload={handleImageLoad}
+        onerror={handleImageError}
       />
     {:else}
       <div class="w-full h-full flex items-center justify-center text-[var(--color-text-muted)]">

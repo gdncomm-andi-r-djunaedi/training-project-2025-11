@@ -1,4 +1,4 @@
-.PHONY: all build build-services clean up down logs help \
+.PHONY: all build build-fresh build-verbose build-services clean up down logs help \
         ensure-network \
         up-member up-catalog up-cart up-gateway \
         down-member down-catalog down-cart down-gateway
@@ -17,7 +17,9 @@ help:
 	@echo "Waroenk Backend - Shared Builder Approach"
 	@echo ""
 	@echo "Build Commands (Two-Phase):"
-	@echo "  make build            Build shared builder (compiles ALL modules once)"
+	@echo "  make build            Build shared builder with cache (clean output)"
+	@echo "  make build-fresh      Build without cache (fresh build)"
+	@echo "  make build-verbose    Build with full Maven logs (for debugging)"
 	@echo "  make build-services   Build all service images (uses pre-built JARs)"
 	@echo "  make all              Build everything: builder + services"
 	@echo ""
@@ -53,13 +55,41 @@ ensure-network:
 # ================================
 
 # Phase 1: Build the shared builder image (compiles ALL modules)
+# Uses Docker layer caching for fast incremental builds
 build:
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "  🔨 Phase 1: Building Shared Builder (ALL modules)"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
-	@echo "This builds grpc-contract + all services in ONE image..."
+	@DOCKER_BUILDKIT=1 docker build \
+		-f Dockerfile.builder \
+		-t $(BUILDER_IMAGE):latest \
+		.
+	@echo ""
+	@echo "✅ Builder image ready: $(BUILDER_IMAGE):latest"
+
+# Force rebuild without cache (use when you need completely fresh build)
+build-fresh:
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "  🔨 FRESH Build (no cache)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@DOCKER_BUILDKIT=1 docker build \
+		--no-cache \
+		-f Dockerfile.builder \
+		-t $(BUILDER_IMAGE):latest \
+		.
+	@echo ""
+	@echo "✅ Builder image ready: $(BUILDER_IMAGE):latest"
+
+# Build with verbose output (for debugging Maven/compilation issues)
+build-verbose:
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "  🔨 Building (VERBOSE MODE - for debugging)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
 	DOCKER_BUILDKIT=1 docker build \
 		--progress=plain \

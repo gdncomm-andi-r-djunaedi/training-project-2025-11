@@ -1,64 +1,65 @@
 package com.gdn.project.waroenk.gateway.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.project.waroenk.gateway.config.GrpcChannelConfig;
 import com.gdn.project.waroenk.gateway.exception.GatewayException;
 import com.gdn.project.waroenk.gateway.exception.RouteNotFoundException;
 import com.gdn.project.waroenk.gateway.exception.ServiceUnavailableException;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Message;
 import io.grpc.Channel;
-import io.grpc.MethodDescriptor;
 import io.grpc.StatusRuntimeException;
-import io.grpc.protobuf.ProtoUtils;
-import io.grpc.stub.ClientCalls;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Service that dynamically invokes gRPC methods based on route configuration.
- * This is the core of the agnostic gateway - it doesn't know about specific services,
- * but uses configuration to route requests to the correct gRPC methods.
+ * 
+ * This is the core of the agnostic gateway - it uses gRPC Server Reflection
+ * to discover service/method descriptors at runtime, eliminating the need
+ * to know about proto types at compile time.
+ * 
+ * Key features:
+ * - Uses ReflectionGrpcClient for dynamic type discovery
+ * - No need to specify request/response types in route configuration
+ * - Automatically injects user context from JWT into requests
+ * - Supports path variables and query parameters
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GrpcProxyService {
 
-    private final GrpcServiceRegistry serviceRegistry;
+    private final ReflectionGrpcClient reflectionClient;
     private final RouteResolver routeResolver;
     private final GrpcChannelConfig channelConfig;
-
-    // Bounded cache for method descriptors with TTL (prevents memory leak)
-    private final Cache<String, MethodDescriptor<Message, Message>> methodDescriptorCache = Caffeine.newBuilder()
-            .maximumSize(500)                    // Max 500 method descriptors
-            .expireAfterAccess(Duration.ofHours(1)) // Expire after 1 hour of no access
-            .recordStats()                       // Enable stats for monitoring
-            .build();
+    private final ObjectMapper objectMapper;
 
     @PostConstruct
     public void init() {
         // Set the route resolver on the channel config for dynamic channel creation
         channelConfig.setRouteResolver(routeResolver);
+        log.info("GrpcProxyService initialized with reflection-based dynamic invocation");
     }
 
     /**
-     * Invoke a gRPC method based on HTTP request parameters
+     * Invoke a gRPC method based on HTTP request parameters.
+     * Uses gRPC Server Reflection for dynamic type discovery.
      *
-     * @param httpMethod HTTP method (GET, POST, etc.)
-     * @param path       HTTP path
-     * @param jsonBody   Request body as JSON (can be null for GET requests)
+     * @param httpMethod  HTTP method (GET, POST, etc.)
+     * @param path        HTTP path
+     * @param jsonBody    Request body as JSON (can be null for GET requests)
      * @param queryParams Query parameters (for GET requests)
+     * @param userId      Authenticated user ID (from JWT, may be null for public endpoints)
+     * @param username    Authenticated username (from JWT, may be null for public endpoints)
      * @return Response as JSON string
      */
-    public String invoke(String httpMethod, String path, String jsonBody, Map<String, String> queryParams) {
+    public String invoke(String httpMethod, String path, String jsonBody, Map<String, String> queryParams,
+                         String userId, String username) {
         // Resolve the route
         RouteResolver.ResolvedRoute route = routeResolver.resolve(httpMethod, path)
                 .orElseThrow(() -> new RouteNotFoundException(
@@ -68,172 +69,179 @@ public class GrpcProxyService {
 
         try {
             // Extract path variables from the URL using the matched pattern
-            Map<String, String> pathVariables = new HashMap<>();
-            if (route.httpPathPattern() != null) {
-                try {
-                    pathVariables = routeResolver.extractPathVariables(route.httpPathPattern(), path);
-                    log.debug("Extracted path variables: {}", pathVariables);
-                } catch (Exception e) {
-                    log.debug("No path variables to extract for pattern: {}", route.httpPathPattern());
-                }
-            }
+            Map<String, String> pathVariables = extractPathVariables(route, path);
             
             // Merge path variables with query params (path variables take precedence)
-            Map<String, String> allParams = new HashMap<>();
-            if (queryParams != null) {
-                allParams.putAll(queryParams);
-            }
-            allParams.putAll(pathVariables);
+            Map<String, String> allParams = mergeParams(queryParams, pathVariables);
             
-            // Build request message
-            Message requestMessage = buildRequestMessage(route, jsonBody, allParams);
+            // Build the final JSON request with user context injection
+            String finalJsonBody = buildRequestJson(route, jsonBody, allParams, userId, username);
             
-            // Get channel and invoke
+            // Get channel to the target service
             Channel channel = channelConfig.getChannel(route.serviceName());
-            Message responseMessage = invokeGrpc(channel, route, requestMessage);
             
-            // Convert response to JSON
-            return serviceRegistry.messageToJson(responseMessage);
-            
+            // Invoke using reflection-based dynamic client
+            return reflectionClient.invokeMethod(
+                    channel,
+                    route.grpcServiceName(),
+                    route.grpcMethodName(),
+                    finalJsonBody
+            );
+
         } catch (StatusRuntimeException e) {
             log.error("gRPC call failed: {}", e.getStatus());
-            throw e; // Let the controller advice handle it
-        } catch (InvalidProtocolBufferException e) {
-            log.error("Failed to parse/serialize protobuf: {}", e.getMessage());
-            throw new GatewayException("Failed to process request/response", e);
+            if (e.getStatus().getCode() == io.grpc.Status.Code.UNAVAILABLE) {
+                throw new ServiceUnavailableException("Service " + route.serviceName() + " is unavailable");
+            }
+            throw e;
         } catch (IllegalArgumentException e) {
-            log.error("Service not found: {}", e.getMessage());
-            throw new ServiceUnavailableException("Service " + route.serviceName() + " is not available");
+            log.error("Service/method not found: {}", e.getMessage());
+            throw new ServiceUnavailableException("Service " + route.serviceName() + " is not available: " + e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error during gRPC invocation: {}", e.getMessage(), e);
             throw new GatewayException("Failed to invoke service: " + e.getMessage(), e);
         }
     }
 
-    private Message buildRequestMessage(RouteResolver.ResolvedRoute route, String jsonBody, Map<String, String> queryParams) 
-            throws InvalidProtocolBufferException {
-        
-        String requestType = route.requestType();
-        
-        if (requestType == null || requestType.isBlank()) {
-            // No request type specified, try to use common.Empty or common.Id based on query params
-            if (queryParams != null && queryParams.containsKey("id")) {
-                requestType = "com.gdn.project.waroenk.common.Id";
-                jsonBody = "{\"value\": \"" + queryParams.get("id") + "\"}";
-            } else {
-                requestType = "com.gdn.project.waroenk.common.Empty";
-                jsonBody = "{}";
+    /**
+     * Extract path variables from the URL using the matched pattern.
+     */
+    private Map<String, String> extractPathVariables(RouteResolver.ResolvedRoute route, String path) {
+        Map<String, String> pathVariables = new HashMap<>();
+        if (route.httpPathPattern() != null) {
+            try {
+                pathVariables = routeResolver.extractPathVariables(route.httpPathPattern(), path);
+                log.debug("Extracted path variables: {}", pathVariables);
+            } catch (Exception e) {
+                log.debug("No path variables to extract for pattern: {}", route.httpPathPattern());
             }
         }
+        return pathVariables;
+    }
 
-        // If no body provided, try to build from query params
-        if ((jsonBody == null || jsonBody.isBlank()) && queryParams != null && !queryParams.isEmpty()) {
-            jsonBody = buildJsonFromQueryParams(queryParams);
+    /**
+     * Merge query params with path variables (path variables take precedence).
+     */
+    private Map<String, String> mergeParams(Map<String, String> queryParams, Map<String, String> pathVariables) {
+        Map<String, String> allParams = new HashMap<>();
+        if (queryParams != null) {
+            allParams.putAll(queryParams);
         }
+        allParams.putAll(pathVariables);
+        return allParams;
+    }
 
-        // Default to empty JSON if still null
+    /**
+     * Build the final JSON request body.
+     * Merges the original body with path variables/query params and injects user context.
+     */
+    private String buildRequestJson(RouteResolver.ResolvedRoute route, String jsonBody, 
+                                    Map<String, String> queryParams, String userId, String username) {
+        
+        // Default to empty JSON if null
         if (jsonBody == null || jsonBody.isBlank()) {
             jsonBody = "{}";
         }
 
-        return serviceRegistry.parseJsonToMessage(jsonBody, requestType);
-    }
-
-    private String buildJsonFromQueryParams(Map<String, String> queryParams) {
-        StringBuilder json = new StringBuilder("{");
-        boolean first = true;
-        
-        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-            if (!first) {
-                json.append(",");
-            }
-            first = false;
-            
-            // Convert to snake_case as proto uses snake_case
-            String key = camelToSnake(entry.getKey());
-            String value = entry.getValue();
-            
-            // Try to detect if value is numeric or boolean
-            if (value.matches("-?\\d+(\\.\\d+)?")) {
-                json.append("\"").append(key).append("\":").append(value);
-            } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-                json.append("\"").append(key).append("\":").append(value.toLowerCase());
-            } else {
-                json.append("\"").append(key).append("\":\"").append(escapeJson(value)).append("\"");
-            }
+        // Merge path variables and query params into the body
+        // This is critical for endpoints with path parameters like /checkout/{checkout_id}/finalize
+        if (queryParams != null && !queryParams.isEmpty()) {
+            jsonBody = mergeParamsIntoBody(jsonBody, queryParams);
         }
-        
-        json.append("}");
-        return json.toString();
+
+        // Inject authenticated user context into the request for non-public endpoints
+        if (!route.publicEndpoint() && userId != null && !userId.isBlank()) {
+            jsonBody = injectUserContext(jsonBody, userId, username);
+        }
+
+        return jsonBody;
     }
 
-    private String camelToSnake(String str) {
-        return str.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
-    }
-
-    private String escapeJson(String value) {
-        return value.replace("\\", "\\\\")
-                   .replace("\"", "\\\"")
-                   .replace("\n", "\\n")
-                   .replace("\r", "\\r")
-                   .replace("\t", "\\t");
-    }
-
-    private Message invokeGrpc(Channel channel, RouteResolver.ResolvedRoute route, Message request) {
-        // Build method descriptor (using bounded Caffeine cache)
-        String methodKey = route.grpcServiceName() + "/" + route.grpcMethodName();
-        MethodDescriptor<Message, Message> methodDescriptor = methodDescriptorCache.get(
-                methodKey,
-                k -> buildMethodDescriptor(route, request)
-        );
-
+    /**
+     * Merge path variables and query params into the existing JSON body.
+     * Existing body values take precedence over params (to allow explicit overrides).
+     */
+    private String mergeParamsIntoBody(String jsonBody, Map<String, String> params) {
         try {
-            // Make blocking unary call
-            return ClientCalls.blockingUnaryCall(
-                    channel,
-                    methodDescriptor,
-                    io.grpc.CallOptions.DEFAULT,
-                    request
-            );
-        } catch (io.grpc.StatusRuntimeException e) {
-            if (e.getStatus().getCode() == io.grpc.Status.Code.UNAVAILABLE) {
-                throw new ServiceUnavailableException("Service " + route.serviceName() + " is unavailable");
+            Map<String, Object> bodyMap = objectMapper.readValue(jsonBody, new TypeReference<HashMap<String, Object>>() {});
+            
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                
+                // Only add if not already present in body (body takes precedence)
+                if (!bodyMap.containsKey(key) || bodyMap.get(key) == null) {
+                    // Try to detect numeric or boolean values
+                    if (value.matches("-?\\d+(\\.\\d+)?")) {
+                        if (value.contains(".")) {
+                            bodyMap.put(key, Double.parseDouble(value));
+                        } else {
+                            bodyMap.put(key, Long.parseLong(value));
+                        }
+                    } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                        bodyMap.put(key, Boolean.parseBoolean(value));
+                    } else {
+                        bodyMap.put(key, value);
+                    }
+                }
             }
-            throw e;
+            
+            return objectMapper.writeValueAsString(bodyMap);
+        } catch (Exception e) {
+            log.warn("Failed to merge params into body: {}", e.getMessage());
+            return jsonBody;
         }
     }
 
-    private MethodDescriptor<Message, Message> buildMethodDescriptor(RouteResolver.ResolvedRoute route, Message requestMessage) {
-        String fullMethodName = route.grpcServiceName() + "/" + route.grpcMethodName();
-        
-        // Get response type
-        String responseType = route.responseType();
-        Message responseDefault;
-        
-        if (responseType != null && !responseType.isBlank()) {
-            responseDefault = serviceRegistry.getDefaultInstance(responseType);
-        } else {
-            // Try to infer response type from method name
-            responseDefault = inferResponseType(route);
+    /**
+     * Inject user context (user_id, user, value, id) from JWT into the JSON request body.
+     * This ensures backend services receive the authenticated user's identity
+     * without requiring the frontend to send it (security best practice).
+     * 
+     * We inject multiple field names to handle different proto message schemas:
+     * - user_id: Always injected for security (cart, checkout, etc.)
+     * - user: Always injected (FilterAddressRequest)
+     * - value: Only injected if NOT already present (to allow passing resource IDs)
+     * - id: Only injected if NOT already present (to allow passing resource IDs)
+     */
+    private String injectUserContext(String jsonBody, String userId, String username) {
+        try {
+            // Parse the existing JSON body into a mutable map
+            Map<String, Object> bodyMap = objectMapper.readValue(jsonBody, new TypeReference<HashMap<String, Object>>() {});
+            
+            // Inject user_id if not already present (from JWT takes precedence for security)
+            if (userId != null && !userId.isBlank()) {
+                // Always override user_id from JWT for security (prevent spoofing)
+                bodyMap.put("user_id", userId);
+                // Also set 'user' field for requests that use that field name (e.g., FilterAddressRequest)
+                bodyMap.put("user", userId);
+                
+                // Only set 'value' if NOT already present in the request
+                // This allows endpoints like GET /api/address?value={address_id} to work
+                if (!bodyMap.containsKey("value") || bodyMap.get("value") == null || bodyMap.get("value").toString().isBlank()) {
+                    bodyMap.put("value", userId);
+                }
+                
+                // Only set 'id' if NOT already present in the request
+                // This allows endpoints to pass resource IDs without being overwritten
+                if (!bodyMap.containsKey("id") || bodyMap.get("id") == null || bodyMap.get("id").toString().isBlank()) {
+                    bodyMap.put("id", userId);
+                }
+            }
+            
+            // Optionally inject username if needed
+            if (username != null && !username.isBlank()) {
+                bodyMap.put("username", username);
+            }
+            
+            // Convert back to JSON
+            return objectMapper.writeValueAsString(bodyMap);
+            
+        } catch (Exception e) {
+            log.warn("Failed to inject user context into request body: {}", e.getMessage());
+            // Return original body if injection fails
+            return jsonBody;
         }
-
-        return MethodDescriptor.<Message, Message>newBuilder()
-                .setType(MethodDescriptor.MethodType.UNARY)
-                .setFullMethodName(fullMethodName)
-                .setRequestMarshaller(ProtoUtils.marshaller(requestMessage.getDefaultInstanceForType()))
-                .setResponseMarshaller(ProtoUtils.marshaller(responseDefault))
-                .build();
     }
 
-    private Message inferResponseType(RouteResolver.ResolvedRoute route) {
-        // Try common response types based on method name patterns
-        String methodName = route.grpcMethodName().toLowerCase();
-        
-        if (methodName.contains("delete") || methodName.contains("remove") || methodName.contains("clear")) {
-            return serviceRegistry.getDefaultInstance("com.gdn.project.waroenk.common.Basic");
-        }
-        
-        // Default to Basic response
-        return serviceRegistry.getDefaultInstance("com.gdn.project.waroenk.common.Basic");
-    }
 }

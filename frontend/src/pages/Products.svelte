@@ -6,7 +6,7 @@
   let searchParams = new URLSearchParams(window.location.search);
   
   let query = $state(searchParams.get('q') || '');
-  let categoryId = $state(searchParams.get('category') || '');
+  let selectedCategory = $state(searchParams.get('category') || '');
   let products = $state([]);
   let categories = $state([]);
   let loading = $state(true);
@@ -40,9 +40,9 @@
         cursor: cursor
       };
       
-      // Add category filter if selected
-      if (categoryId) {
-        searchParams.category_id = categoryId;
+      // Add category filter if selected (using category name, not ID)
+      if (selectedCategory) {
+        searchParams.category = selectedCategory;
       }
       
       const res = await searchApi.products(searchParams);
@@ -118,8 +118,8 @@
   
   // React to category changes
   $effect(() => {
-    // Only trigger if categoryId changes (after initial mount)
-    const currentCat = categoryId;
+    // Only trigger if selectedCategory changes (after initial mount)
+    const currentCat = selectedCategory;
     if (typeof currentCat === 'string') {
       // Update URL with category
       const url = new URL(window.location.href);
@@ -156,45 +156,64 @@
   <!-- Page Header -->
   <div class="bg-white border-b border-[var(--color-border)]">
     <div class="container py-6">
-      <h1 class="text-lg font-semibold text-[var(--color-text)] mb-4">
+      <h1 class="text-2xl font-bold text-[var(--color-text)] mb-5">
         {query ? `Results for "${query}"` : 'All Products'}
       </h1>
 
-      <!-- Filters -->
-      <div class="flex flex-col sm:flex-row gap-3">
-        <!-- Search -->
+      <!-- Search & Filters Bar -->
+      <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <!-- Search Input -->
         <form onsubmit={handleSearch} class="flex-1">
-          <div class="relative">
+          <div class="search-input-container">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               bind:value={query}
               placeholder="Search products..."
-              class="input pl-9 bg-[var(--color-bg)]"
+              class="search-input"
             />
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            {#if query}
+              <button 
+                type="button" 
+                onclick={() => { query = ''; loadProducts(); }}
+                class="search-clear-btn"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            {/if}
           </div>
         </form>
 
-        <!-- Category Filter -->
-        <select
-          bind:value={categoryId}
-          onchange={handleCategoryChange}
-          class="input w-full sm:w-48 bg-[var(--color-bg)]"
-        >
-          <option value="">All Categories</option>
-          {#each categories as cat}
-            <option value={cat.id}>{cat.name}</option>
-          {/each}
-        </select>
+        <!-- Category Dropdown -->
+        <div class="category-dropdown-container">
+          <svg class="category-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          </svg>
+          <select
+            bind:value={selectedCategory}
+            onchange={handleCategoryChange}
+            class="category-dropdown"
+          >
+            <option value="">All Categories</option>
+            {#each categories as cat}
+              <option value={cat.id}>{cat.name}</option>
+            {/each}
+          </select>
+          <svg class="dropdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </div>
 
       <!-- Results Count with Search Info -->
       {#if !loading && totalMatch > 0}
-        <p class="text-sm text-[var(--color-text-muted)] mt-3">
-          Found <span class="font-semibold text-[var(--color-text)]">{totalMatch}</span> products 
-          out of <span class="font-semibold text-[var(--color-text)]">{totalDocument}</span> documents 
+        <p class="text-sm text-[var(--color-text-muted)] mt-4">
+          Found <span class="font-semibold text-[var(--color-text)]">{totalMatch.toLocaleString()}</span> products 
+          out of <span class="font-semibold text-[var(--color-text)]">{totalDocument.toLocaleString()}</span> documents 
           in <span class="font-semibold text-[var(--color-primary)]">{elapsedTime} ms</span>
         </p>
       {/if}
@@ -238,3 +257,136 @@
     {/if}
   </div>
 </div>
+
+<style>
+  /* Search Input Container */
+  .search-input-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .search-input-container:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    background: var(--color-surface);
+  }
+  
+  .search-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+  
+  .search-input-container:focus-within .search-icon {
+    color: var(--color-primary);
+  }
+  
+  .search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    font-family: var(--font-sans);
+  }
+  
+  .search-input::placeholder {
+    color: var(--color-text-muted);
+  }
+  
+  .search-clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    background: var(--color-border-light);
+    border: none;
+    border-radius: 50%;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  
+  .search-clear-btn:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+  }
+  
+  /* Category Dropdown */
+  .category-dropdown-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 12px;
+    padding: 0.75rem 0.875rem;
+    position: relative;
+    min-width: 160px;
+    max-width: 200px;
+    transition: all 0.2s ease;
+  }
+  
+  .category-dropdown-container:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    background: var(--color-surface);
+  }
+  
+  .category-icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+  
+  .category-dropdown {
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    padding-right: 1.25rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .category-dropdown option {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 180px;
+  }
+  
+  .dropdown-chevron {
+    position: absolute;
+    right: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+  
+  @media (max-width: 639px) {
+    .category-dropdown-container {
+      max-width: 100%;
+      min-width: 100%;
+    }
+  }
+</style>

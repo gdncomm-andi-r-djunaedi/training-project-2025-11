@@ -1,26 +1,27 @@
 package com.gdn.project.waroenk.catalog.service;
 
+import com.gdn.project.waroenk.catalog.CategoryNode;
+import com.gdn.project.waroenk.catalog.FindVariantsBySkuRequest;
+import com.gdn.project.waroenk.catalog.VariantData;
 import com.gdn.project.waroenk.catalog.dto.inventory.InventoryCheckItemDto;
 import com.gdn.project.waroenk.catalog.dto.merchant.MerchantResponseDto;
 import com.gdn.project.waroenk.catalog.dto.product.AggregatedProductDto;
 import com.gdn.project.waroenk.catalog.dto.product.ProductDetailDto;
-import com.gdn.project.waroenk.catalog.dto.product.ProductDetailDto.*;
+import com.gdn.project.waroenk.catalog.dto.product.ProductDetailDto.BrandDetailDto;
+import com.gdn.project.waroenk.catalog.dto.product.ProductDetailDto.CategoryDetailDto;
+import com.gdn.project.waroenk.catalog.dto.product.ProductDetailDto.MerchantDetailDto;
+import com.gdn.project.waroenk.catalog.dto.product.ProductDetailDto.VariantDetailDto;
 import com.gdn.project.waroenk.catalog.entity.Brand;
 import com.gdn.project.waroenk.catalog.entity.Category;
 import com.gdn.project.waroenk.catalog.entity.Inventory;
 import com.gdn.project.waroenk.catalog.entity.Merchant;
 import com.gdn.project.waroenk.catalog.entity.Product;
-import com.gdn.project.waroenk.catalog.entity.Variant;
 import com.gdn.project.waroenk.catalog.exceptions.ResourceNotFoundException;
-import com.gdn.project.waroenk.catalog.repository.BrandRepository;
-import com.gdn.project.waroenk.catalog.repository.CategoryRepository;
-import com.gdn.project.waroenk.catalog.repository.InventoryRepository;
-import com.gdn.project.waroenk.catalog.repository.MerchantRepository;
-import com.gdn.project.waroenk.catalog.repository.ProductRepository;
-import com.gdn.project.waroenk.catalog.repository.VariantRepository;
-import com.gdn.project.waroenk.catalog.utility.CacheUtil;
+import com.gdn.project.waroenk.catalog.mapper.VariantMapper;
 import com.gdn.project.waroenk.catalog.utility.ParserUtil;
+import com.google.protobuf.Timestamp;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,79 +33,55 @@ import org.typesense.model.SearchResultHit;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class SearchServiceImpl implements SearchService {
-
-  // Cache key prefixes
-  private static final String MERCHANT_CACHE_PREFIX = "search:merchant:";
-  private static final String BRAND_CACHE_PREFIX = "search:brand:";
-  private static final String CATEGORY_CACHE_PREFIX = "search:category:";
-  private static final String INVENTORY_CACHE_PREFIX = "search:inventory:";
-
-  // Cache TTLs
-  private static final int METADATA_CACHE_TTL_HOURS = 1;
-  private static final int INVENTORY_CACHE_TTL_SECONDS = 30;
-
+  private final static VariantMapper variantMapper = VariantMapper.INSTANCE;
   private final TypeSenseService typeSenseService;
   private final ProductSearchIndexMapper productMapper;
   private final MerchantSearchIndexMapper merchantMapper;
-  private final ProductRepository productRepository;
-  private final VariantRepository variantRepository;
-  private final MerchantRepository merchantRepository;
-  private final BrandRepository brandRepository;
-  private final CategoryRepository categoryRepository;
-  private final InventoryRepository inventoryRepository;
-  private final CacheUtil<Merchant> merchantCacheUtil;
-  private final CacheUtil<Brand> brandCacheUtil;
-  private final CacheUtil<Category> categoryCacheUtil;
-  private final CacheUtil<Inventory> inventoryCacheUtil;
+  private final ProductService productService;
+  private final VariantService variantService;
+  private final MerchantService merchantService;
+  private final BrandService brandService;
+  private final CategoryService categoryService;
+  private final InventoryService inventoryService;
   private final Executor typesenseExecutor;
-
   @Value("${default.item-per-page}")
   private Integer defaultItemPerPage;
 
-  public SearchServiceImpl(
-      TypeSenseService typeSenseService,
+  public SearchServiceImpl(TypeSenseService typeSenseService,
       ProductSearchIndexMapper productMapper,
       MerchantSearchIndexMapper merchantMapper,
-      ProductRepository productRepository,
-      VariantRepository variantRepository,
-      MerchantRepository merchantRepository,
-      BrandRepository brandRepository,
-      CategoryRepository categoryRepository,
-      InventoryRepository inventoryRepository,
-      CacheUtil<Merchant> merchantCacheUtil,
-      CacheUtil<Brand> brandCacheUtil,
-      CacheUtil<Category> categoryCacheUtil,
-      CacheUtil<Inventory> inventoryCacheUtil,
+      ProductService productService,
+      VariantService variantService,
+      MerchantService merchantService,
+      BrandService brandService,
+      CategoryService categoryService,
+      InventoryService inventoryService,
       @Qualifier("typesenseExecutor") Executor typesenseExecutor) {
     this.typeSenseService = typeSenseService;
     this.productMapper = productMapper;
     this.merchantMapper = merchantMapper;
-    this.productRepository = productRepository;
-    this.variantRepository = variantRepository;
-    this.merchantRepository = merchantRepository;
-    this.brandRepository = brandRepository;
-    this.categoryRepository = categoryRepository;
-    this.inventoryRepository = inventoryRepository;
-    this.merchantCacheUtil = merchantCacheUtil;
-    this.brandCacheUtil = brandCacheUtil;
-    this.categoryCacheUtil = categoryCacheUtil;
-    this.inventoryCacheUtil = inventoryCacheUtil;
+    this.productService = productService;
+    this.variantService = variantService;
+    this.merchantService = merchantService;
+    this.brandService = brandService;
+    this.categoryService = categoryService;
+    this.inventoryService = inventoryService;
     this.typesenseExecutor = typesenseExecutor;
   }
 
@@ -146,7 +123,7 @@ public class SearchServiceImpl implements SearchService {
   }
 
 
-  Map<String, String> decodeCursor(String cursor, Set<String> keys) {
+  Map<String, String> decodeCursor(String cursor) {
     String decoded = ParserUtil.decodeBase64(cursor);
     String[] parts = Objects.requireNonNull(decoded).split("&");
 
@@ -159,8 +136,95 @@ public class SearchServiceImpl implements SearchService {
     return result;
   }
 
+  private Query resolveQueries(Map<String, String> queries) {
+    if (ObjectUtils.isEmpty(queries)) {
+      return new Query("*", null);
+    }
+    // Parse query text
+    String query = queries.getOrDefault("q", queries.getOrDefault("query", "*"));
+    query = StringUtils.isNotBlank(query) ? query.trim().toLowerCase() : "*";
+    List<String> filterBys = new ArrayList<>();
+
+    if (query.contains(":")) {
+      String queryByAttributes = resolveQueryByAttributes(query);
+      if (StringUtils.isNotBlank(queryByAttributes)) {
+        filterBys.add(queryByAttributes);
+        query = "*";
+      }
+    }
+
+    Set<String> queryAbleFields = productMapper.queryAbleFields();
+
+    queries.forEach((key, value) -> {
+      String match = resolveMatchKey(key, queryAbleFields);
+      if (StringUtils.isNotBlank(match) && StringUtils.isNotBlank(value)) {
+        if (key.toLowerCase().contains("category")) {
+          filterBys.add(String.format("(categoryCodes:=[\\\"%s\\\"] || categoryNames:=[\\\"%s\\\"])", value, value));
+        } else {
+          filterBys.add(String.format("%s:=[\\\"%s\\\"]", match, value));
+        }
+      }
+    });
+
+    return new Query(query, String.join(" && ", filterBys));
+  }
+
+  private String resolveQueryByAttributes(String input) {
+    if (StringUtils.isBlank(input)) {
+      return null;
+    }
+    String[] parsed = input.trim().toLowerCase().replaceAll("\\s+", " ").replaceAll("\\s+:\\s+", ":").split("\\s+");
+    List<String> captured = new ArrayList<>();
+    boolean capture = false;
+    StringBuilder builder = new StringBuilder();
+    for (String section : parsed) {
+      if (section.contains(":")) {
+        if (capture) {
+          captured.add(builder.toString());
+          builder.setLength(0);
+          builder.append(section);
+          capture = false;
+        } else {
+          builder.append(section);
+          capture = true;
+        }
+      } else {
+        builder.append(section);
+        builder.append(" ");
+      }
+    }
+
+    if (!builder.isEmpty()) {
+      captured.add(builder.toString());
+      builder.setLength(0);
+    }
+
+    if (captured.isEmpty()) {
+      return null;
+    }
+    return String.format("attributes:=[%s]",
+        captured.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(",")));
+  }
+
+
+  private String resolveMatchKey(String key, Set<String> inputs) {
+    String match = null;
+    if (ObjectUtils.isEmpty(inputs)) {
+      return null;
+    }
+    for (String target : inputs) {
+      if (StringUtils.isNotBlank(target)) {
+        if (key.trim().equalsIgnoreCase(target.trim())) {
+          match = target;
+          break;
+        }
+      }
+    }
+    return match;
+  }
+
   @Override
-  public Result<AggregatedProductDto> searchProducts(String query,
+  public Result<AggregatedProductDto> searchProducts(Map<String, String> queries,
       int size,
       String cursor,
       String sortBy,
@@ -168,20 +232,30 @@ public class SearchServiceImpl implements SearchService {
       Boolean buyable) throws Exception {
     int page = 1;
     if (StringUtils.isNotBlank(cursor)) {
-      Map<String, String> params = decodeCursor(cursor, null);
+      Map<String, String> params = decodeCursor(cursor);
       page = Integer.parseInt(params.getOrDefault("p", "1"));
     }
+    if (size == 0) {
+      size = this.defaultItemPerPage;
+    }
+    Query query = resolveQueries(queries);
     SearchParameters parameters = new SearchParameters();
-    parameters.page(page).perPage(size);
-    if (StringUtils.isBlank(query)) {
-      parameters.q("*");
-    } else {
-      parameters.q(query.trim().toLowerCase());
+    parameters.q(query.query()).page(page).perPage(size);
+
+    if (StringUtils.isNotBlank(query.filterBy())) {
+      parameters.filterBy(query.filterBy());
     }
+
+    // Buyable filter
     if (buyable != null) {
-      // Typesense boolean filter syntax: field:true or field:false (not field:=value)
-      parameters.filterBy(String.format("inStock:%s", buyable));
+      String existing = query.filterBy();
+      if (StringUtils.isNotBlank(existing)) {
+        parameters.filterBy(String.format("%s && inStock:%s", existing, buyable));
+      } else {
+        parameters.filterBy(String.format("inStock:%s", buyable));
+      }
     }
+
     if (StringUtils.isNotBlank(sortBy)) {
       sortOrder = StringUtils.isNotBlank(sortOrder) ? sortOrder : "asc";
       parameters.sortBy(String.format("%s:%s", sortBy.trim(), sortOrder.toLowerCase().trim()));
@@ -206,8 +280,11 @@ public class SearchServiceImpl implements SearchService {
       String sortOrder) throws Exception {
     int page = 1;
     if (StringUtils.isNotBlank(cursor)) {
-      Map<String, String> params = decodeCursor(cursor, null);
+      Map<String, String> params = decodeCursor(cursor);
       page = Integer.parseInt(params.getOrDefault("p", "1"));
+    }
+    if (size == 0) {
+      size = this.defaultItemPerPage;
     }
     SearchParameters parameters = new SearchParameters();
     parameters.page(page).perPage(size);
@@ -244,7 +321,7 @@ public class SearchServiceImpl implements SearchService {
     String productCursor;
     String merchantCursor;
     if (StringUtils.isNotBlank(cursor)) {
-      Map<String, String> params = decodeCursor(cursor, null);
+      Map<String, String> params = decodeCursor(cursor);
       page = Integer.parseInt(params.getOrDefault("p", "1"));
       productCursor = params.get("pd");
       merchantCursor = params.get("mc");
@@ -257,12 +334,16 @@ public class SearchServiceImpl implements SearchService {
 
     CompletableFuture<Result<AggregatedProductDto>> productFuture = CompletableFuture.supplyAsync(() -> {
       try {
+        Map<String, String> queries = new HashMap<>();
+        if (StringUtils.isNotBlank(query)) {
+          queries.put("q", query);
+        }
         if (StringUtils.isNotBlank(cursor)) {
           return StringUtils.isBlank(productCursor) ?
               new Result<>(new ArrayList<>(), new ArrayList<>(), 0, 0, 0, 0, null) :
-              searchProducts(query, size, productCursor, sortBy, sortDirection, null);
+              searchProducts(queries, size, productCursor, sortBy, sortDirection, null);
         } else {
-          return searchProducts(query, size, null, sortBy, sortDirection, null);
+          return searchProducts(queries, size, null, sortBy, sortDirection, null);
         }
       } catch (Exception e) {
         log.warn("Fail to query product : {}", query, e);
@@ -347,39 +428,40 @@ public class SearchServiceImpl implements SearchService {
   @Override
   public List<AggregatedProductDto> buildAggregatedProduct(String sku) {
     List<AggregatedProductDto> results = new ArrayList<>();
-    Optional<Product> productOpt = productRepository.findBySku(sku);
-    if (productOpt.isEmpty()) {
-      return Collections.emptyList();
-    }
 
-    Product product = productOpt.get();
-    Optional<Merchant> merchant = merchantRepository.findByCode(product.getMerchantCode());
+    Product product = productService.findProductBySku(sku);
+
+    Merchant merchant = getMerchantSafely(product.getMerchantCode());
+    Category category = getCategorySafely(product.getCategoryId());
+    CategoryNode categoryNode = category != null ? categoryService.getCategoryNodes(category) : null;
 
     // Get all the variant
-    Map<String, Variant> variants = variantRepository.findBySku(sku)
-        .stream()
-        .collect(Collectors.toMap(Variant::getSubSku, Function.identity(), (existing, duplicate) -> duplicate));
-    Map<String, Inventory> inventories = inventoryRepository.findBySubSkuIn(variants.keySet().stream().toList())
-        .stream()
-        .collect(Collectors.toMap(Inventory::getSubSku, Function.identity(), (existing, duplicate) -> duplicate));
+    Map<String, VariantData> variants =
+        variantService.findVariantsBySku(FindVariantsBySkuRequest.newBuilder().setSku(sku).build())
+            .getDataList()
+            .stream()
+            .collect(Collectors.toMap(VariantData::getSubSku, Function.identity(), (existing, duplicate) -> duplicate));
+    Map<String, Inventory> inventories =
+        inventoryService.findBulkInventoriesBySubSkus(variants.keySet().stream().toList())
+            .stream()
+            .collect(Collectors.toMap(Inventory::getSubSku, Function.identity(), (existing, duplicate) -> duplicate));
 
-    String brandName = product.getBrandId() != null ?
-        brandRepository.findById(product.getBrandId()).map(Brand::getName).orElse(null) :
-        null;
-
-    String categoryName = product.getCategoryId() != null ?
-        categoryRepository.findById(product.getCategoryId()).map(Category::getName).orElse(null) :
-        null;
+    final String brandName = getBrandNameSafely(product);
 
     variants.forEach((key, variant) -> {
-      // Build variant keywords from attributes
-      List<String> variantKeywords = new ArrayList<>();
-      if (variant.getAttributes() != null) {
-        variant.getAttributes().values().forEach(v -> {
-          if (v != null)
-            variantKeywords.add(v.toString());
+      // Build variant keywords and attributes
+      Map<String, Object> attributes = new HashMap<>();
+      Set<String> variantKeywords = new HashSet<>();
+
+      if (variant.hasAttributes()) {
+        variant.getAttributes().getFieldsMap().forEach((attributeKey, attributeValue) -> {
+          if (ObjectUtils.isNotEmpty(attributeValue)) {
+            attributes.put(attributeKey, resolveObjectValue(attributeValue));
+            variantKeywords.add(attributeValue.getStringValue());
+          }
         });
       }
+
       // Check stock
       boolean inStock = inventories.get(key).getStock() > 0L;
       // Create slug from title
@@ -387,26 +469,138 @@ public class SearchServiceImpl implements SearchService {
           product.getTitle().toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "") :
           sku.toLowerCase();
 
+
       results.add(new AggregatedProductDto(variant.getSubSku(),
-          merchant.orElse(new Merchant()).getName(),
-          merchant.orElse(new Merchant()).getLocation(),
+          ObjectUtils.isEmpty(merchant) ? null : merchant.getName(),
+          ObjectUtils.isEmpty(merchant) ? null : merchant.getCode(),
+          ObjectUtils.isEmpty(merchant) ? null : merchant.getLocation(),
           inStock,
           variant.getTitle(),
           product.getSummary() != null ? product.getSummary().getShortDescription() : null,
           brandName,
-          categoryName,
+          ObjectUtils.isEmpty(category) ? null : category.getName(),
+          ObjectUtils.isEmpty(category) ? null : category.getId(),
+          getCategoryNames(categoryNode),
+          getCategoryCodes(categoryNode),
           variant.getThumbnail(),
           slug,
-          variant.getAttributes(),
-          variantKeywords,
+          attributes.isEmpty() ? null : attributes,
+          new ArrayList<>(variantKeywords),
           product.getSku(),
           variant.getSubSku(),
           variant.getPrice(),
-          variant.getCreatedAt(),
-          variant.getUpdatedAt()));
+          toInstant(variant.getCreatedAt()),
+          toInstant(variant.getUpdatedAt())));
     });
 
     return results;
+  }
+
+  private Instant toInstant(Timestamp timestamp) {
+    return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
+  }
+
+  /**
+   * Safely get brand name, returning null if brand doesn't exist
+   */
+  private String getBrandNameSafely(Product product) {
+    if (product.getBrandId() == null) {
+      return null;
+    }
+    try {
+      return brandService.findBrandById(product.getBrandId()).getName();
+    } catch (ResourceNotFoundException e) {
+      log.warn("Brand with id {} not found for product {}, setting brandName to null",
+          product.getBrandId(), product.getSku());
+      return null;
+    }
+  }
+
+  /**
+   * Safely get category, returning null if category doesn't exist or categoryId is invalid
+   */
+  private Category getCategorySafely(String categoryId) {
+    if (categoryId == null || categoryId.isBlank() || "cat-".equals(categoryId)) {
+      return null;
+    }
+    try {
+      return categoryService.findCategoryById(categoryId);
+    } catch (ResourceNotFoundException e) {
+      log.warn("Category with id {} not found, setting category to null", categoryId);
+      return null;
+    }
+  }
+
+  /**
+   * Safely get merchant, returning null if merchant doesn't exist
+   */
+  private Merchant getMerchantSafely(String merchantCode) {
+    if (merchantCode == null || merchantCode.isBlank()) {
+      return null;
+    }
+    try {
+      return merchantService.findMerchantByCode(merchantCode);
+    } catch (ResourceNotFoundException e) {
+      log.warn("Merchant with code {} not found, setting merchant to null", merchantCode);
+      return null;
+    }
+  }
+
+  private Object resolveObjectValue(com.google.protobuf.Value value) {
+    Object result = null;
+    if (ObjectUtils.isNotEmpty(value)) {
+      if (value.hasBoolValue()) {
+        result = value.getBoolValue();
+      } else if (value.hasStringValue()) {
+        result = value.getStringValue();
+      } else if (value.hasNumberValue()) {
+        result = value.getNumberValue();
+      } else if (value.hasStructValue()) {
+        Map<String, Object> map = new HashMap<>();
+        value.getStructValue().getFieldsMap().forEach((k, v) -> {
+          if (ObjectUtils.isNotEmpty(v)) {
+            map.put(k, resolveObjectValue(v));
+          }
+        });
+        result = map;
+      } else if (value.hasListValue()) {
+        List<Object> arr = new ArrayList<>();
+        value.getListValue().getValuesList().forEach(item -> {
+          arr.add(resolveObjectValue(item));
+        });
+        result = arr;
+      }
+    }
+
+    return result;
+  }
+
+  private List<String> getCategoryCodes(CategoryNode node) {
+    List<String> result = new ArrayList<>();
+    if (ObjectUtils.isEmpty(node)) {
+      return result;
+    }
+
+    result.add(node.getId());
+    node.getChildrenList().forEach(child -> {
+      result.addAll(getCategoryCodes(child));
+    });
+
+    return result;
+  }
+
+  private List<String> getCategoryNames(CategoryNode node) {
+    List<String> result = new ArrayList<>();
+    if (ObjectUtils.isEmpty(node)) {
+      return result;
+    }
+
+    result.add(node.getName());
+    node.getChildrenList().forEach(child -> {
+      result.addAll(getCategoryNames(child));
+    });
+
+    return result;
   }
 
   /**
@@ -454,21 +648,41 @@ public class SearchServiceImpl implements SearchService {
 
     return new AggregatedProductDto(getString(doc, "id"),
         getString(doc, "merchantName"),
+        getString(doc, "merchantCode"),
         getString(doc, "merchantLocation"),
         getBoolean(doc, "inStock"),
         getString(doc, "title"),
         getString(doc, "body"),
         getString(doc, "brand"),
         getString(doc, "category"),
+        getString(doc, "categoryCode"),
+        getStringList(doc, "categoryNames"),
+        getStringList(doc, "categoryCodes"),
         getString(doc, "thumbnail"),
         getString(doc, "slug"),
-        (Map<String, Object>) doc.get("attributes"),
+        getMappedAttributes(getStringList(doc, "attributes")),
         getStringList(doc, "variantKeywords"),
         getString(doc, "sku"),
         getString(doc, "subSku"),
         getDouble(doc, "price"),
         getInstant(doc, "createdAt"),
         getInstant(doc, "updatedAt"));
+  }
+
+  private Map<String, Object> getMappedAttributes(List<String> attributes) {
+    Map<String, Object> result = new HashMap<>();
+    if (ObjectUtils.isEmpty(attributes)) {
+      return result;
+    }
+    for (String attribute : attributes) {
+      if (attribute.contains(":")) {
+        String[] arr = attribute.split(":");
+        String params = arr.length < 1 ? "" : String.join(" ", Arrays.asList(arr).subList(1, arr.length));
+        result.put(arr[0], params);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -567,66 +781,82 @@ public class SearchServiceImpl implements SearchService {
     return null;
   }
 
-  record PageResult(Iterable<SearchResultHit> hits, List<FacetCounts> facetCounts, int totalReturned, int totalMatch,
-                    int totalPage, int took, String nextToken) {
-
-  }
-
-  // ============================================================
-  // New Product Details, Summary, and Inventory Check Methods
-  // ============================================================
-
   @Override
   public ProductDetailsResult getProductDetails(String id) throws Exception {
     long startTime = System.currentTimeMillis();
 
     // First, try to find by subSku in Typesense for fast lookup
-    SearchParameters params = new SearchParameters()
-        .q("*")
-        .filterBy(String.format("subSku:=%s || sku:=%s", id, id))
-        .perPage(1);
+    SearchParameters params =
+        new SearchParameters().q("*").filterBy(String.format("subSku:=%s || sku:=%s", id, id)).perPage(1);
 
     SearchResult result = typeSenseService.search(params, productMapper);
+    AggregatedProductDto aggregated =
+        result.getFound() > 0 ? mapToProduct(result.getHits().getFirst().getDocument()) : null;
 
-    String sku;
-    if (result.getHits() != null && !result.getHits().isEmpty()) {
-      Map<String, Object> doc = result.getHits().get(0).getDocument();
-      sku = getString(doc, "sku");
-    } else {
-      // Fallback: try to find by variant subSku or product sku in DB
-      Optional<Variant> variantOpt = variantRepository.findBySubSku(id);
-      if (variantOpt.isPresent()) {
-        sku = variantOpt.get().getSku();
-      } else {
-        Optional<Product> productOpt = productRepository.findBySku(id);
-        if (productOpt.isPresent()) {
-          sku = productOpt.get().getSku();
-        } else {
-          throw new ResourceNotFoundException("Product not found with id: " + id);
+    String productSku = ObjectUtils.isEmpty(aggregated) ? id : aggregated.sku();
+
+    // Parallel fetch: Product and Variants (variants needed for inventory lookup)
+    CompletableFuture<Product> productFuture =
+        CompletableFuture.supplyAsync(() -> productService.findProductBySku(productSku), typesenseExecutor);
+
+    CompletableFuture<Map<String, VariantData>> variantsFuture =
+        CompletableFuture.supplyAsync(() -> variantService.findVariantsBySku(FindVariantsBySkuRequest.newBuilder()
+                    .setSku(productSku)
+                    .build())
+                .getDataList()
+                .stream()
+                .collect(Collectors.toMap(VariantData::getSubSku, Function.identity(), (existing, duplicate) -> duplicate)),
+            typesenseExecutor);
+
+    // Wait for product and variants
+    Product product = productFuture.join();
+    if (ObjectUtils.isEmpty(product)) {
+      throw new ResourceNotFoundException("Product not found for " + id);
+    }
+    Map<String, VariantData> variants = variantsFuture.join();
+
+    // Parallel fetch: Merchant, Brand, Category, and Inventories
+    CompletableFuture<Merchant> merchantFuture =
+        CompletableFuture.supplyAsync(() -> getMerchantSafely(product.getMerchantCode()), typesenseExecutor);
+
+    CompletableFuture<Brand> brandFuture = CompletableFuture.supplyAsync(() -> {
+      if (product.getBrandId() != null) {
+        try {
+          return brandService.findBrandById(product.getBrandId());
+        } catch (ResourceNotFoundException e) {
+          log.warn("Brand with id {} not found for product {}", product.getBrandId(), product.getSku());
+          return null;
         }
       }
-    }
+      return null;
+    }, typesenseExecutor);
 
-    // Get the product from DB
-    Product product = productRepository.findBySku(sku)
-        .orElseThrow(() -> new ResourceNotFoundException("Product not found with sku: " + sku));
+    CompletableFuture<Category> categoryFuture =
+        CompletableFuture.supplyAsync(() -> getCategorySafely(product.getCategoryId()), typesenseExecutor);
 
-    // Fetch all related data with caching
-    Merchant merchant = getCachedMerchant(product.getMerchantCode());
-    Brand brand = product.getBrandId() != null ? getCachedBrand(product.getBrandId()) : null;
-    Category category = product.getCategoryId() != null ? getCachedCategory(product.getCategoryId()) : null;
+    CompletableFuture<Map<String, Inventory>> inventoriesFuture =
+        CompletableFuture.supplyAsync(() -> inventoryService.findBulkInventoriesBySubSkus(variants.keySet()
+                    .stream()
+                    .toList())
+                .stream()
+                .collect(Collectors.toMap(Inventory::getSubSku, Function.identity(), (existing, duplicate) -> duplicate)),
+            typesenseExecutor);
 
-    // Get all variants for this product
-    List<Variant> variants = variantRepository.findBySku(sku);
-    List<String> subSkus = variants.stream().map(Variant::getSubSku).toList();
+    // Wait for all parallel fetches to complete
+    CompletableFuture.allOf(merchantFuture, brandFuture, categoryFuture, inventoriesFuture).join();
 
-    // Get inventory for all variants with short TTL cache
-    Map<String, Inventory> inventoryMap = getCachedInventories(subSkus);
+    Merchant merchant = merchantFuture.join();
+    Brand brand = brandFuture.join();
+    Category category = categoryFuture.join();
+    Map<String, Inventory> inventories = inventoriesFuture.join();
 
     // Build the detailed response
-    ProductDetailDto detailDto = buildProductDetailDto(product, merchant, brand, category, variants, inventoryMap);
+    String subSku = ObjectUtils.isEmpty(aggregated) ? null : aggregated.subSku();
+    ProductDetailDto detailDto =
+        buildProductDetailDto(subSku, product, merchant, brand, category, variants, inventories);
 
     long took = System.currentTimeMillis() - startTime;
+    log.debug("Product details fetched in {}ms for id={}", took, id);
     return new ProductDetailsResult(detailDto, took);
   }
 
@@ -641,14 +871,10 @@ public class SearchServiceImpl implements SearchService {
     int totalRequested = subSkus.size();
 
     // Build filter for exact subSku match
-    String filterBy = subSkus.stream()
-        .map(sku -> "subSku:=" + sku)
-        .collect(Collectors.joining(" || "));
+    String filterBy = subSkus.stream().map(sku -> "subSku:=" + sku).collect(Collectors.joining(" || "));
 
-    SearchParameters params = new SearchParameters()
-        .q("*")
-        .filterBy(filterBy)
-        .perPage(Math.min(totalRequested, 250)); // Typesense limit
+    SearchParameters params =
+        new SearchParameters().q("*").filterBy(filterBy).perPage(Math.min(totalRequested, 250)); // Typesense limit
 
     SearchResult result = typeSenseService.search(params, productMapper);
     List<AggregatedProductDto> products = mapProductsParallel(result);
@@ -656,6 +882,10 @@ public class SearchServiceImpl implements SearchService {
     long took = System.currentTimeMillis() - startTime;
     return new ProductSummaryResult(products, products.size(), totalRequested, took);
   }
+
+  // ============================================================
+  // New Product Details, Summary, and Inventory Check Methods
+  // ============================================================
 
   @Override
   public InventoryCheckResult checkInventory(List<String> subSkus) {
@@ -668,195 +898,134 @@ public class SearchServiceImpl implements SearchService {
     int totalRequested = subSkus.size();
 
     // Get inventories with short TTL cache
-    Map<String, Inventory> inventoryMap = getCachedInventories(subSkus);
+    Map<String, Inventory> inventoryMap = inventoryService.findBulkInventoriesBySubSkus(subSkus)
+        .stream()
+        .collect(Collectors.toMap(Inventory::getSubSku, Function.identity(), (existing, duplicate) -> duplicate));
 
-    List<InventoryCheckItemDto> items = subSkus.stream()
-        .filter(inventoryMap::containsKey)
-        .map(subSku -> {
-          Inventory inv = inventoryMap.get(subSku);
-          return new InventoryCheckItemDto(
-              subSku,
-              inv.getStock(),
-              inv.getStock() != null && inv.getStock() > 0,
-              inv.getUpdatedAt()
-          );
-        })
-        .toList();
+    List<InventoryCheckItemDto> items = subSkus.stream().filter(inventoryMap::containsKey).map(subSku -> {
+      Inventory inv = inventoryMap.get(subSku);
+      return new InventoryCheckItemDto(subSku,
+          inv.getStock(),
+          inv.getStock() != null && inv.getStock() > 0,
+          inv.getUpdatedAt());
+    }).toList();
 
     long took = System.currentTimeMillis() - startTime;
     return new InventoryCheckResult(items, items.size(), totalRequested, took);
   }
 
-  // ============================================================
-  // Cache Helper Methods
-  // ============================================================
-
-  private Merchant getCachedMerchant(String merchantCode) {
-    if (StringUtils.isBlank(merchantCode)) return null;
-
-    String cacheKey = MERCHANT_CACHE_PREFIX + merchantCode;
-    Merchant cached = merchantCacheUtil.getValue(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-
-    Merchant merchant = merchantRepository.findByCode(merchantCode).orElse(null);
-    if (merchant != null) {
-      merchantCacheUtil.putValue(cacheKey, merchant, METADATA_CACHE_TTL_HOURS, TimeUnit.HOURS);
-    }
-    return merchant;
-  }
-
-  private Brand getCachedBrand(String brandId) {
-    if (StringUtils.isBlank(brandId)) return null;
-
-    String cacheKey = BRAND_CACHE_PREFIX + brandId;
-    Brand cached = brandCacheUtil.getValue(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-
-    Brand brand = brandRepository.findById(brandId).orElse(null);
-    if (brand != null) {
-      brandCacheUtil.putValue(cacheKey, brand, METADATA_CACHE_TTL_HOURS, TimeUnit.HOURS);
-    }
-    return brand;
-  }
-
-  private Category getCachedCategory(String categoryId) {
-    if (StringUtils.isBlank(categoryId)) return null;
-
-    String cacheKey = CATEGORY_CACHE_PREFIX + categoryId;
-    Category cached = categoryCacheUtil.getValue(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-
-    Category category = categoryRepository.findById(categoryId).orElse(null);
-    if (category != null) {
-      categoryCacheUtil.putValue(cacheKey, category, METADATA_CACHE_TTL_HOURS, TimeUnit.HOURS);
-    }
-    return category;
-  }
-
-  private Map<String, Inventory> getCachedInventories(List<String> subSkus) {
-    Map<String, Inventory> result = new HashMap<>();
-    List<String> missedSubSkus = new ArrayList<>();
-
-    // Check cache first
-    for (String subSku : subSkus) {
-      String cacheKey = INVENTORY_CACHE_PREFIX + subSku;
-      Inventory cached = inventoryCacheUtil.getValue(cacheKey);
-      if (cached != null) {
-        result.put(subSku, cached);
-      } else {
-        missedSubSkus.add(subSku);
-      }
-    }
-
-    // Fetch missed from DB
-    if (!missedSubSkus.isEmpty()) {
-      List<Inventory> inventories = inventoryRepository.findBySubSkuIn(missedSubSkus);
-      for (Inventory inv : inventories) {
-        String cacheKey = INVENTORY_CACHE_PREFIX + inv.getSubSku();
-        inventoryCacheUtil.putValue(cacheKey, inv, INVENTORY_CACHE_TTL_SECONDS, TimeUnit.SECONDS);
-        result.put(inv.getSubSku(), inv);
-      }
-    }
-
-    return result;
-  }
-
-  // ============================================================
-  // DTO Building Helper Methods
-  // ============================================================
-
-  private ProductDetailDto buildProductDetailDto(
+  private ProductDetailDto buildProductDetailDto(String subSku,
       Product product,
       Merchant merchant,
       Brand brand,
       Category category,
-      List<Variant> variants,
+      Map<String, VariantData> variants,
       Map<String, Inventory> inventoryMap) {
 
     // Build merchant detail
-    MerchantDetailDto merchantDto = merchant != null ? new MerchantDetailDto(
-        merchant.getId(),
-        merchant.getName(),
-        merchant.getCode(),
-        merchant.getIconUrl(),
-        merchant.getLocation(),
-        merchant.getRating(),
-        merchant.getContact() != null ?
-            new MerchantDetailDto.ContactInfoDto(
-                merchant.getContact().getPhone(),
-                merchant.getContact().getEmail()
-            ) : null
-    ) : null;
+    MerchantDetailDto merchantDto = merchant != null ?
+        new MerchantDetailDto(merchant.getId(),
+            merchant.getName(),
+            merchant.getCode(),
+            merchant.getIconUrl(),
+            merchant.getLocation(),
+            merchant.getRating(),
+            merchant.getContact() != null ?
+                new MerchantDetailDto.ContactInfoDto(merchant.getContact().getPhone(),
+                    merchant.getContact().getEmail()) :
+                null) :
+        null;
 
     // Build brand detail
-    BrandDetailDto brandDto = brand != null ? new BrandDetailDto(
-        brand.getId(),
-        brand.getName(),
-        brand.getSlug(),
-        brand.getIconUrl()
-    ) : null;
+    BrandDetailDto brandDto =
+        brand != null ? new BrandDetailDto(brand.getId(), brand.getName(), brand.getSlug(), brand.getIconUrl()) : null;
 
     // Build category detail
-    CategoryDetailDto categoryDto = category != null ? new CategoryDetailDto(
-        category.getId(),
-        category.getName(),
-        category.getSlug(),
-        category.getIconUrl(),
-        category.getParentId()
-    ) : null;
+    CategoryDetailDto categoryDto = category != null ?
+        new CategoryDetailDto(category.getId(),
+            category.getName(),
+            category.getSlug(),
+            category.getIconUrl(),
+            category.getParentId()) :
+        null;
+
+    // Determine selected variant
+    String selectedSubSkuId = subSku;
+    if (StringUtils.isBlank(selectedSubSkuId)) {
+      // Find default variant or use first one
+      selectedSubSkuId = variants.values()
+          .stream()
+          .filter(VariantData::getIsDefault)
+          .map(VariantData::getSubSku)
+          .findFirst()
+          .orElse(variants.keySet().stream().findFirst().orElse(null));
+    }
+    final String finalSelectedSubSku = selectedSubSkuId;
 
     // Build variant details with stock info
-    List<VariantDetailDto> variantDtos = variants.stream().map(variant -> {
-      Inventory inventory = inventoryMap.get(variant.getSubSku());
-      VariantDetailDto.StockInfoDto stockInfo = inventory != null ?
-          new VariantDetailDto.StockInfoDto(
-              inventory.getStock() != null ? inventory.getStock() : 0,
+    List<VariantDetailDto> variantDtos = new ArrayList<>();
+    List<VariantDetailDto.VariantMediaDto> selectedVariantMedias = new ArrayList<>();
+    Double selectedVariantPrice = null;
+
+    for (Map.Entry<String, VariantData> entry : variants.entrySet()) {
+      String id = entry.getKey();
+      VariantData variant = entry.getValue();
+
+      Inventory inventory = inventoryMap.get(id);
+      VariantDetailDto.StockInfoDto variantStockInfo = inventory != null ?
+          new VariantDetailDto.StockInfoDto(inventory.getStock() != null ? inventory.getStock() : 0,
               inventory.getStock() != null && inventory.getStock() > 0,
-              inventory.getUpdatedAt()
-          ) :
+              inventory.getUpdatedAt()) :
           new VariantDetailDto.StockInfoDto(0, false, null);
+      
+      List<VariantDetailDto.VariantMediaDto> medias = new ArrayList<>();
+      variant.getMediaList()
+          .forEach(media -> medias.add(new VariantDetailDto.VariantMediaDto(media.getUrl(),
+              media.getType(),
+              media.getSortOrder(),
+              media.getAltText())));
 
-      List<VariantDetailDto.VariantMediaDto> mediaDtos = variant.getMedia() != null ?
-          variant.getMedia().stream().map(m -> new VariantDetailDto.VariantMediaDto(
-              m.getUrl(),
-              m.getType(),
-              m.getSortOrder(),
-              m.getAltText()
-          )).toList() : Collections.emptyList();
+      // Track selected variant's media and price
+      boolean isSelected = id.equals(finalSelectedSubSku);
+      if (isSelected) {
+        selectedVariantMedias.addAll(medias);
+        selectedVariantPrice = variant.getPrice();
+      }
 
-      return new VariantDetailDto(
-          variant.getId(),
+      variantDtos.add(new VariantDetailDto(variant.getId(),
           variant.getSubSku(),
           variant.getTitle(),
           variant.getPrice(),
-          variant.getIsDefault(),
-          variant.getAttributes(),
+          variant.getIsDefault() || isSelected,
+          // Mark as selected
+          variantMapper.structToMap(variant.getAttributes()),
           variant.getThumbnail(),
-          mediaDtos,
-          stockInfo,
-          variant.getCreatedAt(),
-          variant.getUpdatedAt()
-      );
-    }).toList();
+          medias,
+          variantStockInfo,
+          variantMapper.toInstant(variant.getCreatedAt()),
+          variantMapper.toInstant(variant.getUpdatedAt())));
+    }
 
     // Calculate total stock
-    long totalStock = inventoryMap.values().stream()
-        .mapToLong(inv -> inv.getStock() != null ? inv.getStock() : 0)
-        .sum();
+    long totalStock =
+        inventoryMap.values().stream().mapToLong(inv -> inv.getStock() != null ? inv.getStock() : 0).sum();
     boolean hasStock = totalStock > 0;
+
+    Inventory selectedInventory = inventoryMap.get(finalSelectedSubSku);
+    VariantDetailDto.StockInfoDto stockInfo = new VariantDetailDto.StockInfoDto(totalStock,
+        hasStock,
+        selectedInventory != null ? selectedInventory.getUpdatedAt() : null);
+
+    // Build price DTO
+    ProductDetailDto.PriceDto priceDto =
+        new ProductDetailDto.PriceDto(selectedVariantPrice, null,  // discount - can be added later if needed
+            "IDR");
 
     // Build product summary
     String shortDescription = product.getSummary() != null ? product.getSummary().getShortDescription() : null;
     List<String> tags = product.getSummary() != null ? product.getSummary().getTags() : null;
 
-    return new ProductDetailDto(
-        product.getId(),
+    return new ProductDetailDto(product.getId(),
         product.getSku(),
         product.getTitle(),
         shortDescription,
@@ -866,11 +1035,136 @@ public class SearchServiceImpl implements SearchService {
         brandDto,
         categoryDto,
         variantDtos,
-        totalStock,
+        selectedVariantMedias,
+        // Product-level media from selected variant
+        stockInfo,
+        priceDto,
+        // Price from selected variant
         hasStock,
         product.getCreatedAt(),
-        product.getUpdatedAt()
-    );
+        product.getUpdatedAt());
+  }
+
+
+  record Query(String query, String filterBy) {
+
+  }
+
+  // ============================================================
+  // Bulk Indexing Methods
+  // ============================================================
+
+  @Override
+  public int indexAllMerchants() {
+    log.info("Starting TypeSense indexing for all merchants...");
+    List<Merchant> merchants = merchantService.findAllMerchants();
+    int indexed = 0;
+    int failed = 0;
+
+    for (Merchant merchant : merchants) {
+      try {
+        indexMerchant(merchant);
+        indexed++;
+        if (indexed % 1000 == 0) {
+          log.info("Indexed {} merchants...", indexed);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to index merchant {}: {}", merchant.getCode(), e.getMessage());
+        failed++;
+      }
+    }
+
+    log.info("TypeSense merchant indexing complete: {} indexed, {} failed", indexed, failed);
+    return indexed;
+  }
+
+  @Override
+  public int indexAllProducts() {
+    log.info("Starting TypeSense indexing for all products...");
+    List<Product> products = productService.findAllProducts();
+    int indexed = 0;
+    int failed = 0;
+
+    for (Product product : products) {
+      try {
+        List<AggregatedProductDto> aggregatedProducts = buildAggregatedProduct(product.getSku());
+        if (aggregatedProducts != null) {
+          for (AggregatedProductDto dto : aggregatedProducts) {
+            try {
+              indexProduct(dto);
+              indexed++;
+            } catch (Exception e) {
+              log.warn("Failed to index variant {}: {}", dto.subSku(), e.getMessage());
+              failed++;
+            }
+          }
+        }
+        if ((indexed + failed) % 1000 == 0) {
+          log.info("Progress: {} indexed, {} failed", indexed, failed);
+        }
+      } catch (Exception e) {
+        log.error("Failed to build aggregated product for {}: {}", product.getSku(), e.getMessage());
+        failed++;
+      }
+    }
+
+    log.info("TypeSense product indexing complete: {} indexed, {} failed", indexed, failed);
+    return indexed;
+  }
+
+  @Override
+  public BulkIndexResult indexProductsBySkus(List<String> skus) {
+    log.info("Starting TypeSense indexing for {} SKUs...", skus.size());
+    int indexed = 0;
+    int failed = 0;
+    List<String> failedSkus = new ArrayList<>();
+
+    for (String sku : skus) {
+      try {
+        List<AggregatedProductDto> aggregatedProducts = buildAggregatedProduct(sku);
+        if (aggregatedProducts != null && !aggregatedProducts.isEmpty()) {
+          boolean allVariantsIndexed = true;
+          for (AggregatedProductDto dto : aggregatedProducts) {
+            try {
+              indexProduct(dto);
+            } catch (Exception e) {
+              log.warn("Failed to index variant {}: {}", dto.subSku(), e.getMessage());
+              allVariantsIndexed = false;
+            }
+          }
+          if (allVariantsIndexed) {
+            indexed++;
+          } else {
+            failed++;
+            failedSkus.add(sku);
+          }
+        } else {
+          failed++;
+          failedSkus.add(sku);
+        }
+        
+        if ((indexed + failed) % 500 == 0) {
+          log.info("Bulk index progress: {} indexed, {} failed out of {}", indexed, failed, skus.size());
+        }
+      } catch (Exception e) {
+        log.error("Failed to build aggregated product for {}: {}", sku, e.getMessage());
+        failed++;
+        failedSkus.add(sku);
+      }
+    }
+
+    log.info("Bulk indexing complete: {} indexed, {} failed out of {} requested", indexed, failed, skus.size());
+    return new BulkIndexResult(skus.size(), indexed, failed, failedSkus);
+  }
+
+  // ============================================================
+  // DTO Building Helper Methods
+  // ============================================================
+
+
+  record PageResult(Iterable<SearchResultHit> hits, List<FacetCounts> facetCounts, int totalReturned, int totalMatch,
+                    int totalPage, int took, String nextToken) {
+
   }
 }
 

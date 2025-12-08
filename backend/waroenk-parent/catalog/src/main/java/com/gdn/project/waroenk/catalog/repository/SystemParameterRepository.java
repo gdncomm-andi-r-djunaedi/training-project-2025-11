@@ -15,3 +15,9 @@ public interface SystemParameterRepository extends MongoRepository<SystemParamet
 
 
 
+
+
+
+
+
+

@@ -12,23 +12,18 @@ import org.springframework.beans.factory.annotation.Value;
 @RequiredArgsConstructor
 public class VersionController extends VersionServiceGrpc.VersionServiceImplBase {
 
-    @Value("${spring.application.name}")
-    private String appName;
+  @Value("${spring.application.name}")
+  private String appName;
 
-    @Value("${info.app.version}")
-    private String version;
+  @Value("${info.app.version}")
+  private String version;
 
-    @Override
-    public void getVersion(Empty request, StreamObserver<VersionResponse> responseObserver) {
-        VersionResponse response = VersionResponse.newBuilder()
-                .setName(appName)
-                .setVersion(version)
-                .build();
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
-    }
+  @Override
+  public void getVersion(Empty request, StreamObserver<VersionResponse> responseObserver) {
+    VersionResponse response = VersionResponse.newBuilder().setName(appName).setVersion(version).build();
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
 }
-
-
 
 

@@ -5,12 +5,11 @@ network:
 	@docker network inspect waroenk-network >/dev/null 2>&1 || docker network create waroenk-network
 	@echo "✅ Network waroenk-network ready"
 
-# Start Redis Sentinel cluster
+# Start Redis (Standalone)
 up: network
 	docker-compose up -d
-	@echo "✅ Redis Sentinel cluster started"
-	@echo "   Master: localhost:6379"
-	@echo "   Slaves: localhost:6380, localhost:6381"
+	@echo "✅ Redis started (standalone mode)"
+	@echo "   Redis: localhost:6379"
 
 # Stop Redis (keeps data)
 down:

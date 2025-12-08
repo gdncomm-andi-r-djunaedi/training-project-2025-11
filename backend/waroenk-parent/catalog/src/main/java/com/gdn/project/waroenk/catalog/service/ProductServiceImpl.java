@@ -188,6 +188,11 @@ public class ProductServiceImpl extends MongoPageAble<Product, String> implement
     return builder.build();
   }
 
+  @Override
+  public List<Product> findAllProducts() {
+    return repository.findAll();
+  }
+
   private void indexProductAsync(String sku) {
     try {
       List<AggregatedProductDto> aggregated = searchService.buildAggregatedProduct(sku);

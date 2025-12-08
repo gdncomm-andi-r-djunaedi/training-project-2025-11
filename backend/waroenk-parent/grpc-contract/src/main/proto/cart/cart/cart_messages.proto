@@ -12,11 +12,13 @@ option java_outer_classname = "CartMessagesProto";
 // Cart item within a cart
 message CartItemData {
     string sku = 1;
-    int32 quantity = 2;
-    int64 price_snapshot = 3;
-    string title = 4;
-    string image_url = 5;
-    map<string, string> attributes = 6;
+    string sub_sku = 2;              // Variant sub-SKU for inventory lookup
+    string title = 3;                // Product/variant title snapshot
+    int64 price_snapshot = 4;        // Price at time of adding to cart
+    int32 quantity = 5;              // Quantity requested by user
+    int32 available_stock_snapshot = 6;  // Stock available at time of last check
+    string image_url = 7;
+    map<string, string> attributes = 8;  // Variant attributes snapshot
 }
 
 // Complete cart data
@@ -36,11 +38,8 @@ message CartData {
 message AddCartItemRequest {
     string user_id = 1;
     string sku = 2;
-    int32 quantity = 3;
-    int64 price_snapshot = 4;
-    string title = 5;
-    string image_url = 6;
-    map<string, string> attributes = 7;
+    string sub_sku = 3;              // Variant sub-SKU (required for stock validation)
+    int32 quantity = 4;
 }
 
 // Request to add multiple items to cart
@@ -51,11 +50,31 @@ message BulkAddCartItemsRequest {
 
 message CartItemInput {
     string sku = 1;
-    int32 quantity = 2;
-    int64 price_snapshot = 3;
-    string title = 4;
-    string image_url = 5;
-    map<string, string> attributes = 6;
+    string sub_sku = 2;              // Variant sub-SKU (required for stock validation)
+    int32 quantity = 3;
+}
+
+// Response for add to cart operations with stock info
+message AddCartItemResponse {
+    CartData cart = 1;
+    bool success = 2;
+    string message = 3;
+    int32 available_stock = 4;       // Current available stock
+}
+
+// Bulk add response with individual item status
+message BulkAddCartItemsResponse {
+    CartData cart = 1;
+    bool all_success = 2;
+    repeated CartItemStatus item_statuses = 3;
+}
+
+message CartItemStatus {
+    string sku = 1;
+    string sub_sku = 2;
+    bool success = 3;
+    string message = 4;
+    int32 available_stock = 5;
 }
 
 // Request to remove a single item from cart
@@ -100,6 +119,7 @@ message MultipleCartResponse {
     string next_token = 2;
     int32 total = 3;
 }
+
 
 
 

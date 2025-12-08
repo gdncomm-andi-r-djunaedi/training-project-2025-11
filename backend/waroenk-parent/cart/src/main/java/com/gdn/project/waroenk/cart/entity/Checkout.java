@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,15 +16,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Checkout entity - represents validated/locked items for a short time.
- * Primary storage is Redis with optional MongoDB persistence for audit.
- * Has a TTL index on expiresAt for automatic cleanup.
+ * Checkout entity - represents validated/locked items for checkout.
+ * Lifecycle: WAITING → PAID | CANCELLED | EXPIRED
+ * 
+ * Status meanings:
+ * - WAITING: Checkout created, inventory locked, waiting for payment
+ * - PAID: Payment successful, inventory deducted permanently
+ * - CANCELLED: User cancelled or system cancelled, inventory released
+ * - EXPIRED: Derived status (not stored) - WAITING past expiresAt
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Document(collection = "checkout_items")
+@CompoundIndexes({
+    @CompoundIndex(name = "idx_checkout_user_created", def = "{'userId': 1, 'createdAt': -1}")
+})
 public class Checkout {
     @Id
     private String id;
@@ -33,46 +43,71 @@ public class Checkout {
     @Indexed
     private String userId;
 
-    private String sourceCartId;
+    @Indexed
+    private String orderId;          // Readable order ID (e.g., ORD-20241205-XXXX)
+
+    private String paymentCode;      // Unique payment code for this checkout
+
+    private String sourceCartId;     // Reference to original cart
 
     @Builder.Default
     private List<CheckoutItem> items = new ArrayList<>();
 
-    private Long totalAmount;
+    private Long totalPrice;         // Total price of all items
+
+    private String currency;
 
     @Builder.Default
-    private String status = "PENDING"; // PENDING, RESERVED, EXPIRED, FINALIZED, CANCELLED
+    private String status = "WAITING"; // WAITING, PAID, CANCELLED (EXPIRED is derived)
 
-    private Instant lockedAt;
+    private AddressSnapshot shippingAddress;  // Snapshot of shipping address
 
-    @Indexed(expireAfterSeconds = 0)
-    private Instant expiresAt;
+    private Instant lockedAt;        // When inventory was locked
+
+    // Note: Index is managed by migration V002_CheckoutSystemEnhancements
+    // Do NOT add @Indexed here - it conflicts with the old TTL index
+    private Instant expiresAt;       // When checkout expires (for scheduled cleanup)
 
     @CreatedDate
     private Instant createdAt;
 
+    private Instant paidAt;          // When payment was confirmed
+
+    private Instant cancelledAt;     // When checkout was cancelled
+
     /**
-     * Calculate total amount
+     * Calculate total price from items
      */
-    public Long calculateTotalAmount() {
+    public Long calculateTotalPrice() {
         if (items == null || items.isEmpty()) {
             return 0L;
         }
         return items.stream()
+                .filter(item -> Boolean.TRUE.equals(item.getReserved())) // Only count reserved items
                 .mapToLong(item -> (item.getPriceSnapshot() != null ? item.getPriceSnapshot() : 0L)
                         * (item.getQuantity() != null ? item.getQuantity() : 0))
                 .sum();
     }
 
     /**
-     * Check if checkout has expired
+     * Check if checkout has expired (WAITING status past expiresAt)
      */
     public boolean isExpired() {
-        return expiresAt != null && Instant.now().isAfter(expiresAt);
+        return "WAITING".equals(status) && expiresAt != null && Instant.now().isAfter(expiresAt);
     }
 
     /**
-     * Check if all items are reserved
+     * Get effective status (returns EXPIRED if WAITING past expiresAt)
+     */
+    public String getEffectiveStatus() {
+        if (isExpired()) {
+            return "EXPIRED";
+        }
+        return status;
+    }
+
+    /**
+     * Check if all items are successfully reserved
      */
     public boolean isFullyReserved() {
         if (items == null || items.isEmpty()) {
@@ -80,7 +115,28 @@ public class Checkout {
         }
         return items.stream().allMatch(item -> Boolean.TRUE.equals(item.getReserved()));
     }
+
+    /**
+     * Check if at least one item is reserved
+     */
+    public boolean hasReservedItems() {
+        if (items == null || items.isEmpty()) {
+            return false;
+        }
+        return items.stream().anyMatch(item -> Boolean.TRUE.equals(item.getReserved()));
+    }
+
+    /**
+     * Get count of reserved items
+     */
+    public long getReservedItemCount() {
+        if (items == null || items.isEmpty()) {
+            return 0;
+        }
+        return items.stream().filter(item -> Boolean.TRUE.equals(item.getReserved())).count();
+    }
 }
+
 
 
 

@@ -18,16 +18,16 @@ service CartService {
         };
     }
 
-    // Add single item to cart
-    rpc AddItem(AddCartItemRequest) returns (CartData) {
+    // Add single item to cart (validates stock via catalog gRPC)
+    rpc AddItem(AddCartItemRequest) returns (AddCartItemResponse) {
         option (google.api.http) = {
             post: "/api/cart/add"
             body: "*"
         };
     }
 
-    // Add multiple items to cart (bulk)
-    rpc BulkAddItems(BulkAddCartItemsRequest) returns (CartData) {
+    // Add multiple items to cart (validates stock via catalog gRPC)
+    rpc BulkAddItems(BulkAddCartItemsRequest) returns (BulkAddCartItemsResponse) {
         option (google.api.http) = {
             post: "/api/cart/bulk-add"
             body: "*"
@@ -50,8 +50,8 @@ service CartService {
         };
     }
 
-    // Update item quantity in cart
-    rpc UpdateItem(UpdateCartItemRequest) returns (CartData) {
+    // Update item quantity in cart (validates stock via catalog gRPC)
+    rpc UpdateItem(UpdateCartItemRequest) returns (AddCartItemResponse) {
         option (google.api.http) = {
             put: "/api/cart/update"
             body: "*"
@@ -72,6 +72,7 @@ service CartService {
         };
     }
 }
+
 
 
 

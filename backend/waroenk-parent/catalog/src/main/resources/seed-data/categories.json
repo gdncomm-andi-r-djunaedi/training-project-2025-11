@@ -1,107 +1,366 @@
 [
-  {"id": "cat-electronics", "name": "Electronics", "slug": "electronics", "parentId": null, "iconUrl": "https://picsum.photos/seed/electronics/200/200"},
-  {"id": "cat-smartphones", "name": "Smartphones", "slug": "smartphones", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/smartphones/200/200"},
-  {"id": "cat-laptops", "name": "Laptops & Computers", "slug": "laptops-computers", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/laptops/200/200"},
-  {"id": "cat-tablets", "name": "Tablets", "slug": "tablets", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/tablets/200/200"},
-  {"id": "cat-cameras", "name": "Cameras & Photography", "slug": "cameras-photography", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/cameras/200/200"},
-  {"id": "cat-audio", "name": "Audio & Headphones", "slug": "audio-headphones", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/audio/200/200"},
-  {"id": "cat-wearables", "name": "Wearables & Smartwatches", "slug": "wearables-smartwatches", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/wearables/200/200"},
-  {"id": "cat-gaming", "name": "Gaming", "slug": "gaming", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/gaming/200/200"},
-  {"id": "cat-accessories", "name": "Electronics Accessories", "slug": "electronics-accessories", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/elecacc/200/200"},
-  {"id": "cat-smart-home", "name": "Smart Home", "slug": "smart-home", "parentId": "cat-electronics", "iconUrl": "https://picsum.photos/seed/smarthome/200/200"},
-
-  {"id": "cat-fashion", "name": "Fashion", "slug": "fashion", "parentId": null, "iconUrl": "https://picsum.photos/seed/fashion/200/200"},
-  {"id": "cat-mens-clothing", "name": "Men's Clothing", "slug": "mens-clothing", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/mensclothing/200/200"},
-  {"id": "cat-womens-clothing", "name": "Women's Clothing", "slug": "womens-clothing", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/womensclothing/200/200"},
-  {"id": "cat-shoes", "name": "Shoes & Footwear", "slug": "shoes-footwear", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/shoes/200/200"},
-  {"id": "cat-bags", "name": "Bags & Luggage", "slug": "bags-luggage", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/bags/200/200"},
-  {"id": "cat-watches", "name": "Watches", "slug": "watches", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/watches/200/200"},
-  {"id": "cat-jewelry", "name": "Jewelry & Accessories", "slug": "jewelry-accessories", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/jewelry/200/200"},
-  {"id": "cat-sportswear", "name": "Sportswear", "slug": "sportswear", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/sportswear/200/200"},
-  {"id": "cat-eyewear", "name": "Eyewear", "slug": "eyewear", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/eyewear/200/200"},
-  {"id": "cat-fashion-accessories", "name": "Fashion Accessories", "slug": "fashion-accessories", "parentId": "cat-fashion", "iconUrl": "https://picsum.photos/seed/fashionacc/200/200"},
-
-  {"id": "cat-home-living", "name": "Home & Living", "slug": "home-living", "parentId": null, "iconUrl": "https://picsum.photos/seed/homeliving/200/200"},
-  {"id": "cat-furniture", "name": "Furniture", "slug": "furniture", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/furniture/200/200"},
-  {"id": "cat-kitchen", "name": "Kitchen & Dining", "slug": "kitchen-dining", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/kitchen/200/200"},
-  {"id": "cat-bedding", "name": "Bedding & Bath", "slug": "bedding-bath", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/bedding/200/200"},
-  {"id": "cat-decor", "name": "Home Decor", "slug": "home-decor", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/decor/200/200"},
-  {"id": "cat-lighting", "name": "Lighting", "slug": "lighting", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/lighting/200/200"},
-  {"id": "cat-storage", "name": "Storage & Organization", "slug": "storage-organization", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/storage/200/200"},
-  {"id": "cat-garden", "name": "Garden & Outdoor", "slug": "garden-outdoor", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/garden/200/200"},
-  {"id": "cat-cleaning", "name": "Cleaning & Laundry", "slug": "cleaning-laundry", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/cleaning/200/200"},
-  {"id": "cat-appliances", "name": "Home Appliances", "slug": "home-appliances", "parentId": "cat-home-living", "iconUrl": "https://picsum.photos/seed/appliances/200/200"},
-
-  {"id": "cat-beauty-health", "name": "Beauty & Health", "slug": "beauty-health", "parentId": null, "iconUrl": "https://picsum.photos/seed/beautyhealth/200/200"},
-  {"id": "cat-skincare", "name": "Skincare", "slug": "skincare", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/skincare/200/200"},
-  {"id": "cat-makeup", "name": "Makeup & Cosmetics", "slug": "makeup-cosmetics", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/makeup/200/200"},
-  {"id": "cat-haircare", "name": "Hair Care", "slug": "hair-care", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/haircare/200/200"},
-  {"id": "cat-fragrances", "name": "Fragrances & Perfumes", "slug": "fragrances-perfumes", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/fragrances/200/200"},
-  {"id": "cat-personal-care", "name": "Personal Care", "slug": "personal-care", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/personalcare/200/200"},
-  {"id": "cat-supplements", "name": "Vitamins & Supplements", "slug": "vitamins-supplements", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/supplements/200/200"},
-  {"id": "cat-medical", "name": "Medical Supplies", "slug": "medical-supplies", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/medical/200/200"},
-  {"id": "cat-fitness", "name": "Fitness & Wellness", "slug": "fitness-wellness", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/fitness/200/200"},
-  {"id": "cat-oral-care", "name": "Oral Care", "slug": "oral-care", "parentId": "cat-beauty-health", "iconUrl": "https://picsum.photos/seed/oralcare/200/200"},
-
-  {"id": "cat-sports-outdoor", "name": "Sports & Outdoor", "slug": "sports-outdoor", "parentId": null, "iconUrl": "https://picsum.photos/seed/sports/200/200"},
-  {"id": "cat-exercise", "name": "Exercise & Fitness Equipment", "slug": "exercise-fitness-equipment", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/exercise/200/200"},
-  {"id": "cat-camping", "name": "Camping & Hiking", "slug": "camping-hiking", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/camping/200/200"},
-  {"id": "cat-cycling", "name": "Cycling", "slug": "cycling", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/cycling/200/200"},
-  {"id": "cat-swimming", "name": "Swimming & Water Sports", "slug": "swimming-water-sports", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/swimming/200/200"},
-  {"id": "cat-team-sports", "name": "Team Sports", "slug": "team-sports", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/teamsports/200/200"},
-  {"id": "cat-racket-sports", "name": "Racket Sports", "slug": "racket-sports", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/racket/200/200"},
-  {"id": "cat-fishing", "name": "Fishing", "slug": "fishing", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/fishing/200/200"},
-  {"id": "cat-golf", "name": "Golf", "slug": "golf", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/golf/200/200"},
-  {"id": "cat-martial-arts", "name": "Martial Arts & Boxing", "slug": "martial-arts-boxing", "parentId": "cat-sports-outdoor", "iconUrl": "https://picsum.photos/seed/martialarts/200/200"},
-
-  {"id": "cat-baby-kids", "name": "Baby & Kids", "slug": "baby-kids", "parentId": null, "iconUrl": "https://picsum.photos/seed/babykids/200/200"},
-  {"id": "cat-baby-gear", "name": "Baby Gear & Furniture", "slug": "baby-gear-furniture", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/babygear/200/200"},
-  {"id": "cat-baby-clothing", "name": "Baby Clothing", "slug": "baby-clothing", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/babyclothing/200/200"},
-  {"id": "cat-toys", "name": "Toys & Games", "slug": "toys-games", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/toys/200/200"},
-  {"id": "cat-feeding", "name": "Feeding & Nursing", "slug": "feeding-nursing", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/feeding/200/200"},
-  {"id": "cat-diapering", "name": "Diapering & Potty", "slug": "diapering-potty", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/diapering/200/200"},
-  {"id": "cat-kids-fashion", "name": "Kids Fashion", "slug": "kids-fashion", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/kidsfashion/200/200"},
-  {"id": "cat-school-supplies", "name": "School Supplies", "slug": "school-supplies", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/school/200/200"},
-  {"id": "cat-outdoor-play", "name": "Outdoor Play", "slug": "outdoor-play", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/outdoorplay/200/200"},
-  {"id": "cat-educational", "name": "Educational Toys", "slug": "educational-toys", "parentId": "cat-baby-kids", "iconUrl": "https://picsum.photos/seed/educational/200/200"},
-
-  {"id": "cat-automotive", "name": "Automotive", "slug": "automotive", "parentId": null, "iconUrl": "https://picsum.photos/seed/automotive/200/200"},
-  {"id": "cat-car-parts", "name": "Car Parts & Accessories", "slug": "car-parts-accessories", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/carparts/200/200"},
-  {"id": "cat-motorcycle", "name": "Motorcycle Parts", "slug": "motorcycle-parts", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/motorcycle/200/200"},
-  {"id": "cat-car-electronics", "name": "Car Electronics", "slug": "car-electronics", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/carelectronics/200/200"},
-  {"id": "cat-car-care", "name": "Car Care & Maintenance", "slug": "car-care-maintenance", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/carcare/200/200"},
-  {"id": "cat-car-interior", "name": "Interior Accessories", "slug": "interior-accessories", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/carinterior/200/200"},
-  {"id": "cat-car-exterior", "name": "Exterior Accessories", "slug": "exterior-accessories", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/carexterior/200/200"},
-  {"id": "cat-tires", "name": "Tires & Wheels", "slug": "tires-wheels", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/tires/200/200"},
-  {"id": "cat-tools", "name": "Tools & Equipment", "slug": "tools-equipment", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/tools/200/200"},
-  {"id": "cat-oils", "name": "Oils & Fluids", "slug": "oils-fluids", "parentId": "cat-automotive", "iconUrl": "https://picsum.photos/seed/oils/200/200"},
-
-  {"id": "cat-books-media", "name": "Books & Media", "slug": "books-media", "parentId": null, "iconUrl": "https://picsum.photos/seed/books/200/200"},
-  {"id": "cat-fiction", "name": "Fiction", "slug": "fiction", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/fiction/200/200"},
-  {"id": "cat-non-fiction", "name": "Non-Fiction", "slug": "non-fiction", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/nonfiction/200/200"},
-  {"id": "cat-textbooks", "name": "Textbooks & Education", "slug": "textbooks-education", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/textbooks/200/200"},
-  {"id": "cat-comics", "name": "Comics & Manga", "slug": "comics-manga", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/comics/200/200"},
-  {"id": "cat-music", "name": "Music", "slug": "music", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/music/200/200"},
-  {"id": "cat-movies", "name": "Movies & TV", "slug": "movies-tv", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/movies/200/200"},
-  {"id": "cat-magazines", "name": "Magazines", "slug": "magazines", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/magazines/200/200"},
-  {"id": "cat-ebooks", "name": "E-Books & Audiobooks", "slug": "ebooks-audiobooks", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/ebooks/200/200"},
-  {"id": "cat-stationery", "name": "Stationery", "slug": "stationery", "parentId": "cat-books-media", "iconUrl": "https://picsum.photos/seed/stationery/200/200"},
-
-  {"id": "cat-food-beverage", "name": "Food & Beverage", "slug": "food-beverage", "parentId": null, "iconUrl": "https://picsum.photos/seed/food/200/200"},
-  {"id": "cat-snacks", "name": "Snacks & Confectionery", "slug": "snacks-confectionery", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/snacks/200/200"},
-  {"id": "cat-beverages", "name": "Beverages", "slug": "beverages", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/beverages/200/200"},
-  {"id": "cat-coffee-tea", "name": "Coffee & Tea", "slug": "coffee-tea", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/coffeetea/200/200"},
-  {"id": "cat-dairy", "name": "Dairy & Eggs", "slug": "dairy-eggs", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/dairy/200/200"},
-  {"id": "cat-bakery", "name": "Bakery & Bread", "slug": "bakery-bread", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/bakery/200/200"},
-  {"id": "cat-frozen", "name": "Frozen Foods", "slug": "frozen-foods", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/frozen/200/200"},
-  {"id": "cat-condiments", "name": "Condiments & Sauces", "slug": "condiments-sauces", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/condiments/200/200"},
-  {"id": "cat-organic", "name": "Organic & Health Foods", "slug": "organic-health-foods", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/organicfood/200/200"},
-  {"id": "cat-instant", "name": "Instant & Ready Meals", "slug": "instant-ready-meals", "parentId": "cat-food-beverage", "iconUrl": "https://picsum.photos/seed/instant/200/200"},
-
-  {"id": "cat-pet-supplies", "name": "Pet Supplies", "slug": "pet-supplies", "parentId": null, "iconUrl": "https://picsum.photos/seed/pets/200/200"},
-  {"id": "cat-dog", "name": "Dog Supplies", "slug": "dog-supplies", "parentId": "cat-pet-supplies", "iconUrl": "https://picsum.photos/seed/dog/200/200"},
-  {"id": "cat-cat", "name": "Cat Supplies", "slug": "cat-supplies", "parentId": "cat-pet-supplies", "iconUrl": "https://picsum.photos/seed/cat/200/200"},
-  {"id": "cat-fish", "name": "Fish & Aquarium", "slug": "fish-aquarium", "parentId": "cat-pet-supplies", "iconUrl": "https://picsum.photos/seed/fish/200/200"},
-  {"id": "cat-bird", "name": "Bird Supplies", "slug": "bird-supplies", "parentId": "cat-pet-supplies", "iconUrl": "https://picsum.photos/seed/bird/200/200"},
-  {"id": "cat-small-pets", "name": "Small Pets", "slug": "small-pets", "parentId": "cat-pet-supplies", "iconUrl": "https://picsum.photos/seed/smallpets/200/200"}
+  {
+    "id": "cat-arts-crafts-sewing",
+    "name": "Arts Crafts & Sewing",
+    "slug": "arts-crafts-sewing",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/scissors.png"
+  },
+  {
+    "id": "cat-auto-tires",
+    "name": "Auto & Tires",
+    "slug": "auto-tires",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/tire.png"
+  },
+  {
+    "id": "cat-automotive",
+    "name": "Automotive",
+    "slug": "automotive",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/car.png"
+  },
+  {
+    "id": "cat-baby",
+    "name": "Baby",
+    "slug": "baby",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/babys-room.png"
+  },
+  {
+    "id": "cat-beauty",
+    "name": "Beauty",
+    "slug": "beauty",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/lipstick.png"
+  },
+  {
+    "id": "cat-books",
+    "name": "Books",
+    "slug": "books",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/book.png"
+  },
+  {
+    "id": "cat-cell-phones",
+    "name": "Cell Phones",
+    "slug": "cell-phones",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/smartphone.png"
+  },
+  {
+    "id": "cat-character-shop",
+    "name": "Character Shop",
+    "slug": "character-shop",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/action-figure.png"
+  },
+  {
+    "id": "cat-clothing",
+    "name": "Clothing",
+    "slug": "clothing",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/clothes.png"
+  },
+  {
+    "id": "cat-collectibles",
+    "name": "Collectibles",
+    "slug": "collectibles",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/trophy.png"
+  },
+  {
+    "id": "cat-electronics",
+    "name": "Electronics",
+    "slug": "electronics",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/electronics.png"
+  },
+  {
+    "id": "cat-fashion",
+    "name": "Fashion",
+    "slug": "fashion",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/t-shirt.png"
+  },
+  {
+    "id": "cat-feature",
+    "name": "Feature",
+    "slug": "feature",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/star.png"
+  },
+  {
+    "id": "cat-food",
+    "name": "Food",
+    "slug": "food",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/food.png"
+  },
+  {
+    "id": "cat-general",
+    "name": "General Merchandise",
+    "slug": "general-merchandise",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/shopping-bag.png"
+  },
+  {
+    "id": "cat-grocery",
+    "name": "Grocery",
+    "slug": "grocery",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/shopping-cart.png"
+  },
+  {
+    "id": "cat-health",
+    "name": "Health",
+    "slug": "health",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/health-checkup.png"
+  },
+  {
+    "id": "cat-home",
+    "name": "Home",
+    "slug": "home",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/home.png"
+  },
+  {
+    "id": "cat-home-appliances",
+    "name": "Home Appliances",
+    "slug": "home-appliances",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/washing-machine.png"
+  },
+  {
+    "id": "cat-home-improvement",
+    "name": "Home Improvement",
+    "slug": "home-improvement",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/hammer.png"
+  },
+  {
+    "id": "cat-household-essentials",
+    "name": "Household Essentials",
+    "slug": "household-essentials",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/broom.png"
+  },
+  {
+    "id": "cat-industrial-scientific",
+    "name": "Industrial & Scientific",
+    "slug": "industrial-scientific",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/test-tube.png"
+  },
+  {
+    "id": "cat-jewelry",
+    "name": "Jewelry",
+    "slug": "jewelry",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/diamond.png"
+  },
+  {
+    "id": "cat-laptops",
+    "name": "Laptops & Computers",
+    "slug": "laptops-computers",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/laptop.png"
+  },
+  {
+    "id": "cat-music",
+    "name": "Music",
+    "slug": "music",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/music.png"
+  },
+  {
+    "id": "cat-musical-instruments",
+    "name": "Musical Instruments",
+    "slug": "musical-instruments",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/guitar.png"
+  },
+  {
+    "id": "cat-office-supplies",
+    "name": "Office Supplies",
+    "slug": "office-supplies",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/stationery.png"
+  },
+  {
+    "id": "cat-party-occasions",
+    "name": "Party & Occasions",
+    "slug": "party-occasions",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/confetti.png"
+  },
+  {
+    "id": "cat-patio-garden",
+    "name": "Patio & Garden",
+    "slug": "patio-garden",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/potted-plant.png"
+  },
+  {
+    "id": "cat-personal-care",
+    "name": "Personal Care",
+    "slug": "personal-care",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/spa.png"
+  },
+  {
+    "id": "cat-pets",
+    "name": "Pets",
+    "slug": "pets",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/dog.png"
+  },
+  {
+    "id": "cat-premium-beauty",
+    "name": "Premium Beauty",
+    "slug": "premium-beauty",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/perfume.png"
+  },
+  {
+    "id": "cat-seasonal",
+    "name": "Seasonal",
+    "slug": "seasonal",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/christmas-tree.png"
+  },
+  {
+    "id": "cat-shoes",
+    "name": "Shoes & Footwear",
+    "slug": "shoes-footwear",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/womens-shoe.png"
+  },
+  {
+    "id": "cat-shop-by-brand",
+    "name": "Shop by Brand",
+    "slug": "shop-by-brand",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/price-tag.png"
+  },
+  {
+    "id": "cat-shop-by-movie",
+    "name": "Shop by Movie",
+    "slug": "shop-by-movie",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/clapperboard.png"
+  },
+  {
+    "id": "cat-shop-by-video-game",
+    "name": "Shop by Video Game",
+    "slug": "shop-by-video-game",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/game-controller.png"
+  },
+  {
+    "id": "cat-sports",
+    "name": "Sports & Outdoor",
+    "slug": "sports-outdoor",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/football2.png"
+  },
+  {
+    "id": "cat-sports-outdoors",
+    "name": "Sports & Outdoors",
+    "slug": "sports-outdoors",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/football2.png"
+  },
+  {
+    "id": "cat-toys",
+    "name": "Toys",
+    "slug": "toys",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/teddy-bear.png"
+  },
+  {
+    "id": "cat-video-games",
+    "name": "Video Games",
+    "slug": "video-games",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/game-controller.png"
+  },
+  {
+    "id": "cat-walmart-for-business",
+    "name": "Walmart for Business",
+    "slug": "walmart-for-business",
+    "parentId": null,
+    "iconUrl": "https://img.icons8.com/color/96/briefcase.png"
+  },
+  {
+    "id": "cat-bakery",
+    "name": "Bakery",
+    "slug": "bakery",
+    "parentId": "cat-grocery",
+    "iconUrl": "https://img.icons8.com/color/96/bread.png"
+  },
+  {
+    "id": "cat-beverages",
+    "name": "Beverages",
+    "slug": "beverages",
+    "parentId": "cat-grocery",
+    "iconUrl": "https://img.icons8.com/color/96/cola.png"
+  },
+  {
+    "id": "cat-bottomwear",
+    "name": "Bottomwear",
+    "slug": "bottomwear",
+    "parentId": "cat-fashion",
+    "iconUrl": "https://img.icons8.com/color/96/trousers.png"
+  },
+  {
+    "id": "cat-dairy",
+    "name": "Dairy",
+    "slug": "dairy",
+    "parentId": "cat-grocery",
+    "iconUrl": "https://img.icons8.com/color/96/milk-carton.png"
+  },
+  {
+    "id": "cat-fresh-produce",
+    "name": "Fresh Produce",
+    "slug": "fresh-produce",
+    "parentId": "cat-grocery",
+    "iconUrl": "https://img.icons8.com/color/96/vegetable.png"
+  },
+  {
+    "id": "cat-innerwear",
+    "name": "Innerwear and Swimwear",
+    "slug": "innerwear-and-swimwear",
+    "parentId": "cat-fashion",
+    "iconUrl": "https://img.icons8.com/color/96/swimsuit.png"
+  },
+  {
+    "id": "cat-pantry",
+    "name": "Pantry",
+    "slug": "pantry",
+    "parentId": "cat-grocery",
+    "iconUrl": "https://img.icons8.com/color/96/canned-food.png"
+  },
+  {
+    "id": "cat-sleepwear",
+    "name": "Sleepwear",
+    "slug": "sleepwear",
+    "parentId": "cat-fashion",
+    "iconUrl": "https://img.icons8.com/color/96/sleeping-in-bed.png"
+  },
+  {
+    "id": "cat-snacks",
+    "name": "Snacks",
+    "slug": "snacks",
+    "parentId": "cat-grocery",
+    "iconUrl": "https://img.icons8.com/color/96/popcorn.png"
+  },
+  {
+    "id": "cat-topwear",
+    "name": "Topwear",
+    "slug": "topwear",
+    "parentId": "cat-fashion",
+    "iconUrl": "https://img.icons8.com/color/96/t-shirt.png"
+  }
 ]

@@ -7,6 +7,7 @@ import com.gdn.project.waroenk.member.AddressServiceGrpc;
 import com.gdn.project.waroenk.member.FilterAddressRequest;
 import com.gdn.project.waroenk.member.FindUserAddressRequest;
 import com.gdn.project.waroenk.member.MultipleAddressResponse;
+import com.gdn.project.waroenk.member.SetDefaultAddressRequest;
 import com.gdn.project.waroenk.member.UpsertAddressRequest;
 import com.gdn.project.waroenk.member.entity.Address;
 import com.gdn.project.waroenk.member.exceptions.ValidationException;
@@ -31,8 +32,11 @@ public class AddressController extends AddressServiceGrpc.AddressServiceImplBase
     validateUpsertAddressRequest(request);
 
     Address address = mapper.toAddressEntity(request);
-    Address savedAddress = addressService.createAddress(request.getUserId(), address);
-    AddressData response = mapper.toAddressData(savedAddress);
+    // Pass the isDefault flag to the service - it will handle setting this address as default
+    Address savedAddress = addressService.createAddress(request.getUserId(), address, request.getIsDefault());
+    // Get the user's default address ID to set isDefault flag in response
+    java.util.UUID defaultAddressId = addressService.getDefaultAddressId(request.getUserId());
+    AddressData response = mapper.toAddressData(savedAddress, defaultAddressId);
 
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -52,15 +56,15 @@ public class AddressController extends AddressServiceGrpc.AddressServiceImplBase
   }
 
   @Override
-  public void setUserDefaultAddress(FindUserAddressRequest request, StreamObserver<Basic> responseObserver) {
+  public void setUserDefaultAddress(SetDefaultAddressRequest request, StreamObserver<Basic> responseObserver) {
     if (StringUtils.isBlank(request.getUserId())) {
       throw new ValidationException("User ID is required");
     }
-    if (StringUtils.isBlank(request.getLabel())) {
-      throw new ValidationException("Address label is required");
+    if (StringUtils.isBlank(request.getAddressId())) {
+      throw new ValidationException("Address ID is required");
     }
 
-    boolean result = addressService.setDefaultAddress(request.getUserId(), request.getLabel());
+    boolean result = addressService.setDefaultAddress(request.getUserId(), request.getAddressId());
     Basic response = Basic.newBuilder().setStatus(result).build();
 
     responseObserver.onNext(response);
@@ -74,7 +78,11 @@ public class AddressController extends AddressServiceGrpc.AddressServiceImplBase
     }
 
     Address address = addressService.findAddressById(request.getValue());
-    AddressData response = mapper.toAddressData(address);
+    // Get the user's default address ID to set isDefault flag
+    java.util.UUID defaultAddressId = address.getUser() != null 
+        ? addressService.getDefaultAddressId(address.getUser().getId().toString())
+        : null;
+    AddressData response = mapper.toAddressData(address, defaultAddressId);
 
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -90,7 +98,9 @@ public class AddressController extends AddressServiceGrpc.AddressServiceImplBase
     }
 
     Address address = addressService.findUserAddressByLabel(request.getUserId(), request.getLabel());
-    AddressData response = mapper.toAddressData(address);
+    // Get the user's default address ID to set isDefault flag
+    java.util.UUID defaultAddressId = addressService.getDefaultAddressId(request.getUserId());
+    AddressData response = mapper.toAddressData(address, defaultAddressId);
 
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -141,6 +151,8 @@ public class AddressController extends AddressServiceGrpc.AddressServiceImplBase
     }
   }
 }
+
+
 
 
 

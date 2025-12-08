@@ -138,9 +138,9 @@
           >
             <!-- Logo -->
             <div class="w-16 h-16 rounded-2xl overflow-hidden bg-[var(--color-border-light)] mb-4 transition-transform duration-300 group-hover:scale-110">
-              {#if brand.logo_url}
+              {#if brand.iconUrl}
                 <img 
-                  src={brand.logo_url} 
+                  src={brand.iconUrl} 
                   alt={brand.name}
                   class="w-full h-full object-contain p-2"
                   loading="lazy"

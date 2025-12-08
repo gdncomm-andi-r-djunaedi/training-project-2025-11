@@ -1,5 +1,6 @@
 package com.gdn.project.waroenk.cart.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -47,8 +48,11 @@ public class Cart {
     private Instant updatedAt;
 
     /**
-     * Calculate total amount of all items in cart
+     * Calculate total amount of all items in cart.
+     * @JsonIgnore prevents this computed property from being serialized to Redis cache,
+     * avoiding deserialization errors (no setter exists for this computed field).
      */
+    @JsonIgnore
     public Long getTotalAmount() {
         if (items == null || items.isEmpty()) {
             return 0L;
@@ -60,8 +64,11 @@ public class Cart {
     }
 
     /**
-     * Calculate total number of items in cart
+     * Calculate total number of items in cart.
+     * @JsonIgnore prevents this computed property from being serialized to Redis cache,
+     * avoiding deserialization errors (no setter exists for this computed field).
      */
+    @JsonIgnore
     public Integer getTotalItems() {
         if (items == null || items.isEmpty()) {
             return 0;
@@ -146,6 +153,9 @@ public class Cart {
         }
     }
 }
+
+
+
 
 
 

@@ -7,5 +7,3 @@ public final class CollectionConstant {
 }
 
 
-
-

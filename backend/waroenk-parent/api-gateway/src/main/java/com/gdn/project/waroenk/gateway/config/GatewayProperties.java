@@ -63,7 +63,8 @@ public class GatewayProperties {
     @Data
     public static class ServiceConfig {
         private String host;
-        private int port;
+        private int port;          // gRPC port
+        private int httpPort = 0;  // HTTP/Actuator port (for monitoring)
         private boolean useTls = false;
     }
 
@@ -140,6 +141,9 @@ public class GatewayProperties {
         private long refreshTokenExpiration = 604800; // 7 days
     }
 }
+
+
+
 
 
 

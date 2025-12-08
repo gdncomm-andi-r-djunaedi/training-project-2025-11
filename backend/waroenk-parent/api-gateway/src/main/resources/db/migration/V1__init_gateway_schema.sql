@@ -68,5 +68,3 @@ CREATE TRIGGER update_route_registry_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 
-
-
