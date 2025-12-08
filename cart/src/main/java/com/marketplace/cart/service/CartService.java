@@ -7,4 +7,5 @@ public interface CartService {
     CartResponse getCart(String userId);
     CartResponse addItem(String userId, AddItemRequest request, String action);
     CartResponse removeItem(String userId, String productId);
+    CartResponse clearCart(String userId);
 }

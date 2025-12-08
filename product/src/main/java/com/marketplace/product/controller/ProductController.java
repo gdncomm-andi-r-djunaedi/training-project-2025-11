@@ -1,5 +1,6 @@
 package com.marketplace.product.controller;
 
+import com.marketplace.product.dto.PaginatedProductResponse;
 import com.marketplace.product.dto.ProductIdsRequest;
 import com.marketplace.product.dto.ProductRequest;
 import com.marketplace.product.dto.ProductResponse;
@@ -8,6 +9,9 @@ import com.marketplace.product.util.ApiResponse;
 import com.marketplace.product.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +41,24 @@ public class ProductController {
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getProducts(@Valid @RequestBody ProductIdsRequest request) {
         List<ProductResponse> responses = productService.getProducts(request);
         return ResponseUtil.success(responses, "Products retrieved successfully");
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<PaginatedProductResponse>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false, defaultValue = "ASC") String sortDir) {
+
+        Sort sort = sortBy != null
+                ? (sortDir.equalsIgnoreCase("DESC")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending())
+                : Sort.unsorted();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PaginatedProductResponse response = productService.getAllProducts(pageable);
+        return ResponseUtil.success(response, "Products retrieved successfully");
     }
 
     @PutMapping

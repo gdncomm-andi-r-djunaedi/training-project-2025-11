@@ -1,5 +1,6 @@
 package com.marketplace.product.service.impl;
 
+import com.marketplace.product.dto.PaginatedProductResponse;
 import com.marketplace.product.dto.ProductIdsRequest;
 import com.marketplace.product.dto.ProductRequest;
 import com.marketplace.product.dto.ProductResponse;
@@ -14,6 +15,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -75,6 +78,27 @@ public class ProductServiceImpl implements ProductService {
                     return response;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PaginatedProductResponse getAllProducts(Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        List<ProductResponse> content = productPage.getContent().stream()
+                .map(product -> {
+                    ProductResponse response = new ProductResponse();
+                    BeanUtils.copyProperties(product, response);
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return PaginatedProductResponse.builder()
+                .content(content)
+                .page(productPage.getNumber())
+                .size(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .build();
     }
 
     @Override

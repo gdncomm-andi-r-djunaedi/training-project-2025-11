@@ -42,4 +42,11 @@ public class CartController {
         CartResponse response = cartService.removeItem(userId, productId);
         return ResponseUtil.success(response, "Item removed from cart successfully");
     }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<CartResponse>> clearCart(
+            @RequestHeader("X-User-Id") String userId) {
+        CartResponse response = cartService.clearCart(userId);
+        return ResponseUtil.success(response, "Cart cleared successfully");
+    }
 }

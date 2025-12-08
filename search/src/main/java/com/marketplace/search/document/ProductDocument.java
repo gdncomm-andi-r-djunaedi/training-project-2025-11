@@ -8,10 +8,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.math.BigDecimal;
 
 @Document(indexName = "products")
+@Setting(settingPath = "/elasticsearch/ngram-settings.json")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,10 +23,10 @@ public class ProductDocument {
     @Id
     private String productId;
 
-    @Field(type = FieldType.Text, analyzer = "english", searchAnalyzer = "english")
+    @Field(type = FieldType.Text, analyzer = "ngram_analyzer", searchAnalyzer = "ngram_analyzer")
     private String title;
 
-    @Field(type = FieldType.Text, analyzer = "english", searchAnalyzer = "english")
+    @Field(type = FieldType.Text, analyzer = "ngram_analyzer", searchAnalyzer = "ngram_analyzer")
     private String description;
 
     @Field(type = FieldType.Double)

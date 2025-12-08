@@ -114,6 +114,17 @@ public class CartServiceImpl implements CartService {
         return mapToResponse(cartRepository.save(cart));
     }
 
+    @Override
+    public CartResponse clearCart(String userId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new CartNotFoundException("Cart not found for userId: " + userId));
+
+        cart.getItems().clear();
+        cart.setTotal(BigDecimal.ZERO);
+        log.info("Cart cleared for userId: {}", userId);
+        return mapToResponse(cartRepository.save(cart));
+    }
+
     private Cart createNewCart(String userId) {
         log.info("Creating new cart for userId: {}", userId);
         return cartRepository.save(Cart.builder()

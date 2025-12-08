@@ -10,6 +10,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductDocumentRepository extends ElasticsearchRepository<ProductDocument, String> {
 
-    @Query("{\"multi_match\": {\"query\": \"?0\", \"fields\": [\"title^2\", \"description\"], \"type\": \"best_fields\", \"fuzziness\": \"AUTO\"}}")
+    @Query("{\"bool\": {\"should\": [" +
+            "{\"match\": {\"title\": {\"query\": \"?0\", \"boost\": 2}}}, " +
+            "{\"match\": {\"description\": {\"query\": \"?0\"}}}" +
+            "], \"minimum_should_match\": 1}}")
     Page<ProductDocument> searchByTitleOrDescription(String query, Pageable pageable);
 }
