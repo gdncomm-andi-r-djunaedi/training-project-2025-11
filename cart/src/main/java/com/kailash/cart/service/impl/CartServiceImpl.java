@@ -47,19 +47,65 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ApiResponse<CartResponse> getCart(String memberId) {
+
         try {
+
             Cart cart = cartRepository.findByMemberId(memberId).orElseGet(() -> {
                 Cart c = new Cart();
                 c.setMemberId(memberId);
                 c.setItems(new ArrayList<>());
                 return cartRepository.save(c);
             });
-            return new ApiResponse<>(true, "Cart fetched successfully", toCartResponse(cart));
+
+
+            for (CartItem item : cart.getItems()) {
+
+                try {
+                    ResponseEntity<ApiResponse<ProductResponse>> productApi =
+                            productClient.get(item.getSku());
+
+                    ApiResponse<ProductResponse> productBody = productApi.getBody();
+
+
+                    if (!productBody.isSuccess() || productBody.getData() == null) {
+                        continue;
+                    }
+
+
+                    ProductResponse pr = productBody.getData();
+                    item.setProductName(pr.getName());
+                    item.setPriceSnapshot(pr.getPrice());
+
+                } catch (Exception ex) {
+
+                    System.out.println("Could not update product details for: "
+                            + item.getSku() + " | Reason: " + ex.getMessage());
+                }
+            }
+
+
+            int totalItems = totalItems(cart.getItems());
+            cart.setTotalItems(totalItems);
+
+            double totalPrice = cart.getItems().stream()
+                    .mapToDouble(i -> i.getQty() * i.getPriceSnapshot())
+                    .sum();
+            cart.setTotalPrice(totalPrice);
+
+
+            Cart savedCart = cartRepository.save(cart);
+
+            return new ApiResponse<>(true,
+                    "Cart fetched successfully",
+                    toCartResponse(savedCart));
+
         } catch (Exception ex) {
             return new ApiResponse<>(false, ex.getMessage(), null);
         }
     }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -81,7 +127,7 @@ public class CartServiceImpl implements CartService {
             ApiResponse<ProductResponse> productBody = productApi.getBody();
 
             if (!productBody.isSuccess() || productBody.getData() == null) {
-                return new ApiResponse<>(false, "Unable to fetch product details for SKU: " + sku, null);
+                return new ApiResponse<>(false, productBody.getMessage(), null);
             }
 
             ProductResponse productResponse = productBody.getData();
