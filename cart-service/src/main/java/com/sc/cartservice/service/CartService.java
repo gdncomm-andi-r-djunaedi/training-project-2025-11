@@ -59,7 +59,7 @@ public class CartService {
         cartItem.setProductCode(product.getProductCode());
         cartItem.setProductName(product.getProductName());
         cartItem.setQuantity(cartItem.getQuantity() + 1);
-        cartItem.setProductPrice(product.getProductPrice() * cartItem.getQuantity());
+        cartItem.setProductPrice(product.getProductPrice());
         if (!cartItems.contains(cartItem)) {
             cartItems.add(cartItem);
         }
@@ -170,4 +170,18 @@ public class CartService {
         dto.setCartItemDtos(items);
         return dto;
     }
+
+    public void removeProductFromAllCarts(String productCode) {
+        List<Cart> carts = cartRepository.findAll();
+
+        for (Cart cart : carts) {
+            cart.getCartItems().removeIf(item ->
+                    item.getProductCode().equals(productCode)
+            );
+            cartRepository.save(cart);
+        }
+
+        System.out.println("Removed product " + productCode + " from all carts");
+    }
+
 }

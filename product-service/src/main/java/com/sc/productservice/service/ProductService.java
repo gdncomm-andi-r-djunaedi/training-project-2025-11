@@ -20,9 +20,22 @@ import java.util.Optional;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductDeletionProducer productDeletionProducer;
 
     public ApiResponse<ProductDto> createProduct(ProductDto dto) {
         Optional<Product> existingProduct = productRepository.findByProductCode(dto.getProductCode());
+
+        if (dto.getProductCode().isBlank()  || dto.getProductName().isBlank()) {
+            return ApiResponse.failure("INVALID_PRODUCT_ENTRY", "invalid product details");
+        }
+
+       if(dto.getProductPrice()>0){
+           return ApiResponse.failure("INVALID_PRODUCT_PRICE", "product price should not be zero");
+       }
+
+       if (dto.getProductName().length() > 100 || dto.getProductCode().length() > 15) {
+           return ApiResponse.failure("INVALID_PRODUCT_ENTRY", "too long");
+       }
 
         if (existingProduct.isPresent()) {
             return ApiResponse.failure(
@@ -96,9 +109,9 @@ public class ProductService {
                     "No product found with code: " + productCode
             );
         }
+        productDeletionProducer.sendProductDeletedEvent(productCode);
         return ApiResponse.success("Product deleted successfully: " + productCode);
     }
-
 
 }
 
