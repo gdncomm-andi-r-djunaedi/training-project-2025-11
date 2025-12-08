@@ -19,6 +19,10 @@
   import ResetPassword from './pages/ResetPassword.svelte';
   import Cart from './pages/Cart.svelte';
   import Checkout from './pages/Checkout.svelte';
+  import Profile from './pages/Profile.svelte';
+  import Addresses from './pages/Addresses.svelte';
+  import Orders from './pages/Orders.svelte';
+  import OrderDetail from './pages/OrderDetail.svelte';
   import NotFound from './pages/NotFound.svelte';
 
   // Route definitions
@@ -37,6 +41,10 @@
     { path: '/reset-password', name: 'resetPassword' },
     { path: '/cart', name: 'cart' },
     { path: '/checkout', name: 'checkout' },
+    { path: '/profile', name: 'profile' },
+    { path: '/addresses', name: 'addresses' },
+    { path: '/orders', name: 'orders' },
+    { path: '/orders/:id', name: 'orderDetail' },
     { path: '*', name: 'notFound' }
   ];
 
@@ -107,6 +115,14 @@
       <Cart />
     {:else if currentRouteName === 'checkout'}
       <Checkout />
+    {:else if currentRouteName === 'profile'}
+      <Profile />
+    {:else if currentRouteName === 'addresses'}
+      <Addresses />
+    {:else if currentRouteName === 'orders'}
+      <Orders />
+    {:else if currentRouteName === 'orderDetail'}
+      <OrderDetail id={params.id} />
     {:else}
       <NotFound />
     {/if}

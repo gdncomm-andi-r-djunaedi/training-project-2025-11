@@ -10,37 +10,35 @@ option java_multiple_files = true;
 option java_package = "com.gdn.project.waroenk.catalog";
 option java_outer_classname = "SeedServiceProto";
 
+// Service for TypeSense indexing operations
+// Note: Data seeding is done via external Python script (data/seed_mongodb.py)
 service SeedService {
-    rpc SeedProductForSpecificMerchant(seed.SeedMerchantProductRequest) returns (seed.SeedResponse) {
-        option (google.api.http) = {
-            post: "/api/seed/products"
-            body: "*"
-        };
-    }
-
-    rpc SeedProductsForAllMerchants(seed.SeedAllProductRequest) returns (seed.SeedResponse) {
-        option (google.api.http) = {
-            post: "/api/seed/products/all"
-        };
-    }
-
+    // Index all merchants in TypeSense
     rpc IndexMerchantsInTypeSense(common.Empty) returns (seed.SeedResponse) {
         option (google.api.http) = {
             post: "/api/index/merchants"
         };
     }
 
+    // Index all products in TypeSense
     rpc IndexProductsInTypeSense(common.Empty) returns (seed.SeedResponse) {
         option (google.api.http) = {
             post: "/api/index/products"
         };
     }
 
+    // Index both merchants and products in TypeSense
     rpc IndexAllInTypeSense(common.Empty) returns (seed.SeedResponse) {
         option (google.api.http) = {
             post: "/api/index/all"
         };
     }
+
+    // Index products by bulk SKUs (for incremental/selective indexing)
+    rpc IndexProductsBySkus(seed.IndexBySkusRequest) returns (seed.BulkIndexResponse) {
+        option (google.api.http) = {
+            post: "/api/index/products/bulk"
+            body: "*"
+        };
+    }
 }
-
-

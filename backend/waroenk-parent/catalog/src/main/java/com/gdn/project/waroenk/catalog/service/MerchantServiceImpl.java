@@ -168,6 +168,11 @@ public class MerchantServiceImpl extends MongoPageAble<Merchant, String> impleme
     return builder.build();
   }
 
+  @Override
+  public List<Merchant> findAllMerchants() {
+    return repository.findAll();
+  }
+
   private void indexMerchantAsync(Merchant merchant) {
     try {
       searchService.indexMerchant(merchant);

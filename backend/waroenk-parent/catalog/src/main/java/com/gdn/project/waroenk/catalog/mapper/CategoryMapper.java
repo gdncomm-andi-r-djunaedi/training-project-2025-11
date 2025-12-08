@@ -38,14 +38,14 @@ public interface CategoryMapper extends GenericMapper {
 
   default CategoryNode toCategoryNodeGrpc(CategoryTreeNodeDto nodeDto) {
     CategoryNode.Builder builder = CategoryNode.newBuilder();
-    builder.setId(nodeDto.id());
-    builder.setName(nodeDto.name());
-    builder.setSlug(nodeDto.slug());
-    if (nodeDto.iconUrl() != null) {
-      builder.setIconUrl(nodeDto.iconUrl());
+    builder.setId(nodeDto.getId());
+    builder.setName(nodeDto.getName());
+    builder.setSlug(nodeDto.getSlug());
+    if (nodeDto.getIconUrl() != null) {
+      builder.setIconUrl(nodeDto.getIconUrl());
     }
-    if (ObjectUtils.isNotEmpty(nodeDto.children())) {
-      builder.addAllChildren(nodeDto.children().stream().map(this::toCategoryNodeGrpc).toList());
+    if (ObjectUtils.isNotEmpty(nodeDto.getChildren())) {
+      builder.addAllChildren(nodeDto.getChildren().stream().map(this::toCategoryNodeGrpc).toList());
     }
     return builder.build();
   }
@@ -64,11 +64,13 @@ public interface CategoryMapper extends GenericMapper {
   }
 
   default CategoryTreeNodeDto toTreeNodeDto(CategoryNode node) {
-    return new CategoryTreeNodeDto(node.getId(),
-        node.getIconUrl(),
-        node.getSlug(),
-        node.getName(),
-        node.getChildrenList().stream().map(this::toTreeNodeDto).toList());
+    return CategoryTreeNodeDto.builder()
+        .id(node.getId())
+        .name(node.getName())
+        .iconUrl(node.getIconUrl())
+        .slug(node.getSlug())
+        .children(node.getChildrenList().stream().map(this::toTreeNodeDto).toList())
+        .build();
   }
 }
 

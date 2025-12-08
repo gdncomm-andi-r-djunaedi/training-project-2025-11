@@ -59,10 +59,9 @@ services:
       JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
       MAVEN_OPTS: -Dmaven.repo.local=/root/.m2/repository
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
-      REDIS_HOST: redis-master
-      REDIS_PORT: 6379
-      REDIS_SENTINEL_MASTER: ${REDIS_SENTINEL_MASTER:-mymaster}
-      REDIS_SENTINEL_NODES: ${REDIS_SENTINEL_NODES:-sentinel-1:26379,sentinel-2:26379,sentinel-3:26379}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      # To enable Sentinel: REDIS_SENTINEL_MASTER=mymaster REDIS_SENTINEL_NODES=sentinel-1:26379,...
       DB_HOSTS: ${DB_HOSTS:-postgres:5432}
       DB_NAME: ${MEMBER_DB_NAME:-userdb}
       DB_SCHEMA: ${DB_SCHEMA:-public}
@@ -93,10 +92,9 @@ services:
       JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
       MAVEN_OPTS: -Dmaven.repo.local=/root/.m2/repository
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
-      REDIS_HOST: redis-master
-      REDIS_PORT: 6379
-      REDIS_SENTINEL_MASTER: ${REDIS_SENTINEL_MASTER:-mymaster}
-      REDIS_SENTINEL_NODES: ${REDIS_SENTINEL_NODES:-sentinel-1:26379,sentinel-2:26379,sentinel-3:26379}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      # To enable Sentinel: REDIS_SENTINEL_MASTER=mymaster REDIS_SENTINEL_NODES=sentinel-1:26379,...
       TYPESENSE_HOST: typesense
       TYPESENSE_PORT: 8108
       MONGODB_URI: mongodb://admin:admin@mongodb:27017/catalog?authSource=admin
@@ -125,10 +123,9 @@ services:
       JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
       MAVEN_OPTS: -Dmaven.repo.local=/root/.m2/repository
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
-      REDIS_HOST: redis-master
-      REDIS_PORT: 6379
-      REDIS_SENTINEL_MASTER: ${REDIS_SENTINEL_MASTER:-mymaster}
-      REDIS_SENTINEL_NODES: ${REDIS_SENTINEL_NODES:-sentinel-1:26379,sentinel-2:26379,sentinel-3:26379}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      # To enable Sentinel: REDIS_SENTINEL_MASTER=mymaster REDIS_SENTINEL_NODES=sentinel-1:26379,...
 
   # ================================
   # API Gateway Service

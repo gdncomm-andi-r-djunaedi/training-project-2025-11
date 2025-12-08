@@ -133,19 +133,20 @@ public class GrpcProxyService {
 
     /**
      * Build the final JSON request body.
-     * Merges the original body with query params and injects user context.
+     * Merges the original body with path variables/query params and injects user context.
      */
     private String buildRequestJson(RouteResolver.ResolvedRoute route, String jsonBody, 
                                     Map<String, String> queryParams, String userId, String username) {
         
-        // If no body provided, try to build from query params
-        if ((jsonBody == null || jsonBody.isBlank()) && queryParams != null && !queryParams.isEmpty()) {
-            jsonBody = buildJsonFromQueryParams(queryParams);
-        }
-
-        // Default to empty JSON if still null
+        // Default to empty JSON if null
         if (jsonBody == null || jsonBody.isBlank()) {
             jsonBody = "{}";
+        }
+
+        // Merge path variables and query params into the body
+        // This is critical for endpoints with path parameters like /checkout/{checkout_id}/finalize
+        if (queryParams != null && !queryParams.isEmpty()) {
+            jsonBody = mergeParamsIntoBody(jsonBody, queryParams);
         }
 
         // Inject authenticated user context into the request for non-public endpoints
@@ -154,6 +155,42 @@ public class GrpcProxyService {
         }
 
         return jsonBody;
+    }
+
+    /**
+     * Merge path variables and query params into the existing JSON body.
+     * Existing body values take precedence over params (to allow explicit overrides).
+     */
+    private String mergeParamsIntoBody(String jsonBody, Map<String, String> params) {
+        try {
+            Map<String, Object> bodyMap = objectMapper.readValue(jsonBody, new TypeReference<HashMap<String, Object>>() {});
+            
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                
+                // Only add if not already present in body (body takes precedence)
+                if (!bodyMap.containsKey(key) || bodyMap.get(key) == null) {
+                    // Try to detect numeric or boolean values
+                    if (value.matches("-?\\d+(\\.\\d+)?")) {
+                        if (value.contains(".")) {
+                            bodyMap.put(key, Double.parseDouble(value));
+                        } else {
+                            bodyMap.put(key, Long.parseLong(value));
+                        }
+                    } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                        bodyMap.put(key, Boolean.parseBoolean(value));
+                    } else {
+                        bodyMap.put(key, value);
+                    }
+                }
+            }
+            
+            return objectMapper.writeValueAsString(bodyMap);
+        } catch (Exception e) {
+            log.warn("Failed to merge params into body: {}", e.getMessage());
+            return jsonBody;
+        }
     }
 
     /**
@@ -207,46 +244,4 @@ public class GrpcProxyService {
         }
     }
 
-    /**
-     * Build a JSON object from query parameters.
-     */
-    private String buildJsonFromQueryParams(Map<String, String> queryParams) {
-        StringBuilder json = new StringBuilder("{");
-        boolean first = true;
-        
-        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-            if (!first) {
-                json.append(",");
-            }
-            first = false;
-            
-            // Convert to snake_case as proto uses snake_case
-            String key = camelToSnake(entry.getKey());
-            String value = entry.getValue();
-            
-            // Try to detect if value is numeric or boolean
-            if (value.matches("-?\\d+(\\.\\d+)?")) {
-                json.append("\"").append(key).append("\":").append(value);
-            } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-                json.append("\"").append(key).append("\":").append(value.toLowerCase());
-            } else {
-                json.append("\"").append(key).append("\":\"").append(escapeJson(value)).append("\"");
-            }
-        }
-        
-        json.append("}");
-        return json.toString();
-    }
-
-    private String camelToSnake(String str) {
-        return str.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
-    }
-
-    private String escapeJson(String value) {
-        return value.replace("\\", "\\\\")
-                   .replace("\"", "\\\"")
-                   .replace("\n", "\\n")
-                   .replace("\r", "\\r")
-                   .replace("\t", "\\t");
-    }
 }

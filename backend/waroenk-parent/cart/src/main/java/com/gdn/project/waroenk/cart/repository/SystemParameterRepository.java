@@ -25,3 +25,5 @@ public interface SystemParameterRepository extends MongoRepository<SystemParamet
      */
     void deleteByVariable(String variable);
 }
+
+

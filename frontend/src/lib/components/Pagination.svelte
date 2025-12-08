@@ -28,6 +28,7 @@
         onclick={() => goToPage(currentPage - 1)}
         disabled={currentPage <= 1}
         class="px-4 py-2 rounded-lg border border-[var(--color-sand)] hover:bg-[var(--color-sand)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        aria-label="Go to previous page"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -41,6 +42,8 @@
         <button 
           onclick={() => goToPage(page)}
           class="w-10 h-10 rounded-lg font-medium transition-colors {page === currentPage ? 'bg-[var(--color-terracotta)] text-white' : 'border border-[var(--color-sand)] hover:bg-[var(--color-sand)]'}"
+          aria-label="Go to page {page}"
+          aria-current={page === currentPage ? 'page' : undefined}
         >
           {page}
         </button>
@@ -50,6 +53,7 @@
         onclick={() => goToPage(currentPage + 1)}
         disabled={currentPage >= totalPages}
         class="px-4 py-2 rounded-lg border border-[var(--color-sand)] hover:bg-[var(--color-sand)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        aria-label="Go to next page"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

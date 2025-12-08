@@ -4,7 +4,7 @@
 
 .PHONY: help all up down \
         infra infra-down infra-status \
-        build \
+        build build-verbose \
         backend backend-down backend-parent-down backend-logs \
         api-gateway api-gateway-down api-gateway-logs \
         member member-down member-logs \
@@ -77,11 +77,26 @@ help:
 # ===========================================
 # Full Stack Commands
 # ===========================================
-all: infra backend frontend endpoints
+all: infra backend frontend
 	@echo ""
 	@echo "$(GREEN)╔═══════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(GREEN)║           🚀 Waroenk Stack is UP and RUNNING!             ║$(NC)"
 	@echo "$(GREEN)╚═══════════════════════════════════════════════════════════╝$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Quick Links:$(NC)"
+	@echo "   🎨 Frontend:    http://localhost:5173"
+	@echo "   🌐 Gateway:     http://localhost:8080"
+	@echo "   📊 Dashboard:   http://localhost:8080/dashboard"
+	@echo "   📖 Swagger:     http://localhost:8080/swagger-ui.html"
+	@echo ""
+	@echo "$(YELLOW)gRPC Ports:$(NC)"
+	@echo "   🌐 API Gateway:    localhost:6565"
+	@echo "   👤 Member:         localhost:9090"
+	@echo "   📦 Catalog:        localhost:9091"
+	@echo "   🛒 Cart:           localhost:9092"
+	@echo ""
+	@echo "$(YELLOW)Run 'make endpoints' for full API documentation$(NC)"
+	@echo ""
 
 up: all
 
@@ -103,18 +118,33 @@ build:
 	@echo "$(BLUE)  🐳 Rebuilding ALL Backend Docker Images (NO CACHE)       $(NC)"
 	@echo "$(BLUE)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(NC)"
 	@echo ""
-	@echo "$(YELLOW)Step 1: Building shared builder image (Maven -T 4C)...$(NC)"
-	cd $(BACKEND_PATH) && docker build --no-cache --progress=plain -f Dockerfile.builder -t waroenk-builder:latest .
+	@echo "$(YELLOW)Step 1: Building shared builder image (Maven parallel)...$(NC)"
+	@cd $(BACKEND_PATH) && docker build --no-cache -f Dockerfile.builder -t waroenk-builder:latest .
 	@echo ""
 	@echo "$(YELLOW)Step 2: Building service images...$(NC)"
+	@cd $(BACKEND_PATH)/member && docker build --no-cache -f Dockerfile -t waroenk-parent-member:latest ..
+	@cd $(BACKEND_PATH)/catalog && docker build --no-cache -f Dockerfile -t waroenk-parent-catalog:latest ..
+	@cd $(BACKEND_PATH)/cart && docker build --no-cache -f Dockerfile -t waroenk-parent-cart:latest ..
+	@cd $(BACKEND_PATH)/api-gateway && docker build --no-cache -f Dockerfile -t waroenk-parent-api-gateway:latest ..
+	@echo ""
+	@echo "$(GREEN)✅ All Docker images built successfully!$(NC)"
+	@echo ""
+	@docker images | grep -E "(waroenk)" | head -10
+
+# Build with verbose output (for debugging)
+build-verbose:
+	@echo ""
+	@echo "$(BLUE)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(NC)"
+	@echo "$(BLUE)  🐳 Rebuilding ALL Backend Images (VERBOSE MODE)          $(NC)"
+	@echo "$(BLUE)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(NC)"
+	@echo ""
+	cd $(BACKEND_PATH) && docker build --no-cache --progress=plain -f Dockerfile.builder -t waroenk-builder:latest .
 	cd $(BACKEND_PATH)/member && docker build --no-cache --progress=plain -f Dockerfile -t waroenk-parent-member:latest ..
 	cd $(BACKEND_PATH)/catalog && docker build --no-cache --progress=plain -f Dockerfile -t waroenk-parent-catalog:latest ..
 	cd $(BACKEND_PATH)/cart && docker build --no-cache --progress=plain -f Dockerfile -t waroenk-parent-cart:latest ..
 	cd $(BACKEND_PATH)/api-gateway && docker build --no-cache --progress=plain -f Dockerfile -t waroenk-parent-api-gateway:latest ..
 	@echo ""
 	@echo "$(GREEN)✅ All Docker images built successfully!$(NC)"
-	@echo ""
-	@docker images | grep -E "(waroenk)" | head -10
 
 # ===========================================
 # Infrastructure
@@ -136,6 +166,7 @@ infra:
 	@echo ""
 	@echo "$(YELLOW)▶ Starting Typesense...$(NC)"
 	@$(MAKE) -C $(INFRA_PATH)/typesense up
+	@sleep 10
 	@echo ""
 	@echo "$(GREEN)✅ Infrastructure ready!$(NC)"
 	@echo ""
@@ -355,50 +386,108 @@ status:
 # ===========================================
 endpoints:
 	@echo ""
-	@echo "$(BLUE)╔═══════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(BLUE)║               Available Endpoints                         ║$(NC)"
-	@echo "$(BLUE)╚═══════════════════════════════════════════════════════════╝$(NC)"
+	@echo "$(BLUE)╔═══════════════════════════════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(BLUE)║                            Available Endpoints                                ║$(NC)"
+	@echo "$(BLUE)╚═══════════════════════════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
 	@echo "$(GREEN)🎨 Frontend:$(NC)"
-	@echo "   http://localhost:5173              - Svelte Web App (Dev)"
+	@echo "   http://localhost:5173                    - Svelte Web App (Dev)"
 	@echo ""
 	@echo "$(GREEN)🌐 API Gateway (Main Entry Point - Port 8080):$(NC)"
-	@echo "   http://localhost:8080              - REST API Gateway"
-	@echo "   http://localhost:8080/swagger-ui.html - Swagger UI"
-	@echo "   http://localhost:8080/api-docs     - OpenAPI Docs"
-	@echo "   http://localhost:8080/health       - Health Check"
-	@echo "   http://localhost:8080/routes       - Registered Routes"
-	@echo "   http://localhost:8080/services     - Registered Services"
-	@echo "   localhost:6565                     - gRPC (Service Registration)"
+	@echo "   http://localhost:8080                    - REST API Gateway"
+	@echo "   http://localhost:8080/dashboard          - Monitoring Dashboard (UI)"
+	@echo "   http://localhost:8080/swagger-ui.html    - Swagger UI (All APIs)"
+	@echo "   http://localhost:8080/api-docs           - OpenAPI Docs (JSON)"
+	@echo "   http://localhost:8080/health             - Health Check"
+	@echo "   http://localhost:8080/routes             - Registered Routes (Static + Dynamic)"
+	@echo "   http://localhost:8080/services           - Registered Services"
+	@echo "   http://localhost:8080/monitoring/summary - Service Health Summary (JSON)"
+	@echo "   localhost:6565                           - gRPC (Service Registration)"
 	@echo ""
 	@echo "$(GREEN)👤 Member Service (via Gateway):$(NC)"
-	@echo "   http://localhost:8080/api/user/register  - POST Register"
-	@echo "   http://localhost:8080/api/user/login     - POST Login"
-	@echo "   http://localhost:8080/api/user           - GET/PUT User Profile"
-	@echo "   http://localhost:8081/swagger-ui.html    - Direct Swagger (HTTP 8081)"
+	@echo "   $(YELLOW)User APIs:$(NC)"
+	@echo "   POST   /api/user/register                - Register new user (Public)"
+	@echo "   POST   /api/user/login                   - Login & get JWT (Public)"
+	@echo "   GET    /api/user                         - Get current user profile"
+	@echo "   PUT    /api/user                         - Update user profile"
+	@echo "   GET    /api/user/find-one                - Find user by phone/email"
+	@echo "   GET    /api/user/filter                  - Filter users (Admin)"
+	@echo "   POST   /api/user/forgot-password         - Request password reset (Public)"
+	@echo "   POST   /api/user/change-password         - Change password with token (Public)"
+	@echo "   POST   /api/user/logout                  - Logout & invalidate token"
+	@echo "   POST   /api/user/refresh-token           - Refresh JWT token (Public)"
+	@echo "   $(YELLOW)Address APIs:$(NC)"
+	@echo "   POST   /api/address                      - Create/update address"
+	@echo "   GET    /api/address                      - Get address by ID"
+	@echo "   GET    /api/address/find-one             - Find address by label"
+	@echo "   GET    /api/address/filter               - Filter user addresses"
+	@echo "   PUT    /api/address/default              - Set default address"
+	@echo "   DELETE /api/address                      - Delete address"
+	@echo "   $(YELLOW)Direct Access:$(NC)"
+	@echo "   http://localhost:8081/swagger-ui.html    - Direct Swagger"
 	@echo "   localhost:9090                           - gRPC Direct"
 	@echo ""
 	@echo "$(GREEN)📦 Catalog Service (via Gateway):$(NC)"
-	@echo "   http://localhost:8080/api/search         - GET Combined Search"
-	@echo "   http://localhost:8080/api/search/products - GET Search Products"
-	@echo "   http://localhost:8080/api/product        - GET Product by ID"
-	@echo "   http://localhost:8080/api/product/filter - GET Filter Products"
-	@echo "   http://localhost:8082/swagger-ui.html    - Direct Swagger (HTTP 8082)"
+	@echo "   $(YELLOW)Search APIs (Public):$(NC)"
+	@echo "   GET    /api/search                       - Combined search (products+merchants)"
+	@echo "   GET    /api/search/products              - Search products only"
+	@echo "   GET    /api/search/merchants             - Search merchants only"
+	@echo "   $(YELLOW)Product APIs:$(NC)"
+	@echo "   GET    /api/product                      - Get product by ID (Public)"
+	@echo "   GET    /api/product/by-sku               - Get product by SKU (Public)"
+	@echo "   GET    /api/product/filter               - Filter products (Public)"
+	@echo "   GET    /api/product/details              - Get product with variants (Public)"
+	@echo "   POST   /api/product/summary              - Get multiple products summary (Public)"
+	@echo "   POST   /api/product                      - Create product (Auth)"
+	@echo "   PUT    /api/product                      - Update product (Auth)"
+	@echo "   DELETE /api/product                      - Delete product (Auth)"
+	@echo "   $(YELLOW)Inventory APIs:$(NC)"
+	@echo "   POST   /api/inventory/check              - Check stock availability (Public)"
+	@echo "   $(YELLOW)Merchant APIs:$(NC)"
+	@echo "   GET    /api/merchant                     - Get merchant by ID (Public)"
+	@echo "   GET    /api/merchant/by-code             - Get merchant by code (Public)"
+	@echo "   GET    /api/merchant/filter              - Filter merchants (Public)"
+	@echo "   $(YELLOW)Category APIs:$(NC)"
+	@echo "   GET    /api/category                     - Get category by ID (Public)"
+	@echo "   GET    /api/category/by-slug             - Get category by slug (Public)"
+	@echo "   GET    /api/category/filter              - Filter categories (Public)"
+	@echo "   GET    /api/category/tree                - Get category tree (Public)"
+	@echo "   $(YELLOW)Brand APIs:$(NC)"
+	@echo "   GET    /api/brand                        - Get brand by ID (Public)"
+	@echo "   GET    /api/brand/filter                 - Filter brands (Public)"
+	@echo "   $(YELLOW)Direct Access:$(NC)"
+	@echo "   http://localhost:8082/swagger-ui.html    - Direct Swagger"
 	@echo "   localhost:9091                           - gRPC Direct"
 	@echo ""
 	@echo "$(GREEN)🛒 Cart Service (via Gateway):$(NC)"
-	@echo "   http://localhost:8080/api/cart           - GET Cart (Auth Required)"
-	@echo "   http://localhost:8080/api/cart/add       - POST Add Item (Auth Required)"
-	@echo "   http://localhost:8080/api/cart/clear     - DELETE Clear Cart (Auth Required)"
-	@echo "   http://localhost:8080/api/checkout/*     - Checkout APIs (Auth Required)"
-	@echo "   http://localhost:8083/swagger-ui.html    - Direct Swagger (HTTP 8083)"
+	@echo "   $(YELLOW)Cart APIs (Auth Required):$(NC)"
+	@echo "   GET    /api/cart/{user_id}               - Get user cart"
+	@echo "   POST   /api/cart/add                     - Add item to cart"
+	@echo "   POST   /api/cart/bulk-add                - Add multiple items"
+	@echo "   PUT    /api/cart/update                  - Update item quantity"
+	@echo "   POST   /api/cart/remove                  - Remove item from cart"
+	@echo "   POST   /api/cart/bulk-remove             - Remove multiple items"
+	@echo "   DELETE /api/cart/{user_id}               - Clear entire cart"
+	@echo "   GET    /api/cart/filter                  - Filter carts (Admin)"
+	@echo "   $(YELLOW)Checkout APIs (Auth Required):$(NC)"
+	@echo "   POST   /api/checkout/prepare             - Start checkout (validates stock)"
+	@echo "   POST   /api/checkout/{id}/finalize       - Finalize checkout"
+	@echo "   POST   /api/checkout/{id}/pay            - Process payment"
+	@echo "   POST   /api/checkout/{id}/cancel         - Cancel checkout"
+	@echo "   GET    /api/checkout/{id}                - Get checkout by ID"
+	@echo "   GET    /api/checkout/user/{user_id}      - Get checkout by user"
+	@echo "   GET    /api/checkouts                    - Filter checkouts"
+	@echo "   $(YELLOW)Direct Access:$(NC)"
+	@echo "   http://localhost:8083/swagger-ui.html    - Direct Swagger"
 	@echo "   localhost:9092                           - gRPC Direct"
 	@echo ""
 	@echo "$(GREEN)🔧 Infrastructure:$(NC)"
-	@echo "   localhost:5432                     - PostgreSQL"
-	@echo "   localhost:27017                    - MongoDB"
-	@echo "   localhost:6379                     - Redis"
-	@echo "   http://localhost:8108              - Typesense"
+	@echo "   localhost:5432                           - PostgreSQL (Member DB)"
+	@echo "   localhost:27017                          - MongoDB (Catalog + Cart DB)"
+	@echo "   localhost:6379                           - Redis (Cache + Sessions)"
+	@echo "   http://localhost:8108                    - Typesense (Search Engine)"
+	@echo ""
+	@echo "$(YELLOW)💡 Tip: Use Swagger UI at http://localhost:8080/swagger-ui.html for interactive API docs$(NC)"
 	@echo ""
 
 # ===========================================

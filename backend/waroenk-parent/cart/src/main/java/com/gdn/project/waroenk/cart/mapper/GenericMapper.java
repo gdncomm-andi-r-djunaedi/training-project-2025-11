@@ -37,3 +37,5 @@ public interface GenericMapper {
     return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
   }
 }
+
+

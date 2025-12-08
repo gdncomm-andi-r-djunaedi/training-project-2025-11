@@ -1,4 +1,4 @@
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 
 const STORAGE_KEY = 'waroenk_auth';
 
@@ -6,7 +6,7 @@ const STORAGE_KEY = 'waroenk_auth';
  * Load auth state from localStorage
  */
 function loadAuthState() {
-  if (typeof window === 'undefined') return { user: null, token: null };
+  if (typeof window === 'undefined') return { user: null, token: null, refreshToken: null };
   
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -17,7 +17,7 @@ function loadAuthState() {
     console.error('Failed to load auth state:', e);
   }
   
-  return { user: null, token: null };
+  return { user: null, token: null, refreshToken: null };
 }
 
 /**
@@ -48,10 +48,10 @@ function createAuthStore() {
     subscribe,
     
     /**
-     * Set user and token after login
+     * Set user and tokens after login
      */
-    login(user, token) {
-      const state = { user, token };
+    login(user, token, refreshToken = null) {
+      const state = { user, token, refreshToken };
       saveAuthState(state);
       set(state);
     },
@@ -60,9 +60,20 @@ function createAuthStore() {
      * Clear auth state on logout
      */
     logout() {
-      const state = { user: null, token: null };
+      const state = { user: null, token: null, refreshToken: null };
       saveAuthState(state);
       set(state);
+    },
+
+    /**
+     * Update tokens after refresh
+     */
+    updateTokens(token, refreshToken) {
+      update(state => {
+        const newState = { ...state, token, refreshToken };
+        saveAuthState(newState);
+        return newState;
+      });
     },
 
     /**
@@ -74,6 +85,14 @@ function createAuthStore() {
         saveAuthState(newState);
         return newState;
       });
+    },
+
+    /**
+     * Get current refresh token
+     */
+    getRefreshToken() {
+      const state = get({ subscribe });
+      return state.refreshToken;
     },
 
     /**

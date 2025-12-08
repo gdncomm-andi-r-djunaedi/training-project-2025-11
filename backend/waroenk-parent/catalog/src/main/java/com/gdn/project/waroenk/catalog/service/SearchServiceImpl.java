@@ -431,9 +431,9 @@ public class SearchServiceImpl implements SearchService {
 
     Product product = productService.findProductBySku(sku);
 
-    Merchant merchant = merchantService.findMerchantByCode(product.getMerchantCode());
-    Category category = categoryService.findCategoryById(product.getCategoryId());
-    CategoryNode categoryNode = categoryService.getCategoryNodes(category);
+    Merchant merchant = getMerchantSafely(product.getMerchantCode());
+    Category category = getCategorySafely(product.getCategoryId());
+    CategoryNode categoryNode = category != null ? categoryService.getCategoryNodes(category) : null;
 
     // Get all the variant
     Map<String, VariantData> variants =
@@ -446,7 +446,7 @@ public class SearchServiceImpl implements SearchService {
             .stream()
             .collect(Collectors.toMap(Inventory::getSubSku, Function.identity(), (existing, duplicate) -> duplicate));
 
-    String brandName = product.getBrandId() != null ? brandService.findBrandById(product.getBrandId()).getName() : null;
+    final String brandName = getBrandNameSafely(product);
 
     variants.forEach((key, variant) -> {
       // Build variant keywords and attributes
@@ -498,6 +498,52 @@ public class SearchServiceImpl implements SearchService {
 
   private Instant toInstant(Timestamp timestamp) {
     return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
+  }
+
+  /**
+   * Safely get brand name, returning null if brand doesn't exist
+   */
+  private String getBrandNameSafely(Product product) {
+    if (product.getBrandId() == null) {
+      return null;
+    }
+    try {
+      return brandService.findBrandById(product.getBrandId()).getName();
+    } catch (ResourceNotFoundException e) {
+      log.warn("Brand with id {} not found for product {}, setting brandName to null",
+          product.getBrandId(), product.getSku());
+      return null;
+    }
+  }
+
+  /**
+   * Safely get category, returning null if category doesn't exist or categoryId is invalid
+   */
+  private Category getCategorySafely(String categoryId) {
+    if (categoryId == null || categoryId.isBlank() || "cat-".equals(categoryId)) {
+      return null;
+    }
+    try {
+      return categoryService.findCategoryById(categoryId);
+    } catch (ResourceNotFoundException e) {
+      log.warn("Category with id {} not found, setting category to null", categoryId);
+      return null;
+    }
+  }
+
+  /**
+   * Safely get merchant, returning null if merchant doesn't exist
+   */
+  private Merchant getMerchantSafely(String merchantCode) {
+    if (merchantCode == null || merchantCode.isBlank()) {
+      return null;
+    }
+    try {
+      return merchantService.findMerchantByCode(merchantCode);
+    } catch (ResourceNotFoundException e) {
+      log.warn("Merchant with code {} not found, setting merchant to null", merchantCode);
+      return null;
+    }
   }
 
   private Object resolveObjectValue(com.google.protobuf.Value value) {
@@ -771,16 +817,22 @@ public class SearchServiceImpl implements SearchService {
 
     // Parallel fetch: Merchant, Brand, Category, and Inventories
     CompletableFuture<Merchant> merchantFuture =
-        CompletableFuture.supplyAsync(() -> merchantService.findMerchantByCode(product.getMerchantCode()),
-            typesenseExecutor);
+        CompletableFuture.supplyAsync(() -> getMerchantSafely(product.getMerchantCode()), typesenseExecutor);
 
-    CompletableFuture<Brand> brandFuture = CompletableFuture.supplyAsync(() -> product.getBrandId() != null ?
-        brandService.findBrandById(product.getBrandId()) :
-        null, typesenseExecutor);
+    CompletableFuture<Brand> brandFuture = CompletableFuture.supplyAsync(() -> {
+      if (product.getBrandId() != null) {
+        try {
+          return brandService.findBrandById(product.getBrandId());
+        } catch (ResourceNotFoundException e) {
+          log.warn("Brand with id {} not found for product {}", product.getBrandId(), product.getSku());
+          return null;
+        }
+      }
+      return null;
+    }, typesenseExecutor);
 
-    CompletableFuture<Category> categoryFuture = CompletableFuture.supplyAsync(() -> product.getCategoryId() != null ?
-        categoryService.findCategoryById(product.getCategoryId()) :
-        null, typesenseExecutor);
+    CompletableFuture<Category> categoryFuture =
+        CompletableFuture.supplyAsync(() -> getCategorySafely(product.getCategoryId()), typesenseExecutor);
 
     CompletableFuture<Map<String, Inventory>> inventoriesFuture =
         CompletableFuture.supplyAsync(() -> inventoryService.findBulkInventoriesBySubSkus(variants.keySet()
@@ -996,6 +1048,113 @@ public class SearchServiceImpl implements SearchService {
 
   record Query(String query, String filterBy) {
 
+  }
+
+  // ============================================================
+  // Bulk Indexing Methods
+  // ============================================================
+
+  @Override
+  public int indexAllMerchants() {
+    log.info("Starting TypeSense indexing for all merchants...");
+    List<Merchant> merchants = merchantService.findAllMerchants();
+    int indexed = 0;
+    int failed = 0;
+
+    for (Merchant merchant : merchants) {
+      try {
+        indexMerchant(merchant);
+        indexed++;
+        if (indexed % 1000 == 0) {
+          log.info("Indexed {} merchants...", indexed);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to index merchant {}: {}", merchant.getCode(), e.getMessage());
+        failed++;
+      }
+    }
+
+    log.info("TypeSense merchant indexing complete: {} indexed, {} failed", indexed, failed);
+    return indexed;
+  }
+
+  @Override
+  public int indexAllProducts() {
+    log.info("Starting TypeSense indexing for all products...");
+    List<Product> products = productService.findAllProducts();
+    int indexed = 0;
+    int failed = 0;
+
+    for (Product product : products) {
+      try {
+        List<AggregatedProductDto> aggregatedProducts = buildAggregatedProduct(product.getSku());
+        if (aggregatedProducts != null) {
+          for (AggregatedProductDto dto : aggregatedProducts) {
+            try {
+              indexProduct(dto);
+              indexed++;
+            } catch (Exception e) {
+              log.warn("Failed to index variant {}: {}", dto.subSku(), e.getMessage());
+              failed++;
+            }
+          }
+        }
+        if ((indexed + failed) % 1000 == 0) {
+          log.info("Progress: {} indexed, {} failed", indexed, failed);
+        }
+      } catch (Exception e) {
+        log.error("Failed to build aggregated product for {}: {}", product.getSku(), e.getMessage());
+        failed++;
+      }
+    }
+
+    log.info("TypeSense product indexing complete: {} indexed, {} failed", indexed, failed);
+    return indexed;
+  }
+
+  @Override
+  public BulkIndexResult indexProductsBySkus(List<String> skus) {
+    log.info("Starting TypeSense indexing for {} SKUs...", skus.size());
+    int indexed = 0;
+    int failed = 0;
+    List<String> failedSkus = new ArrayList<>();
+
+    for (String sku : skus) {
+      try {
+        List<AggregatedProductDto> aggregatedProducts = buildAggregatedProduct(sku);
+        if (aggregatedProducts != null && !aggregatedProducts.isEmpty()) {
+          boolean allVariantsIndexed = true;
+          for (AggregatedProductDto dto : aggregatedProducts) {
+            try {
+              indexProduct(dto);
+            } catch (Exception e) {
+              log.warn("Failed to index variant {}: {}", dto.subSku(), e.getMessage());
+              allVariantsIndexed = false;
+            }
+          }
+          if (allVariantsIndexed) {
+            indexed++;
+          } else {
+            failed++;
+            failedSkus.add(sku);
+          }
+        } else {
+          failed++;
+          failedSkus.add(sku);
+        }
+        
+        if ((indexed + failed) % 500 == 0) {
+          log.info("Bulk index progress: {} indexed, {} failed out of {}", indexed, failed, skus.size());
+        }
+      } catch (Exception e) {
+        log.error("Failed to build aggregated product for {}: {}", sku, e.getMessage());
+        failed++;
+        failedSkus.add(sku);
+      }
+    }
+
+    log.info("Bulk indexing complete: {} indexed, {} failed out of {} requested", indexed, failed, skus.size());
+    return new BulkIndexResult(skus.size(), indexed, failed, failedSkus);
   }
 
   // ============================================================

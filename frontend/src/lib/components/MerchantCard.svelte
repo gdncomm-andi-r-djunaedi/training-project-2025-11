@@ -1,5 +1,16 @@
 <script>
   let { merchant, index = 0 } = $props();
+  let imageLoaded = $state(false);
+  let imageError = $state(false);
+
+  function handleImageLoad() {
+    imageLoaded = true;
+  }
+
+  function handleImageError() {
+    imageError = true;
+    imageLoaded = true;
+  }
 </script>
 
 <a 
@@ -9,13 +20,19 @@
 >
   <div class="flex items-start gap-4">
     <!-- Avatar -->
-    <div class="w-14 h-14 rounded-full overflow-hidden bg-[var(--color-border-light)] flex-shrink-0 ring-4 ring-[var(--color-border-light)] group-hover:ring-[var(--color-primary)]/20 transition-all duration-300">
-      {#if merchant.icon_url}
+    <div class="w-14 h-14 rounded-full overflow-hidden bg-[var(--color-border-light)] flex-shrink-0 ring-4 ring-[var(--color-border-light)] group-hover:ring-[var(--color-primary)]/20 transition-all duration-300 relative">
+      {#if merchant.icon_url && !imageError}
+        <!-- Loading skeleton -->
+        {#if !imageLoaded}
+          <div class="absolute inset-0 skeleton rounded-full"></div>
+        {/if}
         <img 
           src={merchant.icon_url} 
           alt={merchant.name}
-          class="w-full h-full object-cover"
+          class="w-full h-full object-cover {imageLoaded ? 'opacity-100' : 'opacity-0'}"
           loading="lazy"
+          onload={handleImageLoad}
+          onerror={handleImageError}
         />
       {:else}
         <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)]">

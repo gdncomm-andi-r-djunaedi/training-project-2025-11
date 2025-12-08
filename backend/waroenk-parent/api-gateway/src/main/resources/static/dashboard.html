@@ -619,6 +619,66 @@
             margin-top: 1rem;
         }
 
+        .chart-container {
+            height: 100px;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .thread-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 4px;
+            font-size: 0.65rem;
+            color: var(--accent-emerald);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .live-indicator .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
         /* Progress bar */
         .progress-container {
             margin-top: 1rem;
@@ -811,6 +871,10 @@
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button id="liveToggle" class="refresh-btn" onclick="toggleLiveUpdates()" title="Toggle live updates">
+                            <span class="icon" id="liveToggleIcon">⏸️</span>
+                            <span id="liveToggleText">Pause</span>
+                        </button>
                         <a id="grpcUiLink" href="#" target="_blank" class="grpc-ui-btn grpc-ui-btn-large" onclick="event.stopPropagation()">
                             <span>🔧</span>
                             <span>Open gRPC UI</span>
@@ -837,16 +901,19 @@
                                 <div class="metric-title">Memory Usage</div>
                                 <div class="metric-icon memory">💾</div>
                             </div>
-                            <div class="metric-value" id="memoryUsed">-</div>
+                            <div class="metric-value" id="memoryUsed">- MB</div>
                             <div class="metric-label">Heap Memory Used</div>
                             <div class="progress-container">
                                 <div class="progress-bar">
                                     <div class="progress-fill memory" id="memoryProgress" style="width: 0%"></div>
                                 </div>
                                 <div class="progress-labels">
-                                    <span id="memoryUsedLabel">0 MB</span>
-                                    <span id="memoryMaxLabel">0 MB</span>
+                                    <span id="memoryUsedLabel">- MB</span>
+                                    <span id="memoryMaxLabel">- MB</span>
                                 </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="memoryChart"></canvas>
                             </div>
                         </div>
 
@@ -856,7 +923,7 @@
                                 <div class="metric-title">CPU Usage</div>
                                 <div class="metric-icon cpu">⚡</div>
                             </div>
-                            <div class="metric-value" id="cpuUsage">-</div>
+                            <div class="metric-value" id="cpuUsage">0%</div>
                             <div class="metric-label">Process CPU</div>
                             <div class="progress-container">
                                 <div class="progress-bar">
@@ -866,6 +933,9 @@
                                     <span>0%</span>
                                     <span>100%</span>
                                 </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="cpuChart"></canvas>
                             </div>
                         </div>
 
@@ -877,16 +947,19 @@
                             </div>
                             <div class="metric-value" id="threadCount">-</div>
                             <div class="metric-label">Active Threads</div>
-                            <table class="info-table" style="margin-top: 1rem;">
-                                <tr>
-                                    <td style="color: var(--text-muted); border: none; padding: 0.5rem 0;">Peak</td>
-                                    <td style="text-align: right; border: none; padding: 0.5rem 0;" id="threadPeak">-</td>
-                                </tr>
-                                <tr>
-                                    <td style="color: var(--text-muted); border: none; padding: 0.5rem 0;">Daemon</td>
-                                    <td style="text-align: right; border: none; padding: 0.5rem 0;" id="threadDaemon">-</td>
-                                </tr>
-                            </table>
+                            <div class="thread-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Peak</span>
+                                    <span class="stat-value" id="threadPeak">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Daemon</span>
+                                    <span class="stat-value" id="threadDaemon">-</span>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="threadsChart"></canvas>
+                            </div>
                         </div>
 
                         <!-- HTTP card -->
@@ -897,16 +970,19 @@
                             </div>
                             <div class="metric-value" id="httpRequests">-</div>
                             <div class="metric-label">Total Requests</div>
-                            <table class="info-table" style="margin-top: 1rem;">
-                                <tr>
-                                    <td style="color: var(--text-muted); border: none; padding: 0.5rem 0;">Avg Response</td>
-                                    <td style="text-align: right; border: none; padding: 0.5rem 0;" id="avgResponse">-</td>
-                                </tr>
-                                <tr>
-                                    <td style="color: var(--text-muted); border: none; padding: 0.5rem 0;">Uptime</td>
-                                    <td style="text-align: right; border: none; padding: 0.5rem 0;" id="uptime">-</td>
-                                </tr>
-                            </table>
+                            <div class="thread-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Avg Response</span>
+                                    <span class="stat-value" id="avgResponse">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Uptime</span>
+                                    <span class="stat-value" id="uptime">-</span>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="httpChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -954,11 +1030,374 @@
         let services = [];
         let selectedService = null;
         let refreshInterval = null;
+        let metricsInterval = null;
+        
+        // Chart instances
+        let memoryChart = null;
+        let cpuChart = null;
+        let threadsChart = null;
+        let httpChart = null;
+        
+        // Metrics history (local buffer for smooth charts)
+        const MAX_DATA_POINTS = 30;
+        let metricsHistory = {
+            timestamps: [],
+            memory: [],
+            cpu: [],
+            threads: [],
+            httpRequests: []
+        };
+
+        // Chart.js default config
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 300,
+                easing: 'easeOutQuart'
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(26, 34, 52, 0.95)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#94a3b8',
+                    borderColor: 'rgba(45, 58, 82, 0.8)',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
+                    titleFont: { family: 'JetBrains Mono', size: 11 },
+                    bodyFont: { family: 'JetBrains Mono', size: 10 }
+                }
+            },
+            scales: {
+                x: {
+                    display: false,
+                    grid: { display: false }
+                },
+                y: {
+                    display: true,
+                    grid: {
+                        color: 'rgba(45, 58, 82, 0.3)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        font: { family: 'JetBrains Mono', size: 9 },
+                        maxTicksLimit: 4
+                    }
+                }
+            }
+        };
+
+        // Create gradient for charts
+        function createGradient(ctx, color1, color2) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 100);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            return gradient;
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Destroy existing charts
+            if (memoryChart) memoryChart.destroy();
+            if (cpuChart) cpuChart.destroy();
+            if (threadsChart) threadsChart.destroy();
+            if (httpChart) httpChart.destroy();
+
+            // Memory Chart
+            const memoryCtx = document.getElementById('memoryChart')?.getContext('2d');
+            if (memoryCtx) {
+                memoryChart = new Chart(memoryCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Memory (MB)',
+                            data: [],
+                            borderColor: '#8b5cf6',
+                            backgroundColor: createGradient(memoryCtx, 'rgba(139, 92, 246, 0.3)', 'rgba(139, 92, 246, 0)'),
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            pointHoverBackgroundColor: '#8b5cf6'
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            ...chartDefaults.scales,
+                            y: {
+                                ...chartDefaults.scales.y,
+                                ticks: {
+                                    ...chartDefaults.scales.y.ticks,
+                                    callback: (val) => val + ' MB'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // CPU Chart
+            const cpuCtx = document.getElementById('cpuChart')?.getContext('2d');
+            if (cpuCtx) {
+                cpuChart = new Chart(cpuCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'CPU (%)',
+                            data: [],
+                            borderColor: '#22d3ee',
+                            backgroundColor: createGradient(cpuCtx, 'rgba(34, 211, 238, 0.3)', 'rgba(34, 211, 238, 0)'),
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            pointHoverBackgroundColor: '#22d3ee'
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            ...chartDefaults.scales,
+                            y: {
+                                ...chartDefaults.scales.y,
+                                min: 0,
+                                max: 100,
+                                ticks: {
+                                    ...chartDefaults.scales.y.ticks,
+                                    callback: (val) => val + '%'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Threads Chart
+            const threadsCtx = document.getElementById('threadsChart')?.getContext('2d');
+            if (threadsCtx) {
+                threadsChart = new Chart(threadsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Threads',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: createGradient(threadsCtx, 'rgba(59, 130, 246, 0.3)', 'rgba(59, 130, 246, 0)'),
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            pointHoverBackgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: chartDefaults
+                });
+            }
+
+            // HTTP Chart
+            const httpCtx = document.getElementById('httpChart')?.getContext('2d');
+            if (httpCtx) {
+                httpChart = new Chart(httpCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Requests',
+                            data: [],
+                            backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                            borderColor: '#10b981',
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            barPercentage: 0.8
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            ...chartDefaults.scales,
+                            y: {
+                                ...chartDefaults.scales.y,
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Reset history
+            metricsHistory = {
+                timestamps: [],
+                memory: [],
+                cpu: [],
+                threads: [],
+                httpRequests: []
+            };
+        }
+
+        // Update charts with new data
+        function updateCharts(metrics) {
+            if (!metrics.available) return;
+
+            const now = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            // Get values with snake_case/camelCase fallback
+            const heapUsed = metrics.memory?.heap_used || metrics.memory?.heapUsed || 0;
+            const cpuUsage = metrics.jvm?.cpu_usage || metrics.jvm?.cpuUsage || 0;
+            const threadCount = metrics.jvm?.thread_count || metrics.jvm?.threadCount || 0;
+            const totalRequests = metrics.http?.total_requests || metrics.http?.totalRequests || 0;
+            
+            // Add new data point
+            metricsHistory.timestamps.push(now);
+            metricsHistory.memory.push(Math.round(heapUsed / 1024 / 1024));
+            metricsHistory.cpu.push((cpuUsage * 100).toFixed(1));
+            metricsHistory.threads.push(threadCount);
+            metricsHistory.httpRequests.push(totalRequests);
+
+            // Keep only last N data points
+            if (metricsHistory.timestamps.length > MAX_DATA_POINTS) {
+                metricsHistory.timestamps.shift();
+                metricsHistory.memory.shift();
+                metricsHistory.cpu.shift();
+                metricsHistory.threads.shift();
+                metricsHistory.httpRequests.shift();
+            }
+
+            // Update Memory Chart
+            if (memoryChart) {
+                memoryChart.data.labels = metricsHistory.timestamps;
+                memoryChart.data.datasets[0].data = metricsHistory.memory;
+                memoryChart.update('none');
+            }
+
+            // Update CPU Chart
+            if (cpuChart) {
+                cpuChart.data.labels = metricsHistory.timestamps;
+                cpuChart.data.datasets[0].data = metricsHistory.cpu;
+                cpuChart.update('none');
+            }
+
+            // Update Threads Chart
+            if (threadsChart) {
+                threadsChart.data.labels = metricsHistory.timestamps;
+                threadsChart.data.datasets[0].data = metricsHistory.threads;
+                threadsChart.update('none');
+            }
+
+            // Update HTTP Chart (show request rate per interval)
+            if (httpChart) {
+                // Calculate request delta for bar chart
+                const requestDeltas = [];
+                for (let i = 0; i < metricsHistory.httpRequests.length; i++) {
+                    if (i === 0) {
+                        requestDeltas.push(0);
+                    } else {
+                        const delta = metricsHistory.httpRequests[i] - metricsHistory.httpRequests[i-1];
+                        requestDeltas.push(delta >= 0 ? delta : 0);
+                    }
+                }
+                httpChart.data.labels = metricsHistory.timestamps;
+                httpChart.data.datasets[0].data = requestDeltas;
+                httpChart.update('none');
+            }
+        }
+
+        // Fetch metrics for live updates (every 5 seconds)
+        async function fetchLiveMetrics() {
+            if (!selectedService) return;
+            
+            try {
+                const response = await fetch(`/monitoring/services/${selectedService}/metrics`);
+                const metrics = await response.json();
+                
+                if (metrics.available) {
+                    updateMetricsUI(metrics);
+                    updateCharts(metrics);
+                }
+            } catch (error) {
+                console.warn('Failed to fetch live metrics:', error);
+            }
+        }
+
+        // Start live metrics polling
+        function startLiveMetrics() {
+            // Don't start if paused
+            if (liveUpdatesPaused) return;
+            
+            // Clear existing interval
+            if (metricsInterval) {
+                clearInterval(metricsInterval);
+            }
+            
+            // Fetch immediately, then every 5 seconds
+            fetchLiveMetrics();
+            metricsInterval = setInterval(fetchLiveMetrics, 5000);
+            updateLiveToggleUI(true);
+        }
+
+        // Stop live metrics polling
+        function stopLiveMetrics() {
+            if (metricsInterval) {
+                clearInterval(metricsInterval);
+                metricsInterval = null;
+            }
+            updateLiveToggleUI(false);
+        }
+
+        // Live updates paused state
+        let liveUpdatesPaused = false;
+
+        // Toggle live updates
+        function toggleLiveUpdates() {
+            if (liveUpdatesPaused) {
+                // Resume
+                liveUpdatesPaused = false;
+                if (selectedService) {
+                    startLiveMetrics();
+                }
+            } else {
+                // Pause
+                liveUpdatesPaused = true;
+                if (metricsInterval) {
+                    clearInterval(metricsInterval);
+                    metricsInterval = null;
+                }
+            }
+            updateLiveToggleUI(!liveUpdatesPaused);
+        }
+
+        // Update toggle button UI
+        function updateLiveToggleUI(isLive) {
+            const icon = document.getElementById('liveToggleIcon');
+            const text = document.getElementById('liveToggleText');
+            if (icon && text) {
+                if (isLive) {
+                    icon.textContent = '⏸️';
+                    text.textContent = 'Pause';
+                } else {
+                    icon.textContent = '▶️';
+                    text.textContent = 'Resume';
+                }
+            }
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             refreshData();
-            // Auto-refresh every 30 seconds
+            // Auto-refresh service list every 30 seconds
             refreshInterval = setInterval(refreshData, 30000);
         });
 
@@ -971,11 +1410,11 @@
                 const response = await fetch('/monitoring/summary');
                 const data = await response.json();
 
-                // Update summary
-                document.getElementById('totalServices').textContent = data.totalServices;
-                document.getElementById('healthyServices').textContent = data.healthyServices;
-                document.getElementById('unhealthyServices').textContent = data.unhealthyServices;
-                document.getElementById('unknownServices').textContent = data.unknownServices;
+                // Update summary (API returns snake_case)
+                document.getElementById('totalServices').textContent = data.total_services;
+                document.getElementById('healthyServices').textContent = data.healthy_services;
+                document.getElementById('unhealthyServices').textContent = data.unhealthy_services;
+                document.getElementById('unknownServices').textContent = data.unknown_services;
 
                 // Store services
                 services = data.services;
@@ -1003,28 +1442,28 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
             const filtered = services.filter(s => 
-                s.serviceName.toLowerCase().includes(searchTerm) ||
+                s.service_name.toLowerCase().includes(searchTerm) ||
                 s.host.toLowerCase().includes(searchTerm)
             );
 
             container.innerHTML = filtered.map(service => {
                 const statusClass = service.status.toLowerCase();
-                const isActive = selectedService === service.serviceName;
+                const isActive = selectedService === service.service_name;
                 const grpcUiUrl = getGrpcUiUrl(service);
                 const hasGrpcUi = grpcUiUrl !== null;
 
                 return `
                     <div class="service-card status-${statusClass} ${isActive ? 'active' : ''}" 
-                         onclick="selectService('${service.serviceName}')">
+                         onclick="selectService('${service.service_name}')">
                         <div class="service-card-header">
-                            <div class="service-name">${service.serviceName}</div>
+                            <div class="service-name">${service.service_name}</div>
                             <div class="status-badge ${statusClass}">
                                 <div class="status-dot"></div>
                                 ${service.status}
                             </div>
                         </div>
                         <div class="service-meta">
-                            ${service.host}:${service.grpcPort} (gRPC) | ${service.httpPort > 0 ? service.httpPort + ' (HTTP)' : 'No HTTP'}
+                            ${service.host}:${service.grpc_port} (gRPC) | ${service.http_port > 0 ? service.http_port + ' (HTTP)' : 'No HTTP'}
                         </div>
                         <div class="service-actions">
                             <a href="${hasGrpcUi ? grpcUiUrl : '#'}" 
@@ -1055,17 +1494,23 @@
 
         // Show service detail
         async function showServiceDetail(serviceName) {
-            const service = services.find(s => s.serviceName === serviceName);
+            const service = services.find(s => s.service_name === serviceName);
             if (!service) return;
+
+            // Stop any existing live metrics polling
+            stopLiveMetrics();
 
             // Show detail view, hide welcome
             document.getElementById('summaryView').style.display = 'none';
             document.getElementById('welcomeState').style.display = 'none';
             document.getElementById('serviceDetail').classList.add('active');
 
-            // Update header
+            // Update header with live indicator
             document.getElementById('detailName').textContent = serviceName;
-            document.getElementById('detailEndpoint').textContent = `${service.host}:${service.grpcPort} (gRPC) | ${service.httpPort > 0 ? service.httpPort + ' (HTTP)' : 'No HTTP port'}`;
+            document.getElementById('detailEndpoint').innerHTML = `
+                ${service.host}:${service.grpc_port} (gRPC) | ${service.http_port > 0 ? service.http_port + ' (HTTP)' : 'No HTTP port'}
+                ${service.status === 'UP' ? '<span class="live-indicator"><span class="dot"></span>LIVE</span>' : ''}
+            `;
 
             const statusClass = service.status.toLowerCase();
             document.getElementById('detailStatus').innerHTML = `
@@ -1092,27 +1537,40 @@
             // Handle unreachable service
             if (service.status === 'DOWN' || service.status === 'UNKNOWN') {
                 document.getElementById('detailError').style.display = 'block';
-                document.getElementById('errorMessage').textContent = service.errorMessage || 'Unable to connect to service actuator endpoint';
+                document.getElementById('errorMessage').textContent = service.error_message || 'Unable to connect to service actuator endpoint';
                 
-                if (service.httpPort <= 0) {
+                if (service.http_port <= 0) {
                     document.getElementById('errorMessage').textContent = 'HTTP port not configured for this service. Cannot fetch actuator metrics.';
                 }
             } else {
                 document.getElementById('detailError').style.display = 'none';
             }
 
-            // Fetch metrics
+            // Initialize charts for this service
+            initCharts();
+
+            // Fetch initial metrics and history
             try {
-                const [metricsRes, infoRes] = await Promise.all([
+                const [metricsRes, infoRes, historyRes] = await Promise.all([
                     fetch(`/monitoring/services/${serviceName}/metrics`),
-                    fetch(`/monitoring/services/${serviceName}/info`)
+                    fetch(`/monitoring/services/${serviceName}/info`),
+                    fetch(`/monitoring/services/${serviceName}/metrics/history`)
                 ]);
 
                 const metrics = await metricsRes.json();
                 const info = await infoRes.json();
+                const history = await historyRes.json();
 
                 if (metrics.available) {
                     updateMetricsUI(metrics);
+                    
+                    // Load history into charts if available
+                    if (history && history.length > 0) {
+                        loadMetricsHistory(history);
+                    } else {
+                        // Add current metrics as first data point
+                        updateCharts(metrics);
+                    }
                 } else {
                     resetMetricsUI();
                 }
@@ -1120,9 +1578,79 @@
                 updateInfoUI(info, service);
                 updateHealthDetails(service);
 
+                // Start live metrics polling if service is UP
+                if (service.status === 'UP') {
+                    startLiveMetrics();
+                }
+
             } catch (error) {
                 console.error('Failed to fetch service details:', error);
                 resetMetricsUI();
+            }
+        }
+
+        // Load historical metrics into charts
+        function loadMetricsHistory(history) {
+            // Clear current history
+            metricsHistory = {
+                timestamps: [],
+                memory: [],
+                cpu: [],
+                threads: [],
+                httpRequests: []
+            };
+
+            // Process each historical snapshot (with snake_case/camelCase fallback)
+            history.slice(-MAX_DATA_POINTS).forEach(snapshot => {
+                const time = snapshot.timestamp ? 
+                    new Date(snapshot.timestamp).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) :
+                    '';
+                
+                const heapUsed = snapshot.memory?.heap_used || snapshot.memory?.heapUsed || 0;
+                const cpuUsage = snapshot.jvm?.cpu_usage || snapshot.jvm?.cpuUsage || 0;
+                const threadCount = snapshot.jvm?.thread_count || snapshot.jvm?.threadCount || 0;
+                const totalRequests = snapshot.http?.total_requests || snapshot.http?.totalRequests || 0;
+                
+                metricsHistory.timestamps.push(time);
+                metricsHistory.memory.push(Math.round(heapUsed / 1024 / 1024));
+                metricsHistory.cpu.push((cpuUsage * 100).toFixed(1));
+                metricsHistory.threads.push(threadCount);
+                metricsHistory.httpRequests.push(totalRequests);
+            });
+
+            // Update all charts at once
+            if (memoryChart) {
+                memoryChart.data.labels = metricsHistory.timestamps;
+                memoryChart.data.datasets[0].data = metricsHistory.memory;
+                memoryChart.update();
+            }
+
+            if (cpuChart) {
+                cpuChart.data.labels = metricsHistory.timestamps;
+                cpuChart.data.datasets[0].data = metricsHistory.cpu;
+                cpuChart.update();
+            }
+
+            if (threadsChart) {
+                threadsChart.data.labels = metricsHistory.timestamps;
+                threadsChart.data.datasets[0].data = metricsHistory.threads;
+                threadsChart.update();
+            }
+
+            if (httpChart) {
+                // Calculate request deltas
+                const requestDeltas = [];
+                for (let i = 0; i < metricsHistory.httpRequests.length; i++) {
+                    if (i === 0) {
+                        requestDeltas.push(0);
+                    } else {
+                        const delta = metricsHistory.httpRequests[i] - metricsHistory.httpRequests[i-1];
+                        requestDeltas.push(delta >= 0 ? delta : 0);
+                    }
+                }
+                httpChart.data.labels = metricsHistory.timestamps;
+                httpChart.data.datasets[0].data = requestDeltas;
+                httpChart.update();
             }
         }
 
@@ -1132,32 +1660,44 @@
             const jvm = metrics.jvm || {};
             const http = metrics.http || {};
 
-            // Memory
-            const heapUsedMB = memory.heapUsed ? (memory.heapUsed / 1024 / 1024).toFixed(0) : '-';
-            const heapMaxMB = memory.heapMax ? (memory.heapMax / 1024 / 1024).toFixed(0) : '-';
-            const heapPercent = memory.heapUsedPercentage ? memory.heapUsedPercentage.toFixed(1) : 0;
+            // Memory (API returns snake_case: heap_used, heap_max, heap_used_percentage)
+            const heapUsed = memory.heap_used || memory.heapUsed;
+            const heapMax = memory.heap_max || memory.heapMax;
+            const heapPercent = memory.heap_used_percentage || memory.heapUsedPercentage;
+            
+            const heapUsedMB = heapUsed ? (heapUsed / 1024 / 1024).toFixed(0) : '-';
+            const heapMaxMB = heapMax ? (heapMax / 1024 / 1024).toFixed(0) : '-';
+            const heapPercentVal = heapPercent ? heapPercent.toFixed(1) : 0;
 
             document.getElementById('memoryUsed').textContent = heapUsedMB + ' MB';
-            document.getElementById('memoryProgress').style.width = heapPercent + '%';
+            document.getElementById('memoryProgress').style.width = heapPercentVal + '%';
             document.getElementById('memoryUsedLabel').textContent = heapUsedMB + ' MB';
             document.getElementById('memoryMaxLabel').textContent = heapMaxMB + ' MB';
 
-            // CPU
-            const cpuPercent = jvm.cpuUsage ? (jvm.cpuUsage * 100).toFixed(1) : 0;
+            // CPU (API returns snake_case: cpu_usage)
+            const cpuUsage = jvm.cpu_usage || jvm.cpuUsage;
+            const cpuPercent = cpuUsage ? (cpuUsage * 100).toFixed(1) : 0;
             document.getElementById('cpuUsage').textContent = cpuPercent + '%';
             document.getElementById('cpuProgress').style.width = Math.min(cpuPercent, 100) + '%';
 
-            // Threads
-            document.getElementById('threadCount').textContent = jvm.threadCount || '-';
-            document.getElementById('threadPeak').textContent = jvm.threadPeakCount || '-';
-            document.getElementById('threadDaemon').textContent = jvm.threadDaemonCount || '-';
+            // Threads (API returns snake_case: thread_count, thread_peak_count, thread_daemon_count)
+            const threadCount = jvm.thread_count || jvm.threadCount;
+            const threadPeak = jvm.thread_peak_count || jvm.threadPeakCount;
+            const threadDaemon = jvm.thread_daemon_count || jvm.threadDaemonCount;
+            
+            document.getElementById('threadCount').textContent = threadCount || '-';
+            document.getElementById('threadPeak').textContent = threadPeak || '-';
+            document.getElementById('threadDaemon').textContent = threadDaemon || '-';
 
-            // HTTP
-            document.getElementById('httpRequests').textContent = http.totalRequests ? formatNumber(http.totalRequests) : '-';
-            document.getElementById('avgResponse').textContent = http.avgResponseTime ? (http.avgResponseTime * 1000).toFixed(2) + ' ms' : '-';
+            // HTTP (API returns snake_case: total_requests, avg_response_time)
+            const totalRequests = http.total_requests || http.totalRequests;
+            const avgResponseTime = http.avg_response_time || http.avgResponseTime;
+            
+            document.getElementById('httpRequests').textContent = totalRequests ? formatNumber(totalRequests) : '-';
+            document.getElementById('avgResponse').textContent = avgResponseTime ? (avgResponseTime * 1000).toFixed(2) + ' ms' : '-';
 
-            // Uptime
-            const uptimeSec = jvm.uptimeSeconds || 0;
+            // Uptime (API returns snake_case: uptime_seconds)
+            const uptimeSec = jvm.uptime_seconds || jvm.uptimeSeconds || 0;
             document.getElementById('uptime').textContent = formatUptime(uptimeSec);
         }
 
@@ -1183,15 +1723,15 @@
             const grpcUiUrl = getGrpcUiUrl(service);
             
             const rows = [
-                ['Service Name', info.appName || service.serviceName],
+                ['Service Name', info.app_name || service.service_name],
                 ['Version', info.version || 'N/A'],
                 ['Source', service.source],
                 ['Host', service.host],
-                ['gRPC Port', service.grpcPort],
-                ['HTTP Port', service.httpPort > 0 ? service.httpPort : 'Not configured'],
+                ['gRPC Port', service.grpc_port],
+                ['HTTP Port', service.http_port > 0 ? service.http_port : 'Not configured'],
                 ['gRPC UI', grpcUiUrl ? `<a href="${grpcUiUrl}" target="_blank" class="grpc-ui-btn" style="display: inline-flex;"><span>🔧</span><span>${grpcUiUrl}</span></a>` : '<span style="color: var(--text-muted)">Not available</span>'],
-                ['Java Version', info.javaVersion || 'N/A'],
-                ['Last Check', service.lastCheck || 'N/A']
+                ['Java Version', info.java_version || 'N/A'],
+                ['Last Check', service.last_check || 'N/A']
             ];
 
             tbody.innerHTML = rows.map(([prop, value]) => `
@@ -1205,10 +1745,10 @@
         // Update health details
         function updateHealthDetails(service) {
             const pre = document.getElementById('healthDetails');
-            if (service.healthDetails) {
-                pre.textContent = JSON.stringify(service.healthDetails, null, 2);
+            if (service.health_details) {
+                pre.textContent = JSON.stringify(service.health_details, null, 2);
             } else {
-                pre.textContent = service.errorMessage || 'No health details available';
+                pre.textContent = service.error_message || 'No health details available';
             }
         }
 
@@ -1233,6 +1773,9 @@
 
         // Show summary view
         function showSummaryView() {
+            // Stop live metrics polling
+            stopLiveMetrics();
+            
             selectedService = null;
             document.getElementById('summaryView').style.display = 'block';
             document.getElementById('serviceDetail').classList.remove('active');
@@ -1241,12 +1784,18 @@
         }
 
         // Get gRPC UI URL for a service
+        // Maps Docker internal hostnames to localhost for browser access
         function getGrpcUiUrl(service) {
-            if (!service.httpPort || service.httpPort <= 0) {
+            if (!service.http_port || service.http_port <= 0) {
                 return null;
             }
+            // Docker hostnames are only accessible within the Docker network
+            // Map them to localhost for browser access
+            const dockerHosts = ['member', 'catalog', 'cart', 'api-gateway'];
+            const host = dockerHosts.includes(service.host) ? 'localhost' : service.host;
+            
             // gRPC UI is available at /grpc-ui on the HTTP port
-            return `http://${service.host}:${service.httpPort}/grpc-ui`;
+            return `http://${host}:${service.http_port}/grpc-ui`;
         }
     </script>
 </body>

@@ -28,6 +28,15 @@ export const authApi = {
   },
 
   /**
+   * Refresh access token using refresh token
+   * @param {string} refreshToken - The refresh token
+   * @returns {Promise<{access_token: string, refresh_token: string, expires_at: string}>}
+   */
+  async refreshToken(refreshToken) {
+    return api.post('/user/refresh-token', { refresh_token: refreshToken }, { skipAuthRefresh: true });
+  },
+
+  /**
    * Get current user profile
    */
   async getProfile() {
@@ -45,7 +54,7 @@ export const authApi = {
   /**
    * Request password reset (forgot password)
    * @param {string} phoneOrEmail - User's phone number or email
-   * @returns {Promise<{success: boolean, message: string, reset_token?: string}>}
+   * @returns {Promise<{success: boolean, message: string, reset_token?: string, expires_in_seconds?: number}>}
    */
   async forgotPassword(phoneOrEmail) {
     return api.post('/user/forgot-password', { phone_or_email: phoneOrEmail });

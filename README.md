@@ -1,26 +1,41 @@
 # 🛒 Waroenk
 
-A modern e-commerce marketplace built with microservices architecture.
+A modern e-commerce marketplace built with microservices architecture featuring gRPC service communication, real-time search, and a responsive Svelte frontend.
 
 ---
 
 ## Preview
 
 ### Homepage
-![Homepage](docs/screenshots/homepage.png)
+![Homepage](docs/screenshots/homepage.jpeg)
 *Hero section with animated gradient, category navigation, and product showcase*
 
 ### Search Results
-![Search Results](docs/screenshots/search-results.png)
-*Fast search powered by Typesense with instant results (~171ms for 1956 products)*
+![Search Results](docs/screenshots/search-results.jpeg)
+*Fast search powered by Typesense with instant results and faceted filtering*
 
-### Docker Services
-![Docker Stats](docs/screenshots/docker-stats.png)
-*All microservices running with optimized memory usage*
+![Search Results 2](docs/screenshots/search-results-2.jpeg)
+*Product grid view with merchant information and pricing*
 
-### Available Endpoints
-![Endpoints](docs/screenshots/endpoints.png)
-*Complete API endpoint listing via `make endpoints`*
+### Checkout Flow
+![Checkout Flow](docs/screenshots/checkout-flow.gif)
+*Complete checkout experience from cart to order confirmation*
+
+### Service Dashboard
+![Dashboard](docs/screenshots/dashboard.jpeg)
+*Real-time service health monitoring and metrics*
+
+![Dashboard Detail](docs/screenshots/dashboard-detail.jpeg)
+*Detailed service status with gRPC endpoint information*
+
+### gRPC Service UIs
+| Member Service | Catalog Service | Cart Service |
+|----------------|-----------------|--------------|
+| ![Member gRPC](docs/screenshots/member-grpc-ui.jpeg) | ![Catalog gRPC](docs/screenshots/catalog-grpc-ui.jpeg) | ![Cart gRPC](docs/screenshots/cart-grpc-ui.jpeg) |
+
+### Resource Usage
+![Resource Usage](docs/screenshots/resource.jpeg)
+*All microservices running with optimized memory usage (~2GB total)*
 
 ---
 
@@ -45,7 +60,17 @@ Waroenk is a full-stack marketplace application featuring:
 | **Storage** | 100 GB | 200 GB SSD |
 | **OS** | Linux/macOS/Windows with WSL2 | Linux/macOS |
 
-> ⚠️ **Note**: The application runs multiple Docker containers simultaneously. Ensure Docker Desktop (if used) is configured with adequate resources.
+### Prerequisites
+
+| Software | Version | Purpose |
+|----------|---------|---------|
+| **Docker** | v24+ | Container runtime |
+| **Docker Compose** | v2+ | Multi-container orchestration |
+| **Make** | GNU Make | Build automation |
+| **Node.js** | 18+ | Frontend development (optional) |
+| **Java** | 21 | Backend development (optional) |
+
+> ⚠️ **Note**: The application runs multiple Docker containers simultaneously. Ensure Docker Desktop (if used) is configured with adequate resources (Settings → Resources → Memory: 6GB+).
 
 ### Resource Breakdown (Actual Usage)
 
@@ -251,12 +276,15 @@ backend/waroenk-parent/catalog/src/main/resources/seed-data/
 | **Nginx** | Production web server with API proxy |
 
 ### Backend (Microservices)
-| Service | Tech | HTTP Port | gRPC Port | Purpose |
-|---------|------|-----------|-----------|---------|
-| **API Gateway** | Spring Boot 3 | 8080 | 6565 | REST → gRPC routing, Swagger docs |
-| **Member** | Spring Boot 3 | 8081 | 9090 | Auth, user profiles, addresses |
-| **Catalog** | Spring Boot 3 | 8082 | 9091 | Products, merchants, brands, categories |
-| **Cart** | Spring Boot 3 | 8083 | 9092 | Cart management, checkout |
+
+| Service | Tech | HTTP | gRPC | Purpose |
+|---------|------|------|------|---------|
+| **API Gateway** | Spring Boot 3 | `:8080` | `:6565` | REST → gRPC routing, Swagger aggregation, Service discovery |
+| **Member** | Spring Boot 3 | `:8081` | `:9090` | User authentication, profiles, addresses |
+| **Catalog** | Spring Boot 3 | `:8082` | `:9091` | Products, merchants, brands, categories, search |
+| **Cart** | Spring Boot 3 | `:8083` | `:9092` | Cart management, checkout flow |
+
+> 💡 **Tip**: All REST API calls go through the API Gateway (`:8080`). gRPC ports are for inter-service communication.
 
 ### Infrastructure
 | Service | Port | Purpose |
@@ -334,12 +362,6 @@ waroenk-apps/
 
 ## Getting Started
 
-### Prerequisites
-- Docker & Docker Compose v2+
-- Make (GNU Make)
-- Node.js 18+ (for frontend development)
-- Java 21 (for backend development)
-
 ### Quick Start (Full Stack)
 
 ```bash
@@ -349,17 +371,50 @@ cd waroenk-apps
 
 # Start everything (infra + backend + frontend)
 make up
-
-# Wait for all services to be healthy (~2-3 minutes on first run)
-make status
-
-# View all available endpoints
-make endpoints
 ```
 
-**Access the application:**
-- 🌐 **Frontend**: http://localhost:5173
-- 📚 **API Docs**: http://localhost:8080/swagger-ui.html
+On successful startup, you'll see:
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║           🚀 Waroenk Stack is UP and RUNNING!             ║
+╚═══════════════════════════════════════════════════════════╝
+
+Quick Links:
+   🎨 Frontend:    http://localhost:5173
+   🌐 Gateway:     http://localhost:8080
+   📊 Dashboard:   http://localhost:8080/dashboard
+   📖 Swagger:     http://localhost:8080/swagger-ui.html
+
+gRPC Ports:
+   🌐 API Gateway:    localhost:6565
+   👤 Member:         localhost:9090
+   📦 Catalog:        localhost:9091
+   🛒 Cart:           localhost:9092
+
+Run 'make endpoints' for full API documentation
+```
+
+### Essential Commands
+
+| Command | Description |
+|---------|-------------|
+| `make up` | 🚀 Start entire stack (infra + backend + frontend) |
+| `make down` | Stop all services |
+| `make status` | Show service health status |
+| `make endpoints` | Display full API documentation |
+| `make logs` | Tail all service logs |
+| `make build` | Rebuild all backend Docker images |
+| `make clean` | Stop and remove all volumes |
+
+### Access Points
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| 🎨 **Frontend** | http://localhost:5173 | Svelte Web Application |
+| 🌐 **Gateway** | http://localhost:8080 | REST API Gateway |
+| 📊 **Dashboard** | http://localhost:8080/dashboard | Service Health Monitor |
+| 📖 **Swagger** | http://localhost:8080/swagger-ui.html | Interactive API Docs |
 
 ### Development Mode
 
@@ -471,59 +526,59 @@ curl -X POST "http://localhost:8080/api/cart/add" \
 
 ---
 
-## Useful Commands
+## Make Commands Reference
 
-```bash
-# ═══════════════════════════════════════════
-# Full Stack
-# ═══════════════════════════════════════════
-make up              # Start everything
-make down            # Stop everything
-make status          # Show service status
-make endpoints       # List all endpoints
-make clean           # Stop and remove all volumes
+### 🚀 Most Used Commands
 
-# ═══════════════════════════════════════════
-# Infrastructure
-# ═══════════════════════════════════════════
-make infra           # Start infrastructure only
-make infra-down      # Stop infrastructure
-make infra-status    # Check infrastructure health
+| Command | Description |
+|---------|-------------|
+| `make up` | Start entire stack (infrastructure + backend + frontend) |
+| `make down` | Stop all running services |
+| `make status` | Display health status of all services |
+| `make endpoints` | Show complete API endpoint documentation |
+| `make logs` | Follow aggregated logs from all services |
+| `make build` | Rebuild all backend Docker images (no cache) |
+| `make clean` | Stop everything and remove all volumes |
 
-# ═══════════════════════════════════════════
-# Backend Services
-# ═══════════════════════════════════════════
-make backend         # Start all backend services
-make backend-down    # Stop all backend services
-make api-gateway     # Start API Gateway only
-make member          # Start Member service only
-make catalog         # Start Catalog service only
-make cart            # Start Cart service only
+### 🔧 Infrastructure Commands
 
-# ═══════════════════════════════════════════
-# Frontend
-# ═══════════════════════════════════════════
-make frontend        # Build and start production frontend
-make frontend-build  # Build frontend image only
-make frontend-down   # Stop frontend
+| Command | Description |
+|---------|-------------|
+| `make infra` | Start databases only (PostgreSQL, MongoDB, Redis, Typesense) |
+| `make infra-down` | Stop all infrastructure services |
+| `make infra-status` | Check infrastructure health |
 
-# ═══════════════════════════════════════════
-# Logs
-# ═══════════════════════════════════════════
-make logs            # Aggregate all service logs
-make logs-backend    # Backend logs only
-make logs-infra      # Infrastructure logs only
-make api-gateway-logs
-make member-logs
-make catalog-logs
-make cart-logs
-make frontend-logs
+### 🖥️ Backend Commands
 
-# ═══════════════════════════════════════════
-# Build
-# ═══════════════════════════════════════════
-make build           # Rebuild all backend Docker images
-```
+| Command | Description |
+|---------|-------------|
+| `make backend` | Start all backend services (in correct order) |
+| `make backend-down` | Stop all backend services |
+| `make api-gateway` | Start API Gateway only |
+| `make member` | Start Member service only |
+| `make catalog` | Start Catalog service only |
+| `make cart` | Start Cart service only |
+
+### 🎨 Frontend Commands
+
+| Command | Description |
+|---------|-------------|
+| `make frontend` | Build and start production frontend |
+| `make frontend-build` | Build frontend Docker image only |
+| `make frontend-down` | Stop frontend container |
+
+### 📋 Log Commands
+
+| Command | Description |
+|---------|-------------|
+| `make logs` | Aggregate all service logs |
+| `make logs-backend` | Backend services logs only |
+| `make logs-infra` | Infrastructure logs only |
+| `make api-gateway-logs` | API Gateway logs |
+| `make member-logs` | Member service logs |
+| `make catalog-logs` | Catalog service logs |
+| `make cart-logs` | Cart service logs |
+| `make frontend-logs` | Frontend container logs |
 
 ---
 

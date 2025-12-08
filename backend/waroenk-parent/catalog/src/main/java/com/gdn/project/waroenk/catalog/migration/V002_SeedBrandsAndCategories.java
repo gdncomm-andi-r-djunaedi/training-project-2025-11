@@ -2,7 +2,6 @@ package com.gdn.project.waroenk.catalog.migration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gdn.project.waroenk.catalog.entity.Brand;
 import com.gdn.project.waroenk.catalog.entity.Category;
 import com.gdn.project.waroenk.catalog.entity.SeedChecksum;
 import com.github.cloudyrock.mongock.ChangeLog;
@@ -24,7 +23,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Migration V002: Seed initial brands and categories data.
+ * Migration V002: Seed initial categories data.
+ * 
+ * Note: Brands and Merchants are now seeded via external script due to large file sizes.
+ * Only categories are included in the JAR as they are small (~9KB).
  * 
  * Uses checksum validation to prevent re-seeding already processed files.
  * Data is loaded from JSON files in resources/seed-data/
@@ -33,64 +35,10 @@ import java.util.UUID;
 @ChangeLog(order = "002")
 public class V002_SeedBrandsAndCategories {
 
-  private static final String BRANDS_FILE = "seed-data/brands.json";
   private static final String CATEGORIES_FILE = "seed-data/categories.json";
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  @ChangeSet(order = "001", id = "seedBrands", author = "system")
-  public void seedBrands(MongockTemplate mongockTemplate) {
-    log.info("Starting brand seeding...");
-    
-    try {
-      // Read file content
-      ClassPathResource resource = new ClassPathResource(BRANDS_FILE);
-      if (!resource.exists()) {
-        log.warn("Brands seed file not found: {}. Skipping brand seeding.", BRANDS_FILE);
-        return;
-      }
-
-      String content;
-      try (InputStream is = resource.getInputStream()) {
-        content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-      }
-      
-      // Calculate checksum
-      String checksum = calculateChecksum(content);
-      
-      // Check if already processed
-      if (isAlreadyProcessed(mongockTemplate, BRANDS_FILE, checksum)) {
-        log.info("Brands file already processed with same checksum. Skipping.");
-        return;
-      }
-      
-      // Parse and insert brands
-      List<Brand> brands = objectMapper.readValue(content, new TypeReference<List<Brand>>() {});
-      
-      // Set timestamps for all brands
-      Instant now = Instant.now();
-      brands.forEach(brand -> {
-        if (brand.getId() == null) {
-          brand.setId(UUID.randomUUID().toString());
-        }
-        brand.setCreatedAt(now);
-        brand.setUpdatedAt(now);
-      });
-      
-      // Clear existing brands and insert new ones
-      mongockTemplate.dropCollection(Brand.class);
-      mongockTemplate.insertAll(brands);
-      
-      // Record the checksum
-      recordChecksum(mongockTemplate, BRANDS_FILE, checksum, brands.size());
-      
-      log.info("Successfully seeded {} brands", brands.size());
-      
-    } catch (IOException e) {
-      log.error("Failed to seed brands: {}", e.getMessage(), e);
-    }
-  }
-
-  @ChangeSet(order = "002", id = "seedCategories", author = "system")
+  @ChangeSet(order = "001", id = "seedCategories", author = "system")
   public void seedCategories(MongockTemplate mongockTemplate) {
     log.info("Starting category seeding...");
     
@@ -177,4 +125,3 @@ public class V002_SeedBrandsAndCategories {
     mongockTemplate.insert(seedChecksum);
   }
 }
-

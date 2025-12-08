@@ -58,6 +58,25 @@ public interface SearchService {
   List<AggregatedProductDto> buildAggregatedProduct(String sku);
 
   /**
+   * Index all merchants in TypeSense (bulk operation)
+   * @return number of merchants indexed
+   */
+  int indexAllMerchants();
+
+  /**
+   * Index all products in TypeSense (bulk operation)
+   * @return number of products indexed
+   */
+  int indexAllProducts();
+
+  /**
+   * Index products by SKUs (selective/incremental indexing)
+   * @param skus list of product SKUs to index
+   * @return result with indexed count and failed SKUs
+   */
+  BulkIndexResult indexProductsBySkus(List<String> skus);
+
+  /**
    * Get verbose product details by ID (subSku or sku).
    * Returns complete product info with merchant, brand, category, inventory, and variant images.
    * Uses caching: merchant/brand/category (1 hour TTL), inventory (30 seconds TTL).
@@ -91,6 +110,9 @@ public interface SearchService {
   }
 
   record InventoryCheckResult(List<InventoryCheckItemDto> items, int totalFound, int totalRequested, long took) {
+  }
+
+  record BulkIndexResult(int totalRequested, int totalIndexed, int totalFailed, List<String> failedSkus) {
   }
 }
 

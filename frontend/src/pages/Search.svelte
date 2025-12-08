@@ -57,11 +57,11 @@
   }
 
   function setupIntersectionObservers() {
-    // Observer for products
+    // Observer for products - works on 'all' and 'products' tabs
     if (productsEndRef) {
       productsObserver = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting && nextTokenProducts && !loadingMore && activeTab !== 'merchants') {
+          if (entries[0].isIntersecting && nextTokenProducts && !loadingMore) {
             loadMoreProducts();
           }
         },
@@ -70,11 +70,11 @@
       productsObserver.observe(productsEndRef);
     }
     
-    // Observer for merchants
+    // Observer for merchants - works on 'all' and 'merchants' tabs
     if (merchantsEndRef) {
       merchantsObserver = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting && nextTokenMerchants && !loadingMore && activeTab !== 'products') {
+          if (entries[0].isIntersecting && nextTokenMerchants && !loadingMore) {
             loadMoreMerchants();
           }
         },
@@ -170,9 +170,9 @@
 
 <div class="min-h-screen bg-[var(--color-bg)]">
   <!-- Search Header -->
-  <div class="bg-[var(--color-surface)]">
-    <div class="container py-10">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2 tracking-tight">
+  <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+    <div class="container py-12">
+      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-3 tracking-tight">
         {#if query}
           Search Results
         {:else}
@@ -180,45 +180,48 @@
         {/if}
       </h1>
       {#if query}
-        <p class="text-[var(--color-text-muted)] mb-6">
+        <p class="text-[var(--color-text-muted)] mb-8">
           Showing results for "<span class="text-[var(--color-text)] font-medium">{query}</span>"
         </p>
       {:else}
-        <p class="text-[var(--color-text-muted)] mb-6">
+        <p class="text-[var(--color-text-muted)] mb-8">
           Find products and merchants
         </p>
       {/if}
 
       <!-- Search Form - Spotify style rounded -->
       <form onsubmit={handleSearch} class="max-w-2xl">
-        <div class="relative">
+        <div class="relative flex items-center">
           <input
             type="text"
             bind:value={query}
             placeholder="What do you want to find?"
-            class="input input-lg pr-32"
+            class="input input-lg pr-28"
           />
           <button 
             type="submit"
-            class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-primary"
+            class="absolute right-1.5 btn btn-primary btn-sm"
           >
             Search
           </button>
         </div>
       </form>
     </div>
+  </div>
 
-    <!-- Search Info & Tabs -->
-    {#if !loading && (products.length > 0 || merchants.length > 0)}
-      <div class="container">
+  <!-- Search Info & Tabs -->
+  {#if !loading && (products.length > 0 || merchants.length > 0)}
+    <div class="bg-white border-b border-[var(--color-border)]">
+      <div class="container py-6">
         <!-- Search Result Info -->
-        <div class="mb-4 text-sm text-[var(--color-text-muted)]">
+        <div class="mb-6 text-sm text-[var(--color-text-muted)]">
           Found <span class="font-semibold text-[var(--color-text)]">{totalProducts + totalMerchants}</span> results 
           out of <span class="font-semibold text-[var(--color-text)]">{totalDocumentsProducts + totalDocumentsMerchants}</span> documents 
           in <span class="font-semibold text-[var(--color-primary)]">{elapsedTime} ms</span>
         </div>
         
-        <div class="flex gap-2 pb-4">
+        <!-- Tabs -->
+        <div class="flex gap-3">
           <button 
             onclick={() => activeTab = 'all'}
             class="chip {activeTab === 'all' ? 'chip-active' : ''}"
@@ -242,11 +245,11 @@
           </button>
         </div>
       </div>
-    {/if}
-  </div>
+    </div>
+  {/if}
 
   <!-- Results -->
-  <div class="container py-10">
+  <div class="container py-12">
     {#if loading}
       <Loading text="Searching..." />
     {:else if !query}
@@ -266,19 +269,11 @@
     {:else}
       <!-- Products Section -->
       {#if (activeTab === 'all' || activeTab === 'products') && products.length > 0}
-        <section class="mb-12">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="section-title">
+        <section class="mb-16">
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-bold text-[var(--color-text)]">
               {activeTab === 'all' ? 'Products' : `Products (${totalProducts})`}
             </h2>
-            {#if activeTab === 'all' && totalProducts > products.length}
-              <button 
-                onclick={() => activeTab = 'products'}
-                class="text-sm font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors"
-              >
-                See all →
-              </button>
-            {/if}
           </div>
           
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -287,18 +282,18 @@
             {/each}
           </div>
 
-          <!-- Lazy load sentinel for products -->
-          {#if activeTab === 'products' && nextTokenProducts}
+          <!-- Lazy load sentinel for products - always visible when there's more to load -->
+          {#if nextTokenProducts && activeTab !== 'merchants'}
             <div bind:this={productsEndRef} class="text-center mt-10 py-4">
               {#if loadingMore}
                 <div class="flex items-center justify-center gap-2 text-[var(--color-text-muted)]">
                   <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  <span>Loading more...</span>
+                  <span>Loading more products...</span>
                 </div>
               {:else}
-                <span class="text-[var(--color-text-muted)] text-sm">Scroll for more</span>
+                <span class="text-[var(--color-text-muted)] text-sm">Scroll for more products</span>
               {/if}
             </div>
           {/if}
@@ -308,18 +303,10 @@
       <!-- Merchants Section -->
       {#if (activeTab === 'all' || activeTab === 'merchants') && merchants.length > 0}
         <section>
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="section-title">
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-bold text-[var(--color-text)]">
               {activeTab === 'all' ? 'Merchants' : `Merchants (${totalMerchants})`}
             </h2>
-            {#if activeTab === 'all' && totalMerchants > merchants.length}
-              <button 
-                onclick={() => activeTab = 'merchants'}
-                class="text-sm font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors"
-              >
-                See all →
-              </button>
-            {/if}
           </div>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -328,18 +315,18 @@
             {/each}
           </div>
 
-          <!-- Lazy load sentinel for merchants -->
-          {#if activeTab === 'merchants' && nextTokenMerchants}
+          <!-- Lazy load sentinel for merchants - always visible when there's more to load -->
+          {#if nextTokenMerchants && activeTab !== 'products'}
             <div bind:this={merchantsEndRef} class="text-center mt-10 py-4">
               {#if loadingMore}
                 <div class="flex items-center justify-center gap-2 text-[var(--color-text-muted)]">
                   <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  <span>Loading more...</span>
+                  <span>Loading more merchants...</span>
                 </div>
               {:else}
-                <span class="text-[var(--color-text-muted)] text-sm">Scroll for more</span>
+                <span class="text-[var(--color-text-muted)] text-sm">Scroll for more merchants</span>
               {/if}
             </div>
           {/if}

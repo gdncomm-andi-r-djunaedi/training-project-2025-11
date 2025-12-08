@@ -11,3 +11,5 @@ public interface InventoryRepository extends MongoRepository<Inventory, String> 
   List<Inventory> findBySubSkuIn(List<String> subSkus);
   boolean existsBySubSku(String subSku);
 }
+
+
