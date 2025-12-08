@@ -35,7 +35,7 @@ public class ProductServiceClient {
 
         try {
             String url = productServiceUrl + "/api/product/" + productId;
-            ApiResponse response = restTemplate.getForObject(url, ApiResponse.class);
+            var response = restTemplate.getForObject(url, ApiResponse.class);
 
             if (response == null || response.getData() == null) {
                 log.error("Product not found: {}", productId);

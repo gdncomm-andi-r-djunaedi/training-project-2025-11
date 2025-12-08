@@ -40,24 +40,27 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         ApiResponse<?> apiResponse;
         HttpStatus status;
 
-        if (ex instanceof BaseException) {
-            BaseException baseEx = (BaseException) ex;
-            status = HttpStatus.valueOf(baseEx.getStatusCode());
-            apiResponse = ApiResponse.error(baseEx.getMessage());
-        } else if (ex instanceof WebExchangeBindException) {
-            // Handle validation errors
-            WebExchangeBindException bindEx = (WebExchangeBindException) ex;
-            status = HttpStatus.BAD_REQUEST;
-            List<String> details = new ArrayList<>();
-            bindEx.getFieldErrors().forEach(error -> details.add(error.getField() + ": " + error.getDefaultMessage()));
-            apiResponse = ApiResponse.error("Validation failed", details);
-        } else if (ex instanceof ServerWebInputException) {
-            // Handle JSON parsing errors and other input exceptions
-            status = HttpStatus.BAD_REQUEST;
-            apiResponse = ApiResponse.error("Invalid request format");
-        } else {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            apiResponse = ApiResponse.error("An unexpected error occurred");
+        switch (ex) {
+            case BaseException baseEx -> {
+                status = HttpStatus.valueOf(baseEx.getStatusCode());
+                apiResponse = ApiResponse.error(baseEx.getMessage());
+            }
+            case WebExchangeBindException bindEx -> {
+                // Handle validation errors
+                status = HttpStatus.BAD_REQUEST;
+                List<String> details = new ArrayList<>();
+                bindEx.getFieldErrors().forEach(error -> details.add(error.getField() + ": " + error.getDefaultMessage()));
+                apiResponse = ApiResponse.error("Validation failed", details);
+            }
+            case ServerWebInputException serverWebInputException -> {
+                // Handle JSON parsing errors and other input exceptions
+                status = HttpStatus.BAD_REQUEST;
+                apiResponse = ApiResponse.error("Invalid request format");
+            }
+            default -> {
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+                apiResponse = ApiResponse.error("An unexpected error occurred");
+            }
         }
 
         exchange.getResponse().setStatusCode(status);

@@ -19,7 +19,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,7 +34,7 @@ services:
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,7 +49,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -68,7 +68,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: [ "CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1" ]
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -87,21 +87,28 @@ services:
         SERVICE_NAME: member
     container_name: marketplace-member
     environment:
-      SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8081
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: marketplace_member
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      JWT_SECRET: docker-secret-key-for-testing-only-minimum-256-bits-do-not-use-in-production
+      JWT_SECRET: ${JWT_SECRET:-docker-secret-key-for-testing-only-minimum-256-bits-do-not-use-in-production}
+      # Production logging settings
+      LOG_LEVEL_ROOT: INFO
+      LOG_LEVEL_APP: INFO
+      LOG_LEVEL_WEB: INFO
+      LOG_LEVEL_SECURITY: INFO
+      LOG_LEVEL_SQL: WARN
+      JPA_SHOW_SQL: "false"
+      JPA_FORMAT_SQL: "false"
     ports:
       - "8081:8081"
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health" ]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
       interval: 30s
       timeout: 10s
       start_period: 60s
@@ -117,15 +124,18 @@ services:
         SERVICE_NAME: product
     container_name: marketplace-product
     environment:
-      SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8082
       MONGODB_HOST: mongodb
       MONGODB_PORT: 27017
       MONGODB_DATABASE: marketplace_product
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      ELASTICSEARCH_HOST: elasticsearch
-      ELASTICSEARCH_PORT: 9200
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
+      # Production logging settings
+      LOG_LEVEL_ROOT: INFO
+      LOG_LEVEL_APP: INFO
+      LOG_LEVEL_WEB: INFO
+      LOG_LEVEL_MONGO: WARN
     ports:
       - "8082:8082"
     depends_on:
@@ -133,8 +143,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health" ]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
       interval: 30s
       timeout: 10s
       start_period: 60s
@@ -150,15 +162,21 @@ services:
         SERVICE_NAME: cart
     container_name: marketplace-cart
     environment:
-      SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8083
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: marketplace_cart
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      JWT_SECRET: docker-secret-key-for-testing-only-minimum-256-bits-do-not-use-in-production
+      JWT_SECRET: ${JWT_SECRET:-docker-secret-key-for-testing-only-minimum-256-bits-do-not-use-in-production}
       PRODUCT_SERVICE_URL: http://product-service:8082
+      # Production logging settings
+      LOG_LEVEL_ROOT: INFO
+      LOG_LEVEL_APP: INFO
+      LOG_LEVEL_WEB: INFO
+      LOG_LEVEL_SQL: WARN
+      JPA_SHOW_SQL: "false"
+      JPA_FORMAT_SQL: "false"
     ports:
       - "8083:8083"
     depends_on:
@@ -167,7 +185,7 @@ services:
       product-service:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health" ]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
       start_period: 60s
@@ -183,14 +201,19 @@ services:
         SERVICE_NAME: api-gateway
     container_name: marketplace-api-gateway
     environment:
-      SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8080
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: docker-secret-key-for-testing-only-minimum-256-bits-do-not-use-in-production
+      JWT_SECRET: ${JWT_SECRET:-docker-secret-key-for-testing-only-minimum-256-bits-do-not-use-in-production}
       MEMBER_SERVICE_URL: http://member-service:8081
       PRODUCT_SERVICE_URL: http://product-service:8082
       CART_SERVICE_URL: http://cart-service:8083
+      RATELIMIT_RPM: 1000
+      # Production logging settings
+      LOG_LEVEL_ROOT: INFO
+      LOG_LEVEL_APP: INFO
+      LOG_LEVEL_GATEWAY: INFO
+      LOG_LEVEL_WEB: INFO
     ports:
       - "8080:8080"
     depends_on:
@@ -203,7 +226,7 @@ services:
       cart-service:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       start_period: 60s
@@ -219,7 +242,6 @@ services:
         SERVICE_NAME: data-seeder
     container_name: marketplace-data-seeder
     environment:
-      SPRING_PROFILES_ACTIVE: docker
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: marketplace_member
@@ -228,10 +250,13 @@ services:
       MONGODB_HOST: mongodb
       MONGODB_PORT: 27017
       MONGODB_DATABASE: marketplace_product
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
     depends_on:
       postgres:
         condition: service_healthy
       mongodb:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     profiles:
       - seeder
