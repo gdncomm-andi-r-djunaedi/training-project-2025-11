@@ -42,9 +42,7 @@ class MemberApplicationTests {
 		ReflectionTestUtils.setField(service, "refreshExpirySec", 3600L);
 	}
 
-	// -------------------------------------------------------------------------
-	// REGISTER
-	// -------------------------------------------------------------------------
+
 	@Test
 	void register_success() {
 		RegisterRequest req = new RegisterRequest("a@b.com", "pass123", "Kailash", "999");
@@ -75,9 +73,7 @@ class MemberApplicationTests {
 		verify(memberRepository, never()).save(any());
 	}
 
-	// -------------------------------------------------------------------------
-	// LOGIN
-	// -------------------------------------------------------------------------
+
 	@Test
 	void login_success() {
 		LoginRequest req = new LoginRequest("a@b.com", "123");
@@ -125,9 +121,7 @@ class MemberApplicationTests {
 		assertThrows(NotFoundException.class, () -> service.login(req));
 	}
 
-	// -------------------------------------------------------------------------
-	// GET BY ID
-	// -------------------------------------------------------------------------
+
 	@Test
 	void getById_success() {
 		UUID id = UUID.randomUUID();
@@ -195,9 +189,7 @@ class MemberApplicationTests {
 		assertThrows(NotFoundException.class, () -> service.update(id, req));
 	}
 
-	// -------------------------------------------------------------------------
-	// DELETE
-	// -------------------------------------------------------------------------
+
 	@Test
 	void delete_success() {
 		UUID id = UUID.randomUUID();

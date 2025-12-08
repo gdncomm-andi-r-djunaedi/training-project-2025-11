@@ -10,7 +10,9 @@ import com.kailash.cart.exception.NotFoundException;
 import com.kailash.cart.repository.CartRepository;
 import com.kailash.cart.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,71 +62,74 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<CartResponse> addOrUpdateItem(String memberId, String sku, int qty) {
         try {
             if (qty == 0) {
-                return new ApiResponse<>(false, "Quantity should not be 0 or lesser", null);
+                return new ApiResponse<>(false, "Quantity should not be 0", null);
             }
 
-            Cart cart = cartRepository.findByMemberId(memberId).orElseGet(() -> {
-                Cart c = new Cart();
-                c.setMemberId(memberId);
-                c.setItems(new ArrayList<>());
-                return cartRepository.save(c);
-            });
 
-            if (cart.getItems().isEmpty()) {
-                CartItem cartItem = new CartItem();
-                ProductResponse productResponse = productClient.get(sku).getBody().getData();
-                cartItem.setSku(productResponse.getSku());
-                cartItem.setProductName(productResponse.getName());
-                cartItem.setQty(qty);
-                cartItem.setPriceSnapshot(productResponse.getPrice());
-                cart.getItems().add(cartItem);
-                cart.setTotalItems(totalItems(cart.getItems()));
-                cart.setTotalPrice(cart.getTotalItems()*productResponse.getPrice());
+            Cart cart = cartRepository.findByMemberId(memberId)
+                    .orElseGet(() -> {
+                        Cart c = new Cart();
+                        c.setMemberId(memberId);
+                        c.setItems(new ArrayList<>());
+                        return cartRepository.save(c);
+                    });
 
+
+            ResponseEntity<ApiResponse<ProductResponse>> productApi = productClient.get(sku);
+            ApiResponse<ProductResponse> productBody = productApi.getBody();
+            if (!productBody.isSuccess() || productBody.getData() == null) {
+                return new ApiResponse<>(false,
+                        "Unable to fetch product details for SKU: " + sku,
+                        null);
+            }
+            ProductResponse productResponse = productBody.getData();
+
+
+            CartItem existingItem = cart.getItems().stream()
+                    .filter(item -> item.getSku().equals(sku))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingItem != null) {
+
+                existingItem.setQty(existingItem.getQty() + qty);
+                existingItem.setProductName(productResponse.getName());
+                existingItem.setPriceSnapshot(productResponse.getPrice());
             } else {
-                CartItem duplicate = null;
-                for (CartItem cartItem : cart.getItems()) {
-                    if (cartItem.getSku().equals(sku)) {
-                        ProductResponse productResponse=productClient.get(sku).getBody().getData();
-                        cartItem.setQty(qty+cartItem.getQty());
-                        cartItem.setProductName(productResponse.getName());
-                        cartItem.setPriceSnapshot(productResponse.getPrice());
-                        cart.setTotalItems(totalItems(cart.getItems()));
-                        cart.setTotalPrice(cart.getTotalItems()*productResponse.getPrice());
-                        duplicate = cartItem;
-                    }
-                }
-                if (duplicate==null) {
 
-                    duplicate=new CartItem();
-                    duplicate.setSku(sku);
-                    duplicate.setProductName(productClient.get(sku).getBody().getData().getName());
-                    duplicate.setQty(qty);
-                    duplicate.setPriceSnapshot(productClient.get(sku).getBody().getData().getPrice());
-                    cart.getItems().add(duplicate);
-                    cart.setTotalItems(totalItems(cart.getItems()));
-                    cart.setTotalPrice(cart.getTotalItems()*productClient.get(sku).getBody().getData().getPrice());
-
-                }
+                CartItem newItem = new CartItem();
+                newItem.setSku(sku);
+                newItem.setProductName(productResponse.getName());
+                newItem.setQty(qty);
+                newItem.setPriceSnapshot(productResponse.getPrice());
+                cart.getItems().add(newItem);
             }
-            if (cart.getTotalItems()<0)
-            {
-                cart.getItems().removeIf(item -> sku.equals(item.getSku()));
-                cart.setTotalItems(totalItems(cart.getItems()));
-                cart.setTotalPrice(cart.getTotalItems()*productClient.get(sku).getBody().getData().getPrice());
 
+
+            if (totalItems(cart.getItems()) < 0) {
+                cart.getItems().removeIf(item -> item.getSku().equals(sku));
             }
+
+
+            int totalItems = totalItems(cart.getItems());
+            cart.setTotalItems(totalItems);
+            cart.setTotalPrice(totalItems * productResponse.getPrice());
+
             Cart savedCart = cartRepository.save(cart);
             return new ApiResponse<>(true, "Item added/updated successfully", toCartResponse(savedCart));
+
         } catch (Exception ex) {
             return new ApiResponse<>(false, ex.getMessage(), null);
         }
     }
 
+
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<CartResponse> removeItem(String memberId, String sku) {
         try {
             Cart cart = cartRepository.findByMemberId(memberId)

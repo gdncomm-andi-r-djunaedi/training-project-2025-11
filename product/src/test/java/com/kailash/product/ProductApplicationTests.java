@@ -40,9 +40,7 @@ class ProductApplicationTests {
 		MockitoAnnotations.openMocks(this);
 	}
 
-	// -----------------------------------------------------
-	// create()
-	// -----------------------------------------------------
+
 	@Test
 	void testCreateSuccess() {
 		Product p = new Product();
@@ -73,9 +71,7 @@ class ProductApplicationTests {
 				() -> service.create(p));
 	}
 
-	// -----------------------------------------------------
-	// findBySku()
-	// -----------------------------------------------------
+
 	@Test
 	void testFindBySku() {
 		Product p = new Product();
@@ -88,9 +84,7 @@ class ProductApplicationTests {
 		assertEquals("A1", result.get().getSku());
 	}
 
-	// -----------------------------------------------------
-	// list()
-	// -----------------------------------------------------
+
 	@Test
 	void testList_NoSearch() {
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
@@ -113,9 +107,7 @@ class ProductApplicationTests {
 		assertEquals(1, result.getTotalElements());
 	}
 
-	// -----------------------------------------------------
-	// update()
-	// -----------------------------------------------------
+
 	@Test
 	void testUpdateSuccess() {
 		Product existing = new Product();
@@ -142,9 +134,7 @@ class ProductApplicationTests {
 				() -> service.update("A1", new Product()));
 	}
 
-	// -----------------------------------------------------
-	// delete()
-	// -----------------------------------------------------
+
 	@Test
 	void testDeleteSuccess() {
 		Product existing = new Product();
