@@ -69,7 +69,6 @@ public class CartServiceImpl implements CartService {
                 return new ApiResponse<>(false, "Quantity should not be 0", null);
             }
 
-
             Cart cart = cartRepository.findByMemberId(memberId)
                     .orElseGet(() -> {
                         Cart c = new Cart();
@@ -78,16 +77,14 @@ public class CartServiceImpl implements CartService {
                         return cartRepository.save(c);
                     });
 
-
             ResponseEntity<ApiResponse<ProductResponse>> productApi = productClient.get(sku);
             ApiResponse<ProductResponse> productBody = productApi.getBody();
-            if (!productBody.isSuccess() || productBody.getData() == null) {
-                return new ApiResponse<>(false,
-                        "Unable to fetch product details for SKU: " + sku,
-                        null);
-            }
-            ProductResponse productResponse = productBody.getData();
 
+            if (!productBody.isSuccess() || productBody.getData() == null) {
+                return new ApiResponse<>(false, "Unable to fetch product details for SKU: " + sku, null);
+            }
+
+            ProductResponse productResponse = productBody.getData();
 
             CartItem existingItem = cart.getItems().stream()
                     .filter(item -> item.getSku().equals(sku))
@@ -96,28 +93,42 @@ public class CartServiceImpl implements CartService {
 
             if (existingItem != null) {
 
-                existingItem.setQty(existingItem.getQty() + qty);
-                existingItem.setProductName(productResponse.getName());
-                existingItem.setPriceSnapshot(productResponse.getPrice());
+
+                int updatedQty = existingItem.getQty() + qty;
+                existingItem.setQty(updatedQty);
+
+
+                if (updatedQty <= 0) {
+                    cart.getItems().removeIf(item -> item.getSku().equals(sku));
+                } else {
+                    existingItem.setProductName(productResponse.getName());
+                    existingItem.setPriceSnapshot(productResponse.getPrice());
+                }
+
             } else {
 
                 CartItem newItem = new CartItem();
                 newItem.setSku(sku);
                 newItem.setProductName(productResponse.getName());
+                if (qty<=0)
+                {
+                    return new ApiResponse<>(false, "Quantity should be more than 0 to add:" + sku, null);
+
+                }
                 newItem.setQty(qty);
                 newItem.setPriceSnapshot(productResponse.getPrice());
                 cart.getItems().add(newItem);
             }
 
 
-            if (totalItems(cart.getItems()) < 0) {
-                cart.getItems().removeIf(item -> item.getSku().equals(sku));
-            }
-
-
             int totalItems = totalItems(cart.getItems());
             cart.setTotalItems(totalItems);
-            cart.setTotalPrice(totalItems * productResponse.getPrice());
+
+
+            double totalPrice = cart.getItems().stream()
+                    .mapToDouble(item -> item.getQty() * item.getPriceSnapshot())
+                    .sum();
+            cart.setTotalPrice(totalPrice);
 
             Cart savedCart = cartRepository.save(cart);
             return new ApiResponse<>(true, "Item added/updated successfully", toCartResponse(savedCart));
@@ -126,6 +137,7 @@ public class CartServiceImpl implements CartService {
             return new ApiResponse<>(false, ex.getMessage(), null);
         }
     }
+
 
 
     @Override

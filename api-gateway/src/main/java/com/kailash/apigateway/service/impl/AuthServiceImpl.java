@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -35,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private long refreshExpirySec;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<Map<String, Object>> login(LoginRequest req) {
         try {
             System.out.println("printing response");
@@ -108,6 +110,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<Void> logout(String refreshTokenId) {
         try {
             refreshRepo.findByJti(refreshTokenId).ifPresent(rt -> {

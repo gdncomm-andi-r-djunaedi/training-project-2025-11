@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import com.auth0.jwt.JWT;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MemberServiceImpl implements MemberService {
@@ -37,6 +38,7 @@ public class MemberServiceImpl implements MemberService {
     @Value("${jwt.refresh-expiration-seconds}") private long refreshExpirySec;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<MemberResponse> register(RegisterRequest req) {
         memberRepository.findByEmail(req.getEmail()).ifPresent(member -> {
             throw new IllegalArgumentException("Email is already registered");
@@ -60,6 +62,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<MemberResponse> login(LoginRequest req) {
         Member member = memberRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new NotFoundException("Invalid credentials"));
@@ -80,6 +83,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<MemberResponse> update(UUID id, RegisterRequest req) {
         Member m = memberRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Member not found"));
@@ -92,12 +96,13 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<Void> delete(UUID id) {
         memberRepository.deleteById(id);
         return new ApiResponse<>(null, true, "Member deleted successfully");
     }
 
-    // helper method
+
     private MemberResponse toResponse(Member member) {
         return new MemberResponse(member.getId().toString(), member.getEmail(), member.getFullName(), member.getPhone());
     }
