@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * DTO for Kafka events representing product lifecycle events
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,8 +37,3 @@ public class ProductEventDto implements Serializable {
         DELETED
     }
 }
-
-
-
-
-

@@ -25,7 +25,6 @@ public class CartController {
 
         CartDto cartDto = cartService.getCart(userId);
         
-        // Check if cart is empty and set appropriate message
         ApiResponse<CartDto> response;
         if (cartDto.getItems() == null || cartDto.getItems().isEmpty()) {
             if (cartDto.getTotalQuantity() == null || cartDto.getTotalQuantity() == 0) {
@@ -53,7 +52,6 @@ public class CartController {
 
         String result = cartService.addItemToCart(userId, request);
         
-        // Determine status code and text based on result
         HttpStatus httpStatus;
         String statusText;
         CartDto emptyCart = null;
@@ -67,7 +65,6 @@ public class CartController {
             statusText = "Created";
             log.info("POST /api/cart/items - Item added successfully for userId: {}, returning 201 Created", userId);
         } else if ("EMPTY_CART".equals(result)) {
-            // Cart became empty after removing deleted product
             httpStatus = HttpStatus.OK;
             statusText = "OK";
             emptyCart = new CartDto();
@@ -77,14 +74,12 @@ public class CartController {
             emptyCart.setTotalQuantity(0);
             log.info("POST /api/cart/items - Cart is now empty for userId: {} after removing deleted product", userId);
         } else {
-            // REMOVED case (item removed but cart still has other items)
             httpStatus = HttpStatus.OK;
             statusText = "Removed";
             log.info("POST /api/cart/items - Item removed successfully for userId: {}, returning 200 OK", userId);
         }
         
         if (emptyCart != null) {
-            // Return empty cart with message
             ApiResponse<CartDto> cartResponse = ApiResponse.successWithMessage(emptyCart, "Cart is empty", httpStatus);
             cartResponse.setStatusText(statusText);
             return new ResponseEntity<>(cartResponse, httpStatus);
@@ -102,11 +97,46 @@ public class CartController {
         log.info("DELETE /api/cart/items/{} - Request received for userId: {}", itemId, userId);
 
         cartService.removeItemFromCart(userId, itemId);
-        ApiResponse<Boolean> response = ApiResponse.success(true, HttpStatus.NO_CONTENT);
+        
+        ApiResponse<Boolean> response = ApiResponse.successWithMessage(
+            true, 
+            "Successfully removed an item from the cart", 
+            HttpStatus.OK
+        );
+        response.setStatusText("OK");
 
-        log.info("DELETE /api/cart/items/{} - Item removed successfully for userId: {}, returning 204 No Content",
+        log.info("DELETE /api/cart/items/{} - Item removed successfully for userId: {}, returning 200 OK",
                 itemId, userId);
-        return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PatchMapping("/items/{itemSku}")
+    public ResponseEntity<ApiResponse<Boolean>> updateItemQuantity(
+            @PathVariable String itemSku,
+            @RequestParam Integer quantity,
+            @RequestParam String operation,
+            @RequestHeader("X-User-Id") Long userId) {
+        log.info("PATCH /api/cart/items/{} - Request received for userId: {}, quantity: {}, operation: {}",
+                itemSku, userId, quantity, operation);
+
+        String result = cartService.updateItemQuantity(userId, itemSku, quantity, operation);
+        
+        String message;
+        String statusText;
+        
+        if ("REMOVED".equals(result)) {
+            message = "Item quantity decreased to 0 or below. Item removed from cart.";
+            statusText = "Removed";
+            log.info("PATCH /api/cart/items/{} - Item removed from cart for userId: {}", itemSku, userId);
+        } else {
+            message = "Successfully updated item quantity in the cart";
+            statusText = "Updated";
+            log.info("PATCH /api/cart/items/{} - Item quantity updated successfully for userId: {}", itemSku, userId);
+        }
+        
+        ApiResponse<Boolean> response = ApiResponse.successWithMessage(Boolean.TRUE, message, HttpStatus.OK);
+        response.setStatusText(statusText);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

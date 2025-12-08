@@ -48,6 +48,7 @@ public class CartServiceImpl implements CartService {
             emptyCart.setItems(new ArrayList<>());
             emptyCart.setUpdatedAt(new Date());
             emptyCart.setTotalQuantity(0);
+            emptyCart.setTotalPrice(0L);
             return emptyCart;
         }
 
@@ -132,31 +133,37 @@ public class CartServiceImpl implements CartService {
 
             } catch (FeignException e) {
                 log.warn("Error fetching product details in batch, status: {}. Returning empty cart.", e.status());
-                // Return empty cart instead of throwing exception
                 CartDto emptyCart = new CartDto();
                 emptyCart.setUserId(userId);
                 emptyCart.setItems(new ArrayList<>());
                 emptyCart.setUpdatedAt(new Date());
                 emptyCart.setTotalQuantity(0);
+                emptyCart.setTotalPrice(0L);
                 return emptyCart;
             } catch (Exception e) {
                 log.warn("Unexpected error fetching product details in batch. Returning empty cart.", e);
-                // Return empty cart instead of throwing exception
                 CartDto emptyCart = new CartDto();
                 emptyCart.setUserId(userId);
                 emptyCart.setItems(new ArrayList<>());
                 emptyCart.setUpdatedAt(new Date());
                 emptyCart.setTotalQuantity(0);
+                emptyCart.setTotalPrice(0L);
                 return emptyCart;
             }
         }
 
         Integer totalQuantity = 0;
+        Long totalPrice = 0L;
 
         for (CartItemDto cartItemDto : cartItemDtos) {
             Integer itemQuantity = cartItemDto.getQuantity();
             if (itemQuantity != null) {
                 totalQuantity = totalQuantity + itemQuantity;
+            }
+            
+            Long itemPrice = cartItemDto.getPrice();
+            if (itemPrice != null && itemQuantity != null) {
+                totalPrice = totalPrice + (itemPrice * itemQuantity);
             }
         }
 
@@ -165,9 +172,10 @@ public class CartServiceImpl implements CartService {
         cartDto.setItems(cartItemDtos);
         cartDto.setUpdatedAt(cart.getUpdatedAt());
         cartDto.setTotalQuantity(totalQuantity);
+        cartDto.setTotalPrice(totalPrice);
 
-        log.info("Successfully retrieved cart for userId: {} with {} items, total quantity: {}",
-                userId, cartItemDtos.size(), totalQuantity);
+        log.info("Successfully retrieved cart for userId: {} with {} items, total quantity: {}, total price: {}",
+                userId, cartItemDtos.size(), totalQuantity, totalPrice);
         return cartDto;
     }
 
@@ -256,7 +264,6 @@ public class CartServiceImpl implements CartService {
             if (itemExistsInCart) {
                 log.warn("Product service error for SkuId: {} that exists in cart. Returning empty cart.", request.getSkuId());
                 try {
-                    // Remove the item from cart
                     Optional<Cart> cartToCheck = cartRepository.findByUserId(userId);
                     if (cartToCheck.isPresent()) {
                         Cart cart = cartToCheck.get();
@@ -324,6 +331,12 @@ public class CartServiceImpl implements CartService {
         String result;
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
+            
+            Long oldItemTotal = item.getPrice() != null && item.getQuantity() != null
+                ? item.getPrice() * item.getQuantity() : 0L;
+            Long newItemTotal = product.getPrice() != null && request.getQuantity() != null 
+                ? product.getPrice() * request.getQuantity() : 0L;
+            
             item.setQuantity(request.getQuantity());
             item.setPrice(product.getPrice());
             result = "UPDATED";
@@ -343,10 +356,22 @@ public class CartServiceImpl implements CartService {
 
         cart.setItems(items);
         cart.setUpdatedAt(new Date());
+        
+        Long totalPrice = 0L;
+        Integer totalQuantity = 0;
+        for (CartItem cartItem : items) {
+            if (cartItem.getPrice() != null && cartItem.getQuantity() != null) {
+                totalPrice = totalPrice + (cartItem.getPrice() * cartItem.getQuantity());
+                totalQuantity = totalQuantity + cartItem.getQuantity();
+            }
+        }
+        cart.setTotalPrice(totalPrice);
+        cart.setTotalQuantity(totalQuantity);
 
         try {
             cart = cartRepository.save(cart);
-            log.info("Cart saved successfully for userId: {}", userId);
+            log.info("Cart saved successfully for userId: {} with total price: {}, total quantity: {}", 
+                    userId, totalPrice, totalQuantity);
         } catch (Exception e) {
             log.error("Error saving cart for userId: {}", userId, e);
             throw new BusinessException("Failed to save cart. Please try again.");
@@ -379,7 +404,22 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartOptional.get();
         List<CartItem> items = cart.getItems() != null ? cart.getItems() : new ArrayList<>();
 
-        boolean itemRemoved = items.removeIf(item -> item.getSkuId() != null && item.getSkuId().equals(itemId));
+        Long removedItemPrice = 0L;
+        Integer removedItemQuantity = 0;
+        boolean itemRemoved = false;
+        
+        for (CartItem item : items) {
+            if (item.getSkuId() != null && item.getSkuId().equals(itemId)) {
+                // Calculate the price of the item being removed
+                if (item.getPrice() != null && item.getQuantity() != null) {
+                    removedItemPrice = item.getPrice() * item.getQuantity();
+                    removedItemQuantity = item.getQuantity();
+                }
+                items.remove(item);
+                itemRemoved = true;
+                break;
+            }
+        }
 
         if (!itemRemoved) {
             log.warn("Item with SkuId: {} not found in cart for userId: {}", itemId, userId);
@@ -388,13 +428,119 @@ public class CartServiceImpl implements CartService {
 
         cart.setItems(items);
         cart.setUpdatedAt(new Date());
+        Long totalPrice = 0L;
+        Integer totalQuantity = 0;
+        for (CartItem cartItem : items) {
+            if (cartItem.getPrice() != null && cartItem.getQuantity() != null) {
+                totalPrice = totalPrice + (cartItem.getPrice() * cartItem.getQuantity());
+                totalQuantity = totalQuantity + cartItem.getQuantity();
+            }
+        }
+        cart.setTotalPrice(totalPrice);
+        cart.setTotalQuantity(totalQuantity);
 
         try {
             cartRepository.save(cart);
-            log.info("Successfully removed item with SkuId: {} from cart for userId: {}", itemId, userId);
+            log.info("Successfully removed item with SkuId: {} from cart for userId: {}. Removed price: {}, new total price: {}, new total quantity: {}", 
+                    itemId, userId, removedItemPrice, totalPrice, totalQuantity);
         } catch (Exception e) {
             log.error("Error saving cart after item removal for userId: {}", userId, e);
             throw new BusinessException("Failed to remove item from cart. Please try again.");
+        }
+    }
+
+    @Override
+    public String updateItemQuantity(Long userId, String itemSku, Integer quantity, String operation) {
+        log.info("Updating item quantity for userId: {}, itemSku: {}, quantity: {}, operation: {}",
+                userId, itemSku, quantity, operation);
+
+        if (userId == null || userId <= 0) {
+            log.warn("Invalid userId provided: {}", userId);
+            throw new ValidationException("Invalid userId. UserId must be a positive number.");
+        }
+
+        if (itemSku == null || itemSku.trim().isEmpty()) {
+            log.warn("Invalid itemSku provided: {}", itemSku);
+            throw new ValidationException("Invalid itemSku. ItemSku cannot be null or empty.");
+        }
+
+        if (quantity == null || quantity <= 0) {
+            log.warn("Invalid quantity provided: {}", quantity);
+            throw new ValidationException("Invalid quantity. Quantity must be a positive number.");
+        }
+
+        if (operation == null || operation.trim().isEmpty()) {
+            log.warn("Invalid operation provided: {}", operation);
+            throw new ValidationException("Invalid operation. Operation must be 'increase' or 'decrease'.");
+        }
+
+        String normalizedOperation = operation.trim().toLowerCase();
+        if (!"increase".equals(normalizedOperation) && !"decrease".equals(normalizedOperation)) {
+            log.warn("Invalid operation value: {}. Must be 'increase' or 'decrease'", operation);
+            throw new ValidationException("Invalid operation. Operation must be 'increase' or 'decrease'.");
+        }
+
+        Optional<Cart> cartOptional = cartRepository.findByUserId(userId);
+        if (!cartOptional.isPresent()) {
+            log.warn("Cart not found for userId: {}", userId);
+            throw new ResourceNotFoundException("Cart not found for userId: " + userId);
+        }
+
+        Cart cart = cartOptional.get();
+        List<CartItem> items = cart.getItems() != null ? cart.getItems() : new ArrayList<>();
+
+        CartItem itemToUpdate = null;
+        for (CartItem item : items) {
+            if (item.getSkuId() != null && item.getSkuId().equals(itemSku)) {
+                itemToUpdate = item;
+                break;
+            }
+        }
+
+        if (itemToUpdate == null) {
+            log.warn("Item with SkuId: {} not found in cart for userId: {}", itemSku, userId);
+            throw new ResourceNotFoundException("Item with SkuId " + itemSku + " not found in cart.");
+        }
+
+        Integer currentQuantity = itemToUpdate.getQuantity() != null ? itemToUpdate.getQuantity() : 0;
+        Integer newQuantity;
+
+        if ("increase".equals(normalizedOperation)) {
+            newQuantity = currentQuantity + quantity;
+            log.info("Increasing quantity for SkuId: {} from {} to {}", itemSku, currentQuantity, newQuantity);
+        } else {
+            newQuantity = currentQuantity - quantity;
+            if (newQuantity <= 0) {
+                log.warn("Decreasing quantity for SkuId: {} would result in {} or less. Removing item from cart.", 
+                        itemSku, newQuantity);
+                items.remove(itemToUpdate);
+                cart.setItems(items);
+                cart.setUpdatedAt(new Date());
+                
+                try {
+                    cartRepository.save(cart);
+                    log.info("Item with SkuId: {} removed from cart as quantity became 0 or negative", itemSku);
+                    return "REMOVED";
+                } catch (Exception e) {
+                    log.error("Error saving cart after item removal for userId: {}", userId, e);
+                    throw new BusinessException("Failed to update cart. Please try again.");
+                }
+            }
+            log.info("Decreasing quantity for SkuId: {} from {} to {}", itemSku, currentQuantity, newQuantity);
+        }
+
+        itemToUpdate.setQuantity(newQuantity);
+        cart.setItems(items);
+        cart.setUpdatedAt(new Date());
+
+        try {
+            cartRepository.save(cart);
+            log.info("Successfully updated quantity for SkuId: {} to {} for userId: {}", 
+                    itemSku, newQuantity, userId);
+            return "UPDATED";
+        } catch (Exception e) {
+            log.error("Error saving cart after quantity update for userId: {}", userId, e);
+            throw new BusinessException("Failed to update cart. Please try again.");
         }
     }
 

@@ -1,6 +1,7 @@
 package com.microservice.cart.client;
 
 import com.microservice.cart.dto.ProductResponseDto;
+//import com.microservice.product.dto.ProductResponseDto;
 import com.microservice.cart.wrapper.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;

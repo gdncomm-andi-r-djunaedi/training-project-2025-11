@@ -71,8 +71,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         try {
             log.info("Performing full-text search with query: {}", query);
 
-            // Normalize query to lowercase for case-insensitive search
-            String normalizedQuery = query.toLowerCase();
+            String normalizedQuery = normalizeQuery(query);
 
             Criteria criteria = new Criteria()
                     .or(new Criteria("name").contains(normalizedQuery))
@@ -87,7 +86,6 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .map(SearchHit::getContent)
                     .collect(Collectors.toList());
 
-            // Convert entities to DTOs in service layer
             List<ProductResponseDto> productDtos = products.stream()
                     .map(this::convertToResponseDto)
                     .collect(Collectors.toList());
@@ -110,8 +108,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         try {
             log.info("Searching products by category: {}", category);
 
-            // Normalize category to lowercase for case-insensitive search
-            String normalizedCategory = category.toLowerCase();
+            String normalizedCategory = normalizeQuery(category);
             Criteria criteria = new Criteria("category").is(normalizedCategory);
             CriteriaQuery criteriaQuery = new CriteriaQuery(criteria).setPageable(pageable);
 
@@ -122,7 +119,6 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .map(SearchHit::getContent)
                     .collect(Collectors.toList());
 
-            // Convert entities to DTOs in service layer
             List<ProductResponseDto> productDtos = products.stream()
                     .map(this::convertToResponseDto)
                     .collect(Collectors.toList());
@@ -145,8 +141,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         try {
             log.info("Searching products by brand: {}", brand);
 
-            // Normalize brand to lowercase for case-insensitive search
-            String normalizedBrand = brand.toLowerCase();
+            String normalizedBrand = normalizeQuery(brand);
             Criteria criteria = new Criteria("brand").is(normalizedBrand);
             CriteriaQuery criteriaQuery = new CriteriaQuery(criteria).setPageable(pageable);
 
@@ -157,7 +152,6 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .map(SearchHit::getContent)
                     .collect(Collectors.toList());
 
-            // Convert entities to DTOs in service layer
             List<ProductResponseDto> productDtos = products.stream()
                     .map(this::convertToResponseDto)
                     .collect(Collectors.toList());
@@ -175,19 +169,69 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         }
     }
 
-    /**
-     * Convert ProductEventDto to ProductDocument
-     */
+    @Override
+    public Page<ProductResponseDto> comprehensiveSearch(String query, Pageable pageable) {
+        try {
+            log.info("Performing comprehensive search with query: {}", query);
+
+            String normalizedQuery = normalizeQuery(query);
+
+            Criteria criteria = new Criteria()
+                    .or(new Criteria("name").contains(normalizedQuery))
+                    .or(new Criteria("description").contains(normalizedQuery))
+                    .or(new Criteria("category").is(normalizedQuery))
+                    .or(new Criteria("brand").is(normalizedQuery));
+
+            CriteriaQuery criteriaQuery = new CriteriaQuery(criteria).setPageable(pageable);
+
+            SearchHits<ProductDocument> searchHits = elasticsearchOperations.search(
+                    criteriaQuery, ProductDocument.class);
+
+            List<ProductDocument> products = searchHits.getSearchHits().stream()
+                    .map(SearchHit::getContent)
+                    .collect(Collectors.toList());
+
+            List<ProductResponseDto> productDtos = products.stream()
+                    .map(this::convertToResponseDto)
+                    .collect(Collectors.toList());
+
+            log.info("Found {} products matching comprehensive search query: {}", productDtos.size(), query);
+
+            return new PageImpl<>(
+                    productDtos,
+                    pageable,
+                    searchHits.getTotalHits()
+            );
+        } catch (Exception e) {
+            log.error("Error performing comprehensive search with query: {}", query, e);
+            throw new RuntimeException("Failed to perform comprehensive search: " + e.getMessage(), e);
+        }
+    }
+
+    private String normalizeQuery(String query) {
+        if (query == null) {
+            return null;
+        }
+        return query.toLowerCase().replaceAll("\\s+", "");
+    }
+
+
     private ProductDocument convertToDocument(ProductEventDto dto) {
         ProductDocument document = new ProductDocument();
         document.setSkuId(dto.getSkuId());
         document.setStoreId(dto.getStoreId());
-        document.setName(dto.getName());
-        document.setDescription(dto.getDescription());
 
-        // Normalize category and brand to lowercase for case-insensitive search
-        document.setCategory(dto.getCategory() != null ? dto.getCategory().toLowerCase() : null);
-        document.setBrand(dto.getBrand() != null ? dto.getBrand().toLowerCase() : null);
+        document.setName(dto.getName() != null ?
+                normalizeQuery(dto.getName()) : null);
+
+        document.setDescription(dto.getDescription() != null ?
+                normalizeQuery(dto.getDescription()) : null);
+
+        document.setCategory(dto.getCategory() != null ?
+                normalizeQuery(dto.getCategory()) : null);
+
+        document.setBrand(dto.getBrand() != null ?
+                normalizeQuery(dto.getBrand()) : null);
 
         document.setPrice(dto.getPrice());
         document.setItemCode(dto.getItemCode());
@@ -206,9 +250,6 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         return document;
     }
 
-    /**
-     * Convert ProductDocument to ProductResponseDto
-     */
     private ProductResponseDto convertToResponseDto(ProductDocument document) {
         if (document == null) {
             return null;

@@ -86,7 +86,7 @@ public class ProductController {
 
     @GetMapping("/isPresent")
     public ResponseEntity<ApiResponse<Boolean>> isProductIdPresent(
-            @RequestParam String skuId  // Changed from Long to String
+            @RequestParam String skuId
     ){
         log.info("GET /api/products/isPresent - Request received. SKU ID: {}", skuId);
         Boolean isPresent = productService.isProductIdPresent(skuId);
@@ -143,12 +143,12 @@ public class ProductController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PostMapping("/update/{skuId}")
+    @PutMapping("/update/{skuId}")
     public ResponseEntity<ApiResponse<ProductResponseDto>> updateProduct(
-            @PathVariable String skuId,  // Changed from Long to String
+            @PathVariable String skuId,
             @RequestBody ProductDto productDto
     ){
-        log.info("POST /api/products/update/{} - Request received. New SKU: {}, New Name: {}",
+        log.info("PUT /api/products/update/{} - Request received. New SKU: {}, New Name: {}",
                 skuId, productDto.getSkuId(), productDto.getName());
         if(productDto.getSkuId() == null || productDto.getSkuId().isBlank() || productDto.getSkuId().isEmpty()){
             throw new ValidationException("skuId is required");
@@ -187,7 +187,7 @@ public class ProductController {
 
         ProductResponseDto saved = productService.updateProduct(skuId, productDto);
         ApiResponse<ProductResponseDto> response = ApiResponse.success(saved, HttpStatus.OK);
-        log.info("POST /api/products/update/{} - Product updated successfully. SKU: {}",
+        log.info("PUT /api/products/update/{} - Product updated successfully. SKU: {}",
                 skuId, saved.getSkuId());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

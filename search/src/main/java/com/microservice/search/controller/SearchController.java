@@ -105,4 +105,33 @@ public class SearchController {
                     .body(ApiResponse.error("Error searching by brand: " + e.getMessage()));
         }
     }
+
+    @GetMapping("/comprehensive")
+    public ResponseEntity<ApiResponse<Page<ProductResponseDto>>> comprehensiveSearch(
+            @RequestParam("q") String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        try {
+            log.info("Received comprehensive search request: query={}, page={}, size={}", query, page, size);
+
+            if (query == null || query.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Search query cannot be empty"));
+            }
+
+            Pageable pageable = PageRequest.of(page, size);
+            Page<ProductResponseDto> results = productSearchService.comprehensiveSearch(query.trim(), pageable);
+
+            log.info("Comprehensive search completed: found {} results for query: {}",
+                    results.getTotalElements(), query);
+
+            return ResponseEntity.ok(ApiResponse.success(results,
+                    "Comprehensive search completed successfully"));
+        } catch (Exception e) {
+            log.error("Error performing comprehensive search with query: {}", query, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error performing comprehensive search: " + e.getMessage()));
+        }
+    }
 }

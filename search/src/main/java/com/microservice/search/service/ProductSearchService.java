@@ -18,4 +18,6 @@ public interface ProductSearchService {
     Page<ProductResponseDto> searchByCategory(String category, Pageable pageable);
 
     Page<ProductResponseDto> searchByBrand(String brand, Pageable pageable);
+
+    Page<ProductResponseDto> comprehensiveSearch(String query, Pageable pageable);
 }
