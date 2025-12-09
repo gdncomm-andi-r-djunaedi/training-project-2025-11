@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: member-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/marketplace_member
+    username: marketplace
+    password: marketplace_pass
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: marketplace_pass
+      timeout: 60000ms
+
+server:
+  port: 8081
+
+# JWT Configuration
+jwt:
+  secret: your-256-bit-secret-key-change-this-in-production-make-it-longer
+  expiration-ms: 86400000  # 24 hours
+  issuer: marketplace-platform
+  # For asymmetric RS256 (optional - implement later if needed)
+  # private-key-path: classpath:keys/private_key.pem
+  # public-key-path: classpath:keys/public_key.pem
+
+# Data Seeding
+data:
+  seed:
+    enabled: false
+    members-count: 5000
+
+# Logging
+logging:
+  level:
+    com.marketplace.member: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG

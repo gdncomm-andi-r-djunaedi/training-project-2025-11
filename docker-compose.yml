@@ -1,0 +1,113 @@
+services:
+  # PostgreSQL for Member Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: marketplace-postgres
+    environment:
+      POSTGRES_DB: marketplace_member
+      POSTGRES_USER: marketplace
+      POSTGRES_PASSWORD: marketplace_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./member/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - marketplace-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U marketplace" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PgAdmin for PostgreSQL management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: marketplace-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@marketplace.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - marketplace-network
+    depends_on:
+      - postgres
+
+  # MongoDB for Product Service
+  mongodb:
+    image: mongo:7.0
+    container_name: marketplace-mongodb
+    command:
+      - mongod
+      - --bind_ip_all
+    environment:
+      MONGO_INITDB_DATABASE: marketplace_product
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data2:/data/db
+      - ./product/src/main/resources/db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - marketplace-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Mongo Express for MongoDB management (optional)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: marketplace-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: marketplace
+      ME_CONFIG_MONGODB_ADMINPASSWORD: marketplace_pass
+      ME_CONFIG_MONGODB_URL: mongodb://marketplace:marketplace_pass@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "8091:8081" # Changed from 8081 to 8091 to avoid conflict with Member Service
+    networks:
+      - marketplace-network
+    depends_on:
+      - mongodb
+
+  # Redis for Cart Service and Token Blacklist
+  redis:
+    image: redis:7-alpine
+    container_name: marketplace-redis
+    command: redis-server --appendonly yes --requirepass marketplace_pass
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - marketplace-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Commander for Redis management (optional)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: marketplace-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:marketplace_pass
+    ports:
+      - "8092:8081" # Changed from 8082 to 8092 to avoid conflict with Product Service
+    networks:
+      - marketplace-network
+    depends_on:
+      - redis
+
+networks:
+  marketplace-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data2:
+  redis_data:

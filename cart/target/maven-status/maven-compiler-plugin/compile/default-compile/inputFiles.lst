@@ -1,0 +1,9 @@
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/entity/Cart.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/repository/CartRepository.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/CartApplication.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/controller/CartController.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/service/CartService.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/dto/AddToCartRequest.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/entity/CartItem.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/dto/CartDto.java
+/Users/tri.abror/github/training-project-2025-11/cart/src/main/java/com/marketplace/cart/config/RedisConfig.java
