@@ -113,17 +113,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        // Skip filter for actuator, swagger, and dashboard endpoints
+        // Skip filter for actuator, swagger, dashboard, and monitoring endpoints
         return path.startsWith("/actuator") || 
                path.startsWith("/swagger-ui") || 
                path.equals("/swagger-ui.html") ||
                path.startsWith("/api-docs") ||
                path.startsWith("/v3/api-docs") ||
                path.startsWith("/dashboard") ||
+               path.equals("/dashboard.html") ||
                path.startsWith("/monitoring") ||
                path.equals("/health") ||
                path.equals("/info") ||
-               path.equals("/routes") ||
+               path.startsWith("/routes") ||
                path.equals("/services");
     }
 }

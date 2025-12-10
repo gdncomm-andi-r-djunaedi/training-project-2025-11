@@ -56,7 +56,17 @@ public class SecurityConfig {
                             "/v3/api-docs/**"
                     ).permitAll();
                     // Allow monitoring dashboard endpoints
-                    auth.requestMatchers("/dashboard", "/dashboard/**", "/monitoring/**").permitAll();
+                    auth.requestMatchers(
+                            "/dashboard", 
+                            "/dashboard/**", 
+                            "/dashboard.html",
+                            "/monitoring/**",
+                            "/health",
+                            "/info",
+                            "/routes",
+                            "/routes/**",
+                            "/services"
+                    ).permitAll();
                     
                     // Allow configured public paths
                     for (String publicPath : gatewayProperties.getPublicPaths()) {

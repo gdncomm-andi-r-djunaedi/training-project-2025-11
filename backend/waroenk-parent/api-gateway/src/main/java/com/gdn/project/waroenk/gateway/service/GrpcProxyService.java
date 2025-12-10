@@ -37,12 +37,13 @@ public class GrpcProxyService {
     private final ReflectionGrpcClient reflectionClient;
     private final RouteResolver routeResolver;
     private final GrpcChannelConfig channelConfig;
+    private final StaticRouteRegistry routeRegistry;
     private final ObjectMapper objectMapper;
 
     @PostConstruct
     public void init() {
-        // Set the route resolver on the channel config for dynamic channel creation
-        channelConfig.setRouteResolver(routeResolver);
+        // Set the route registry on the channel config for service lookup
+        channelConfig.setRouteRegistry(routeRegistry);
         log.info("GrpcProxyService initialized with reflection-based dynamic invocation");
     }
 
@@ -243,5 +244,4 @@ public class GrpcProxyService {
             return jsonBody;
         }
     }
-
 }

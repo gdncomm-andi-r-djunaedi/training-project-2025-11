@@ -13,9 +13,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 348M
         reservations:
-          memory: 256M
+          memory: 150M
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-admin}
@@ -28,11 +28,13 @@ services:
     volumes:
       - mongo_data:/data/db
       - ./init-db:/docker-entrypoint-initdb.d
+    # Memory-optimized MongoDB settings
     command: >
       mongod
       --auth
       --bind_ip_all
-      --maxConns 500
+      --maxConns 200
+      --wiredTigerCacheSizeGB 0.3
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 30s

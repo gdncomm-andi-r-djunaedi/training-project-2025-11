@@ -1256,6 +1256,7 @@
             
             // Get values with snake_case/camelCase fallback
             const heapUsed = metrics.memory?.heap_used || metrics.memory?.heapUsed || 0;
+            // CPU is already in percentage (0-100) from backend, no need to multiply
             const cpuUsage = metrics.jvm?.cpu_usage || metrics.jvm?.cpuUsage || 0;
             const threadCount = metrics.jvm?.thread_count || metrics.jvm?.threadCount || 0;
             const totalRequests = metrics.http?.total_requests || metrics.http?.totalRequests || 0;
@@ -1263,7 +1264,8 @@
             // Add new data point
             metricsHistory.timestamps.push(now);
             metricsHistory.memory.push(Math.round(heapUsed / 1024 / 1024));
-            metricsHistory.cpu.push((cpuUsage * 100).toFixed(1));
+            // cpuUsage is already 0-100 from backend
+            metricsHistory.cpu.push(cpuUsage.toFixed(1));
             metricsHistory.threads.push(threadCount);
             metricsHistory.httpRequests.push(totalRequests);
 
@@ -1607,13 +1609,15 @@
                     '';
                 
                 const heapUsed = snapshot.memory?.heap_used || snapshot.memory?.heapUsed || 0;
+                // CPU is already in percentage (0-100) from backend
                 const cpuUsage = snapshot.jvm?.cpu_usage || snapshot.jvm?.cpuUsage || 0;
                 const threadCount = snapshot.jvm?.thread_count || snapshot.jvm?.threadCount || 0;
                 const totalRequests = snapshot.http?.total_requests || snapshot.http?.totalRequests || 0;
                 
                 metricsHistory.timestamps.push(time);
                 metricsHistory.memory.push(Math.round(heapUsed / 1024 / 1024));
-                metricsHistory.cpu.push((cpuUsage * 100).toFixed(1));
+                // cpuUsage is already 0-100 from backend
+                metricsHistory.cpu.push(cpuUsage.toFixed(1));
                 metricsHistory.threads.push(threadCount);
                 metricsHistory.httpRequests.push(totalRequests);
             });
@@ -1674,11 +1678,12 @@
             document.getElementById('memoryUsedLabel').textContent = heapUsedMB + ' MB';
             document.getElementById('memoryMaxLabel').textContent = heapMaxMB + ' MB';
 
-            // CPU (API returns snake_case: cpu_usage)
-            const cpuUsage = jvm.cpu_usage || jvm.cpuUsage;
-            const cpuPercent = cpuUsage ? (cpuUsage * 100).toFixed(1) : 0;
+            // CPU (API returns value already as percentage 0-100)
+            const cpuUsage = jvm.cpu_usage || jvm.cpuUsage || 0;
+            // cpuUsage is already in percentage from backend (0-100), no need to multiply
+            const cpuPercent = cpuUsage.toFixed(1);
             document.getElementById('cpuUsage').textContent = cpuPercent + '%';
-            document.getElementById('cpuProgress').style.width = Math.min(cpuPercent, 100) + '%';
+            document.getElementById('cpuProgress').style.width = Math.min(cpuUsage, 100) + '%';
 
             // Threads (API returns snake_case: thread_count, thread_peak_count, thread_daemon_count)
             const threadCount = jvm.thread_count || jvm.threadCount;

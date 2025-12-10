@@ -1,103 +1,97 @@
 package com.gdn.project.waroenk.gateway.controller;
 
-import com.gdn.project.waroenk.gateway.dto.monitoring.*;
+import com.gdn.project.waroenk.gateway.dto.monitoring.DashboardSummaryDto;
+import com.gdn.project.waroenk.gateway.dto.monitoring.ServiceHealthDto;
+import com.gdn.project.waroenk.gateway.dto.monitoring.ServiceInfoDto;
+import com.gdn.project.waroenk.gateway.dto.monitoring.ServiceMetricsDto;
 import com.gdn.project.waroenk.gateway.service.MonitoringService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * REST API for service monitoring dashboard.
- * Provides endpoints to fetch health, metrics, and info from all registered microservices.
+ * REST controller for monitoring gateway services.
+ * Provides health check and status information for all configured services.
+ * 
+ * Health checks run automatically every 30 seconds.
+ * Metrics are collected every 60 seconds.
  */
 @RestController
 @RequestMapping("/monitoring")
 @RequiredArgsConstructor
-@Tag(name = "Monitoring", description = "Service monitoring and metrics endpoints")
+@Tag(name = "Monitoring", description = "Service monitoring and health check endpoints")
 public class MonitoringController {
 
     private final MonitoringService monitoringService;
 
     @GetMapping("/summary")
-    @Operation(summary = "Dashboard summary", description = "Get health status summary of all registered services")
-    public Mono<ResponseEntity<DashboardSummaryDto>> getDashboardSummary() {
-        return monitoringService.getDashboardSummary()
-                .map(ResponseEntity::ok);
+    @Operation(summary = "Get dashboard summary", description = "Returns health status summary for all services (for dashboard)")
+    public ResponseEntity<DashboardSummaryDto> getSummary() {
+        return ResponseEntity.ok(monitoringService.getDashboardSummary());
+    }
+
+    @GetMapping("/dashboard")
+    @Operation(summary = "Get dashboard summary (alias)", description = "Returns health status summary for all services")
+    public ResponseEntity<DashboardSummaryDto> getDashboard() {
+        return ResponseEntity.ok(monitoringService.getDashboardSummary());
     }
 
     @GetMapping("/services")
-    @Operation(summary = "List all services", description = "Get list of all registered services with basic info")
-    public ResponseEntity<List<ServiceHealthDto>> getAllServices() {
-        return ResponseEntity.ok(monitoringService.getAllServices());
+    @Operation(summary = "Get all services health", description = "Returns health status for all configured services")
+    public ResponseEntity<List<ServiceHealthDto>> getAllServicesHealth() {
+        return ResponseEntity.ok(monitoringService.getAllServicesHealth());
     }
 
-    @GetMapping("/services/{serviceName}/health")
-    @Operation(summary = "Service health", description = "Get detailed health status of a specific service")
-    public Mono<ResponseEntity<ServiceHealthDto>> getServiceHealth(
-            @Parameter(description = "Service name") @PathVariable String serviceName) {
-        
-        return monitoringService.getAllServices().stream()
-                .filter(s -> s.getServiceName().equals(serviceName))
-                .findFirst()
-                .map(service -> monitoringService.checkServiceHealth(service)
-                        .map(ResponseEntity::ok))
-                .orElse(Mono.just(ResponseEntity.notFound().build()));
-    }
-
-    @GetMapping("/services/{serviceName}/metrics")
-    @Operation(summary = "Service metrics", description = "Get detailed metrics (memory, CPU, threads, etc.) of a specific service")
-    public Mono<ResponseEntity<ServiceMetricsDto>> getServiceMetrics(
-            @Parameter(description = "Service name") @PathVariable String serviceName) {
-        
-        return monitoringService.getServiceMetrics(serviceName)
-                .map(ResponseEntity::ok);
+    @GetMapping("/services/{serviceName}")
+    @Operation(summary = "Get service info", description = "Returns detailed info for a specific service")
+    public ResponseEntity<ServiceInfoDto> getServiceInfo(@PathVariable String serviceName) {
+        return ResponseEntity.ok(monitoringService.getServiceInfo(serviceName));
     }
 
     @GetMapping("/services/{serviceName}/info")
-    @Operation(summary = "Service info", description = "Get application info (version, build info) of a specific service")
-    public Mono<ResponseEntity<ServiceInfoDto>> getServiceInfo(
-            @Parameter(description = "Service name") @PathVariable String serviceName) {
-        
-        return monitoringService.getServiceInfo(serviceName)
-                .map(ResponseEntity::ok);
+    @Operation(summary = "Get service info (alias)", description = "Returns detailed info for a specific service")
+    public ResponseEntity<ServiceInfoDto> getServiceInfoAlias(@PathVariable String serviceName) {
+        return ResponseEntity.ok(monitoringService.getServiceInfo(serviceName));
+    }
+
+    @GetMapping("/services/{serviceName}/health")
+    @Operation(summary = "Get service health", description = "Returns health status for a specific service")
+    public ResponseEntity<ServiceHealthDto> getServiceHealth(@PathVariable String serviceName) {
+        return monitoringService.getServiceHealth(serviceName)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/services/{serviceName}/metrics")
+    @Operation(summary = "Get service metrics", description = "Returns current metrics for a specific service from actuator")
+    public ResponseEntity<ServiceMetricsDto> getServiceMetrics(@PathVariable String serviceName) {
+        return ResponseEntity.ok(monitoringService.getServiceMetrics(serviceName));
     }
 
     @GetMapping("/services/{serviceName}/metrics/history")
-    @Operation(summary = "Service metrics history", description = "Get historical metrics data for time-series graphs")
-    public ResponseEntity<List<ServiceMetricsDto>> getMetricsHistory(
-            @Parameter(description = "Service name") @PathVariable String serviceName) {
-        
-        return ResponseEntity.ok(monitoringService.getMetricsHistory(serviceName));
+    @Operation(summary = "Get service metrics history", description = "Returns historical metrics for trending (up to 60 data points)")
+    public ResponseEntity<List<ServiceMetricsDto>> getServiceMetricsHistory(@PathVariable String serviceName) {
+        return ResponseEntity.ok(monitoringService.getServiceMetricsHistory(serviceName));
     }
 
-    @GetMapping("/services/{serviceName}/metrics/available")
-    @Operation(summary = "Available metrics", description = "Get list of all available metric names for a service")
-    public Mono<ResponseEntity<List<String>>> getAvailableMetrics(
-            @Parameter(description = "Service name") @PathVariable String serviceName) {
-        
-        return monitoringService.getAvailableMetrics(serviceName)
-                .map(ResponseEntity::ok);
+    @PostMapping("/refresh")
+    @Operation(summary = "Force health check refresh", description = "Triggers immediate health check for all services")
+    public ResponseEntity<Map<String, String>> forceRefresh() {
+        monitoringService.forceHealthCheck();
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "message", "Health check triggered for all services"
+        ));
     }
 
-    @GetMapping("/services/{serviceName}/metrics/{metricName}")
-    @Operation(summary = "Specific metric", description = "Get a specific metric value by name")
-    public Mono<ResponseEntity<Map<String, Object>>> getSpecificMetric(
-            @Parameter(description = "Service name") @PathVariable String serviceName,
-            @Parameter(description = "Metric name (e.g., jvm.memory.used)") @PathVariable String metricName) {
-        
-        return monitoringService.getSpecificMetric(serviceName, metricName)
-                .map(ResponseEntity::ok);
+    @GetMapping("/stats")
+    @Operation(summary = "Get route statistics", description = "Returns statistics about configured routes")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        return ResponseEntity.ok(monitoringService.getRouteStats());
     }
 }
-
-
-
-
-

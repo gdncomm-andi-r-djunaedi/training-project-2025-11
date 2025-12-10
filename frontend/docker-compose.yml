@@ -20,15 +20,16 @@ services:
       resources:
         limits:
           cpus: '0.5'
-          memory: 450M
+          memory: 256M  # Dev mode needs more for HMR
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 64M
     profiles:
       - dev
 
   # ===========================================
   # Frontend - Production Mode (with nginx proxy)
+  # Optimized for minimal memory footprint
   # ===========================================
   frontend:
     image: waroenk-frontend:latest
@@ -44,11 +45,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 64M   # Reduced from 256M - was at 2.72% (6.96MiB)
         reservations:
-          cpus: '0.1'
-          memory: 64M
+          cpus: '0.05'
+          memory: 16M
     restart: unless-stopped
     profiles:
       - prod
