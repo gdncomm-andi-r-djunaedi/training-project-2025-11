@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: product-service
+  
+  data:
+    mongodb:
+      uri: mongodb://marketplace:marketplace_pass@localhost:27018/marketplace_product?authSource=admin&authMechanism=SCRAM-SHA-256
+    
+    redis:
+      host: localhost
+      port: 6379
+      password: marketplace_pass
+      timeout: 60000ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000  # 10 minutes
+
+server:
+  port: 8082
+
+# Pagination defaults
+pagination:
+  default-page: 0
+  default-size: 20
+  max-size: 100
+
+# Data Seeding
+data:
+  seed:
+    enabled: true
+    products-count: 50000
+
+# Logging
+logging:
+  level:
+    com.marketplace.product: DEBUG
+    org.springframework.data.mongodb: DEBUG

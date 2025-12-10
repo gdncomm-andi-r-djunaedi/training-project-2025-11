@@ -1,0 +1,5 @@
+/Users/tri.abror/github/training-project-2025-11/api-gateway/src/main/java/com/marketplace/gateway/config/RedisConfig.java
+/Users/tri.abror/github/training-project-2025-11/api-gateway/src/main/java/com/marketplace/gateway/service/TokenBlacklistService.java
+/Users/tri.abror/github/training-project-2025-11/api-gateway/src/main/java/com/marketplace/gateway/service/JwtService.java
+/Users/tri.abror/github/training-project-2025-11/api-gateway/src/main/java/com/marketplace/gateway/filter/AuthenticationFilter.java
+/Users/tri.abror/github/training-project-2025-11/api-gateway/src/main/java/com/marketplace/gateway/GatewayApplication.java

@@ -1,0 +1,10 @@
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/config/MongoConfig.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/repository/ProductRepository.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/dto/PagedResponse.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/service/ProductService.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/config/CacheConfig.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/entity/Product.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/dto/ProductDto.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/config/DataSeeder.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/controller/ProductController.java
+/Users/tri.abror/github/training-project-2025-11/product/src/main/java/com/marketplace/product/ProductApplication.java
