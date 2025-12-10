@@ -1,0 +1,109 @@
+package com.marketplace.gateway.controller;
+
+import com.marketplace.common.command.ReactiveCommandExecutor;
+import com.marketplace.common.dto.ApiResponse;
+import com.marketplace.gateway.command.LoginCommand;
+import com.marketplace.gateway.dto.LoginRequest;
+import com.marketplace.gateway.dto.LoginResponse;
+import com.marketplace.gateway.util.CookieUtil;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
+import com.marketplace.gateway.service.TokenBlacklistService;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.server.ServerWebExchange;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final CookieUtil cookieUtil;
+    private final ReactiveCommandExecutor commandExecutor;
+    private final TokenBlacklistService tokenBlacklistService;
+
+    @Value("${jwt.expiration:86400000}")
+    private Long jwtExpiration;
+
+    /**
+     * Login endpoint - validates credentials and returns JWT.
+     */
+    @PostMapping("/login")
+    public Mono<ResponseEntity<ApiResponse<LoginResponse>>> login(
+            @Valid @RequestBody LoginRequest request,
+            ServerHttpResponse response) {
+
+        log.info("Login request received for email: {}", request.getEmail());
+
+        return commandExecutor.execute(LoginCommand.class, request)
+                .map(loginResponse -> {
+                    // Create secure cookie with JWT token
+                    ResponseCookie cookie = cookieUtil.createAuthCookie(
+                            loginResponse.getToken(),
+                            jwtExpiration);
+
+                    // Add cookie to response
+                    response.addCookie(cookie);
+
+                    log.info("Login successful for email: {}", loginResponse.getEmail());
+
+                    // Return JWT in both cookie AND response body
+                    return ResponseEntity.ok(
+                            ApiResponse.success("Login successful", loginResponse));
+                })
+                .onErrorResume(error -> {
+                    log.error("Login failed: {}", error.getMessage());
+                    return Mono.just(
+                            ResponseEntity
+                                    .status(HttpStatus.UNAUTHORIZED)
+                                    .body(ApiResponse
+                                            .error("Invalid credentials")));
+                });
+    }
+
+    /**
+     * Logout endpoint - invalidates cookie and blacklists token.
+     */
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<ApiResponse<Void>>> logout(ServerWebExchange exchange) {
+        log.info("Logout request received");
+
+        String token = extractToken(exchange);
+
+        return (token != null ? tokenBlacklistService.blacklistToken(token) : Mono.just(false))
+                .map(blacklisted -> {
+                    // Create cookie with Max-Age=0 to invalidate
+                    ResponseCookie logoutCookie = cookieUtil.createLogoutCookie();
+                    exchange.getResponse().addCookie(logoutCookie);
+
+                    log.info("Logout successful - cookie invalidated, token blacklisted: {}", blacklisted);
+
+                    return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
+                });
+    }
+
+    private String extractToken(ServerWebExchange exchange) {
+        HttpCookie cookie = exchange.getRequest().getCookies().getFirst(cookieUtil.getAuthCookieName());
+        if (cookie != null) {
+            return cookie.getValue();
+        }
+
+        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
+}
