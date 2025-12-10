@@ -3,6 +3,7 @@ version: "3.8"
 # ================================
 # Typesense Docker Compose
 # Search engine accessible on localhost:8108
+# Memory-optimized for development
 # ================================
 
 services:
@@ -20,26 +21,24 @@ services:
       TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz123}
       TYPESENSE_LOG_LEVEL: warn
       TYPESENSE_OPTIMIZE_MEMORY_FOR_HIGHEST_CARDINALITY_FIELDS: "true"
-      TYPESENSE_CACHE_SIZE: 64mb
-      TYPESENSE_MAX_ALLOWABLE_MEMORY_USAGE: 1000mb
-      TYPESENSE_WRITE_BUFFER_SIZE: 32mb
+      TYPESENSE_CACHE_SIZE: 48mb
+      TYPESENSE_MAX_ALLOWABLE_MEMORY_USAGE: 800mb
+      TYPESENSE_WRITE_BUFFER_SIZE: 24mb
       TYPESENSE_ENABLE_CLUSTERING: "false"
-    # Optimized for low resource environments:
+    # Optimized for low resource environments
     command: >
       --data-dir /data
       --api-key=${TYPESENSE_API_KEY:-xyz123}
       --enable-cors=false
       --enable-embedding
       --num-threads=2
-      --search-cache-size=128mb
-
-    # Optional: enforce memory limits (only works if using Docker Swarm)
+      --search-cache-size=96mb
     deploy:
       resources:
         limits:
-          memory: 2g
+          memory: 1536M  # Reduced from 2G - was at 56% (1.127GiB)
         reservations:
-          memory: 512m
+          memory: 768M
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8108/health"]
       interval: 30s

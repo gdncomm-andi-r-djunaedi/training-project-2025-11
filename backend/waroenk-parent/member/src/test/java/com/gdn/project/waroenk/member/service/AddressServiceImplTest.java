@@ -1,7 +1,7 @@
 package com.gdn.project.waroenk.member.service;
 
+import com.gdn.project.waroenk.common.SortBy;
 import com.gdn.project.waroenk.member.FilterAddressRequest;
-import com.gdn.project.waroenk.member.SortBy;
 import com.gdn.project.waroenk.member.entity.Address;
 import com.gdn.project.waroenk.member.entity.User;
 import com.gdn.project.waroenk.member.exceptions.ResourceNotFoundException;
@@ -579,4 +579,5 @@ class AddressServiceImplTest {
     }
   }
 }
+
 

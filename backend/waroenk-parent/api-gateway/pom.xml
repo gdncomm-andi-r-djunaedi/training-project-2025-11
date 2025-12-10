@@ -10,7 +10,7 @@
 	</parent>
 	<artifactId>api-gateway</artifactId>
 	<name>api-gateway</name>
-	<description>API Gateway - Dynamic HTTP to gRPC Router with Service Registration</description>
+	<description>API Gateway - Lightweight HTTP to gRPC Router (Static Configuration)</description>
 
 	<dependencies>
 		<!-- Internal: gRPC Contract -->
@@ -19,7 +19,7 @@
 			<artifactId>grpc-contract</artifactId>
 		</dependency>
 
-		<!-- Spring Boot -->
+		<!-- Spring Boot (minimal) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -34,29 +34,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-redis</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-
-		<!-- Database -->
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
 		<!-- gRPC -->
@@ -78,22 +56,12 @@
 			<artifactId>grpc-services</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>net.devh</groupId>
-			<artifactId>grpc-spring-boot-starter</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.google.api.grpc</groupId>
 			<artifactId>proto-google-common-protos</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java-util</artifactId>
-		</dependency>
-
-		<!-- WebClient for async HTTP calls (monitoring dashboard) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 
 		<!-- OpenAPI/Swagger -->
@@ -106,7 +74,7 @@
 			<artifactId>swagger-annotations</artifactId>
 		</dependency>
 
-		<!-- Caffeine Cache (bounded, high-performance cache) -->
+		<!-- Caffeine Cache (for gRPC reflection method descriptor caching) -->
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
@@ -131,18 +99,13 @@
 
 		<!-- Test -->
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.datafaker</groupId>
-			<artifactId>datafaker</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

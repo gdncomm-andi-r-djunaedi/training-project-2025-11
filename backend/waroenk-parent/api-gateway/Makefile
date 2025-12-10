@@ -3,7 +3,8 @@
 # ================================
 # Configuration
 # ================================
-NETWORK_NAME=shared-network
+SHARED_NETWORK=shared-network
+BACKEND_NETWORK=backend
 COMPOSE_FILE=docker-compose.yml
 BUILDER_IMAGE=waroenk-builder
 
@@ -33,11 +34,17 @@ help:
 # Network Management
 # ================================
 ensure-network:
-	@if [ -z "$$(docker network ls --filter name=^$(NETWORK_NAME)$$ -q)" ]; then \
-		echo "➡️  Creating network $(NETWORK_NAME)"; \
-		docker network create $(NETWORK_NAME); \
+	@if [ -z "$$(docker network ls --filter name=^$(SHARED_NETWORK)$$ -q)" ]; then \
+		echo "➡️  Creating network $(SHARED_NETWORK)"; \
+		docker network create $(SHARED_NETWORK); \
 	else \
-		echo "✔️  Network $(NETWORK_NAME) already exists"; \
+		echo "✔️  Network $(SHARED_NETWORK) already exists"; \
+	fi
+	@if [ -z "$$(docker network ls --filter name=^$(BACKEND_NETWORK)$$ -q)" ]; then \
+		echo "➡️  Creating network $(BACKEND_NETWORK)"; \
+		docker network create $(BACKEND_NETWORK); \
+	else \
+		echo "✔️  Network $(BACKEND_NETWORK) already exists"; \
 	fi
 
 # ================================

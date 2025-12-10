@@ -334,9 +334,6 @@
           <div class="hero-carousel-wrapper">
             <!-- Slide 0: Marketplace Stats -->
             <div class="hero-carousel-slide {heroCarouselIndex === 0 ? 'active' : ''}">
-              <div class="carousel-slide-label">
-                <span class="slide-badge">📊 Marketplace Stats</span>
-              </div>
               <div class="stats-grid-three">
                 <!-- Products Stat Card -->
                 <div class="stat-card stat-card-primary">
@@ -532,7 +529,7 @@
     display: grid !important;
     grid-template-columns: 1fr 400px !important;
     gap: 2rem !important;
-    align-items: start !important;
+    align-items: center !important;
     width: 100% !important;
   }
   
@@ -614,13 +611,13 @@
   
   @media (min-width: 640px) {
     .hero-carousel-wrapper {
-      height: 320px;
+      height: 360px;
     }
   }
   
   @media (min-width: 1024px) {
     .hero-carousel-wrapper {
-      height: 360px;
+      height: 400px;
     }
   }
   
@@ -634,6 +631,8 @@
     pointer-events: none;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
   
   .hero-carousel-slide.active {
@@ -670,15 +669,15 @@
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.5rem 0.875rem;
+    background: rgba(20, 25, 35, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 500px;
     font-size: 0.7rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   
   @media (min-width: 1024px) {
@@ -690,9 +689,10 @@
   }
   
   .slide-badge-featured {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
-    border-color: rgba(251, 191, 36, 0.25);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%);
+    border-color: rgba(251, 191, 36, 0.35);
     color: #fcd34d;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
   
   /* Carousel Indicators */
@@ -767,28 +767,27 @@
   .featured-product-card {
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 20, 30, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 1.25rem;
     overflow: hidden;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     height: 100%;
-    max-height: 280px;
+    max-height: 360px;
   }
   
   @media (min-width: 1024px) {
     .featured-product-card {
-      max-height: 300px;
+      max-height: 360px;
     }
   }
   
   .featured-product-card:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    background: rgba(20, 28, 40, 0.95);
+    border-color: rgba(45, 212, 191, 0.35);
+    transform: translateY(-6px);
   }
   
   .featured-product-image {
@@ -823,35 +822,38 @@
     position: absolute;
     top: 0.625rem;
     left: 0.625rem;
-    padding: 0.25rem 0.5rem;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    padding: 0.3rem 0.625rem;
+    background: rgba(15, 20, 30, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 6px;
-    font-size: 0.6rem;
-    font-weight: 600;
-    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #5eead4;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
+    border: 1px solid rgba(45, 212, 191, 0.25);
   }
   
   .featured-product-info {
-    padding: 0.875rem 1rem;
+    padding: 1rem 1.125rem;
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.5rem;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
   }
   
   .featured-product-title {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    color: white;
-    line-height: 1.25;
+    color: #ffffff;
+    line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
   .featured-product-price {
@@ -861,47 +863,78 @@
   }
   
   .price-discounted {
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #2dd4bf, #34d399);
+    background: linear-gradient(135deg, #5eead4, #6ee7b7);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 1px 2px rgba(45, 212, 191, 0.3));
   }
   
   .price-original {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
     text-decoration: line-through;
   }
   
   .featured-product-merchant {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    font-size: 0.65rem;
-    color: rgba(255, 255, 255, 0.5);
+    gap: 0.375rem;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
     margin-top: auto;
+  }
+  
+  .featured-product-merchant svg {
+    color: rgba(94, 234, 212, 0.7);
   }
   
   .featured-product-cta {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.375rem;
-    padding: 0.625rem;
-    background: linear-gradient(135deg, rgba(45, 212, 191, 0.15) 0%, rgba(52, 211, 153, 0.15) 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #2dd4bf;
-    transition: all 0.3s ease;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.25) 0%, rgba(52, 211, 153, 0.2) 100%);
+    border-top: 1px solid rgba(45, 212, 191, 0.2);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #5eead4;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .featured-product-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.4) 0%, rgba(52, 211, 153, 0.35) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
   
   .featured-product-card:hover .featured-product-cta {
-    background: linear-gradient(135deg, rgba(45, 212, 191, 0.25) 0%, rgba(52, 211, 153, 0.25) 100%);
-    color: #5eead4;
+    background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+    border-top-color: transparent;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  .featured-product-card:hover .featured-product-cta::before {
+    opacity: 1;
+  }
+  
+  .featured-product-cta span,
+  .featured-product-cta svg {
+    position: relative;
+    z-index: 1;
   }
   
   .featured-product-cta svg {
@@ -909,16 +942,39 @@
   }
   
   .featured-product-card:hover .featured-product-cta svg {
-    transform: translateX(4px);
+    transform: translateX(6px);
   }
   
-  /* 3-column stats grid for Products, Merchants, Brands */
+  /* 3-column stats grid for Products, Merchants, Brands - horizontally scrollable */
   .stats-grid-three {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
     gap: 0.75rem;
     width: 100%;
-    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    padding-bottom: 0.5rem;
+  }
+  
+  .stats-grid-three::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .stats-grid-three::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+  }
+  
+  .stats-grid-three::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+  
+  .stats-grid-three::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
   
   @media (min-width: 640px) {
@@ -936,36 +992,39 @@
   /* Stat Cards */
   .stat-card {
     position: relative;
-    padding: 1rem 0.75rem;
+    padding: 1rem 1.25rem;
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(20, 25, 35, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     text-align: center;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    min-width: fit-content;
+    scroll-snap-align: start;
   }
   
   @media (min-width: 640px) {
     .stat-card {
-      padding: 1.25rem 0.875rem;
+      padding: 1.25rem 1.5rem;
       border-radius: 1.125rem;
     }
   }
   
   @media (min-width: 1024px) {
     .stat-card {
-      padding: 1.5rem 1rem;
+      padding: 1.5rem 1.75rem;
       border-radius: 1.25rem;
     }
   }
   
   .stat-card:hover {
     transform: translateY(-4px) scale(1.02);
-    border-color: rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(25, 32, 45, 0.92);
+    box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.5), 0 0 30px rgba(45, 212, 191, 0.08);
   }
   
   .stat-card-icon {

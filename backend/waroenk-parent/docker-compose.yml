@@ -1,6 +1,7 @@
 # ================================
 # Waroenk Backend - Docker Compose
 # Uses shared Maven cache for efficient builds
+# Memory-optimized for development environment
 # ================================
 
 x-maven-cache: &maven-cache
@@ -8,13 +9,6 @@ x-maven-cache: &maven-cache
 
 x-common-build: &common-build
   context: .
-
-x-common-deploy: &common-deploy
-  resources:
-    limits:
-      memory: 512M
-    reservations:
-      memory: 256M
 
 x-common-networks: &common-networks
   - shared
@@ -44,7 +38,12 @@ services:
       <<: *common-build
       dockerfile: member/Dockerfile
     container_name: member
-    deploy: *common-deploy
+    deploy:
+      resources:
+        limits:
+          memory: 400M   # Optimized: was at 64% usage (328.5MiB/512M)
+        reservations:
+          memory: 200M
     env_file:
       - member/.env
     networks: *common-networks
@@ -56,7 +55,8 @@ services:
       - "${MEMBER_GRPC_PORT:-9090}:${MEMBER_GRPC_PORT:-9090}"
     environment:
       HTTP_REST_PORT: ${MEMBER_HTTP_PORT:-8081}
-      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
+      # JVM optimized for container (Xmx ~75% of limit)
+      JAVA_OPTS: ${JAVA_OPTS:--Xms200m -Xmx300m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication}
       MAVEN_OPTS: -Dmaven.repo.local=/root/.m2/repository
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       REDIS_HOST: ${REDIS_HOST:-redis}
@@ -77,7 +77,12 @@ services:
       <<: *common-build
       dockerfile: catalog/Dockerfile
     container_name: catalog
-    deploy: *common-deploy
+    deploy:
+      resources:
+        limits:
+          memory: 400M   # Optimized: was at 60% usage (306.9MiB/512M)
+        reservations:
+          memory: 200M
     env_file:
       - catalog/.env
     networks: *common-networks
@@ -89,7 +94,8 @@ services:
       - "${CATALOG_GRPC_PORT:-9091}:${CATALOG_GRPC_PORT:-9091}"
     environment:
       HTTP_REST_PORT: ${CATALOG_HTTP_PORT:-8082}
-      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
+      # JVM optimized for container (Xmx ~75% of limit)
+      JAVA_OPTS: ${JAVA_OPTS:--Xms200m -Xmx300m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication}
       MAVEN_OPTS: -Dmaven.repo.local=/root/.m2/repository
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       REDIS_HOST: ${REDIS_HOST:-redis}
@@ -108,7 +114,12 @@ services:
       <<: *common-build
       dockerfile: cart/Dockerfile
     container_name: cart
-    deploy: *common-deploy
+    deploy:
+      resources:
+        limits:
+          memory: 384M   # Optimized: was at 49% usage (251.6MiB/512M)
+        reservations:
+          memory: 192M
     env_file:
       - cart/.env
     networks: *common-networks
@@ -120,7 +131,8 @@ services:
       - "${CART_GRPC_PORT:-9092}:${CART_GRPC_PORT:-9092}"
     environment:
       HTTP_REST_PORT: ${CART_HTTP_PORT:-8083}
-      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
+      # JVM optimized for container (Xmx ~75% of limit)
+      JAVA_OPTS: ${JAVA_OPTS:--Xms192m -Xmx288m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication}
       MAVEN_OPTS: -Dmaven.repo.local=/root/.m2/repository
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       REDIS_HOST: ${REDIS_HOST:-redis}
@@ -136,7 +148,12 @@ services:
       <<: *common-build
       dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
-    deploy: *common-deploy
+    deploy:
+      resources:
+        limits:
+          memory: 384M   # Increased: was at 96% usage (245.7MiB/256M) - CRITICAL
+        reservations:
+          memory: 192M
     env_file:
       - api-gateway/.env
     networks: *common-networks
@@ -148,7 +165,8 @@ services:
       - "${GATEWAY_GRPC_PORT:-6565}:${GATEWAY_GRPC_PORT:-6565}"
     environment:
       HTTP_REST_PORT: 8080
-      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
+      # JVM optimized for container (Xmx ~75% of limit)
+      JAVA_OPTS: ${JAVA_OPTS:--Xms192m -Xmx288m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication}
       MAVEN_OPTS: -Dmaven.repo.local=/root/.m2/repository
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       MEMBER_GRPC_HOST: member
@@ -165,7 +183,7 @@ services:
 networks:
   backend:
     name: backend
-    driver: bridge
+    external: true
   shared:
     name: shared-network
     external: true

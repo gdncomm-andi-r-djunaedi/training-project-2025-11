@@ -12,7 +12,7 @@ services:
         limits:
           memory: 512M
         reservations:
-          memory: 256M
+          memory: 200M
     env_file:
       - .env
     networks:
@@ -27,7 +27,8 @@ services:
       - "9090:9090"   # Member gRPC
     environment:
       HTTP_REST_PORT: 8081
-      JAVA_OPTS: ${JAVA_OPTS}
+      # JVM optimized for container memory (Xmx ~75% of limit)
+      JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx480m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       # Redis config (Standalone mode by default)
       REDIS_HOST: ${REDIS_HOST:-redis}
@@ -45,15 +46,11 @@ services:
       MIGRATE_DATABASE: ${MIGRATE_DATABASE:-true}
       # Set to true once to fix migration checksum, then remove
       FLYWAY_REPAIR: ${FLYWAY_REPAIR:-false}
-      # API Gateway registration
-      GATEWAY_REGISTRATION_ENABLED: ${GATEWAY_REGISTRATION_ENABLED:-true}
-      GATEWAY_HOST: ${GATEWAY_HOST:-api-gateway}
-      GATEWAY_GRPC_PORT: ${GATEWAY_GRPC_PORT:-6565}
 
 networks:
   backend:
     name: backend
-    driver: bridge
+    external: true
   shared:
     name: shared-network
     external: true

@@ -2,10 +2,9 @@ package com.gdn.project.waroenk.gateway.controller;
 
 import com.gdn.project.waroenk.gateway.config.GatewayProperties;
 import com.gdn.project.waroenk.gateway.config.GrpcChannelConfig;
-import com.gdn.project.waroenk.gateway.service.DynamicRoutingRegistry;
-import com.gdn.project.waroenk.gateway.service.DynamicRoutingRegistry.CachedRoute;
-import com.gdn.project.waroenk.gateway.service.DynamicRoutingRegistry.CachedService;
-import com.gdn.project.waroenk.gateway.service.RouteResolver;
+import com.gdn.project.waroenk.gateway.service.StaticRouteRegistry;
+import com.gdn.project.waroenk.gateway.service.StaticRouteRegistry.RouteInfo;
+import com.gdn.project.waroenk.gateway.service.StaticRouteRegistry.ServiceInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Health check, status, and service information controller
+ * Health check, status, and service information controller.
+ * Simplified for static route configuration.
  */
 @RestController
 @RequiredArgsConstructor
@@ -28,17 +28,13 @@ public class HealthController {
 
     private final GatewayProperties gatewayProperties;
     private final GrpcChannelConfig channelConfig;
-    private final DynamicRoutingRegistry dynamicRegistry;
-    private final RouteResolver routeResolver;
+    private final StaticRouteRegistry routeRegistry;
 
     @Value("${info.app.version:1.0.0}")
     private String appVersion;
 
     @Value("${spring.application.name:api-gateway}")
     private String appName;
-
-    @Value("${grpc.server.port:6565}")
-    private int grpcServerPort;
 
     @GetMapping("/health")
     @Operation(summary = "Health check", description = "Returns the health status of the gateway")
@@ -55,107 +51,63 @@ public class HealthController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("name", appName);
         response.put("version", appVersion);
-        response.put("grpc_registration_port", grpcServerPort);
+        response.put("mode", "static");
         response.put("timestamp", LocalDateTime.now());
 
-        // Count routes
-        int staticRoutes = gatewayProperties.getRoutes().stream()
-                .mapToInt(r -> r.getMethods().size())
-                .sum();
-        int dynamicRoutes = dynamicRegistry.getAllRoutes().size();
-
+        // Route stats
         Map<String, Object> routeStats = new LinkedHashMap<>();
-        routeStats.put("static", staticRoutes);
-        routeStats.put("dynamic", dynamicRoutes);
-        routeStats.put("total", staticRoutes + dynamicRoutes);
+        routeStats.put("total", routeRegistry.getRouteCount());
+        routeStats.put("source", "application.properties");
         response.put("routes", routeStats);
 
-        // Count services
+        // Service stats
         Map<String, Object> serviceStats = new LinkedHashMap<>();
-        serviceStats.put("static", gatewayProperties.getServices().size());
-        serviceStats.put("dynamic", dynamicRegistry.getAllServices().size());
+        serviceStats.put("total", routeRegistry.getServiceCount());
+        serviceStats.put("connected", channelConfig.getActiveServiceNames().size());
         response.put("services", serviceStats);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/services")
-    @Operation(summary = "List services", description = "Returns all registered services (static + dynamic)")
+    @Operation(summary = "List services", description = "Returns all configured services")
     public ResponseEntity<Map<String, Object>> services() {
         Map<String, Object> response = new LinkedHashMap<>();
 
-        // Static services from properties
-        List<Map<String, Object>> staticServices = new ArrayList<>();
-        gatewayProperties.getServices().forEach((name, config) -> {
-            Map<String, Object> serviceInfo = new LinkedHashMap<>();
-            serviceInfo.put("name", name);
-            serviceInfo.put("host", config.getHost());
-            serviceInfo.put("port", config.getPort());
-            serviceInfo.put("use_tls", config.isUseTls());
-            serviceInfo.put("source", "static");
-            serviceInfo.put("connected", channelConfig.hasChannel(name));
-            staticServices.add(serviceInfo);
-        });
-        response.put("static_services", staticServices);
-
-        // Dynamic services from database
-        List<Map<String, Object>> dynamicServices = new ArrayList<>();
-        for (CachedService service : dynamicRegistry.getAllServices()) {
+        List<Map<String, Object>> serviceList = new ArrayList<>();
+        for (ServiceInfo service : routeRegistry.getAllServices()) {
             Map<String, Object> serviceInfo = new LinkedHashMap<>();
             serviceInfo.put("name", service.name());
             serviceInfo.put("host", service.host());
             serviceInfo.put("port", service.port());
             serviceInfo.put("use_tls", service.useTls());
-            serviceInfo.put("source", "dynamic");
-            serviceInfo.put("last_heartbeat", service.lastHeartbeat());
             serviceInfo.put("connected", channelConfig.hasChannel(service.name()));
-            dynamicServices.add(serviceInfo);
+            serviceList.add(serviceInfo);
         }
-        response.put("dynamic_services", dynamicServices);
-
-        response.put("total_services", staticServices.size() + dynamicServices.size());
+        response.put("services", serviceList);
+        response.put("total", serviceList.size());
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/routes")
-    @Operation(summary = "List routes", description = "Returns all configured routes (static + dynamic)")
+    @Operation(summary = "List routes", description = "Returns all configured routes")
     public ResponseEntity<Map<String, Object>> routes() {
         Map<String, Object> response = new LinkedHashMap<>();
 
-        // Static routes from properties
-        List<Map<String, Object>> staticRoutes = new ArrayList<>();
-        for (GatewayProperties.RouteConfig route : gatewayProperties.getRoutes()) {
-            for (GatewayProperties.MethodMapping method : route.getMethods()) {
-                Map<String, Object> routeInfo = new LinkedHashMap<>();
-                routeInfo.put("http_method", method.getHttpMethod());
-                routeInfo.put("path", method.getHttpPath());
-                routeInfo.put("service", route.getService());
-                routeInfo.put("grpc_service", route.getGrpcService());
-                routeInfo.put("grpc_method", method.getGrpcMethod());
-                routeInfo.put("public", method.isPublicEndpoint() || route.isPublicRoute());
-                routeInfo.put("source", "static");
-                staticRoutes.add(routeInfo);
-            }
-        }
-        response.put("static_routes", staticRoutes);
-
-        // Dynamic routes from database
-        List<Map<String, Object>> dynamicRoutes = new ArrayList<>();
-        for (CachedRoute route : dynamicRegistry.getAllRoutes()) {
+        List<Map<String, Object>> routeList = new ArrayList<>();
+        for (RouteInfo route : routeRegistry.getAllRoutes()) {
             Map<String, Object> routeInfo = new LinkedHashMap<>();
             routeInfo.put("http_method", route.httpMethod());
-            routeInfo.put("path", route.path());
+            routeInfo.put("path", route.httpPath());
             routeInfo.put("service", route.serviceName());
             routeInfo.put("grpc_service", route.grpcServiceName());
             routeInfo.put("grpc_method", route.grpcMethodName());
             routeInfo.put("public", route.publicEndpoint());
-            routeInfo.put("source", "dynamic");
-            dynamicRoutes.add(routeInfo);
+            routeList.add(routeInfo);
         }
-        response.put("dynamic_routes", dynamicRoutes);
-
-        response.put("total_routes", staticRoutes.size() + dynamicRoutes.size());
+        response.put("routes", routeList);
+        response.put("total", routeList.size());
 
         return ResponseEntity.ok(response);
     }
@@ -165,38 +117,24 @@ public class HealthController {
     public ResponseEntity<Map<String, Object>> routesSummary() {
         Map<String, Object> response = new LinkedHashMap<>();
 
-        // Group static routes by service
-        Map<String, Long> staticByService = gatewayProperties.getRoutes().stream()
+        // Group routes by service
+        Map<String, Long> routesByService = routeRegistry.getAllRoutes().stream()
                 .collect(Collectors.groupingBy(
-                        GatewayProperties.RouteConfig::getService,
-                        Collectors.summingLong(r -> r.getMethods().size())
-                ));
-
-        // Group dynamic routes by service
-        Map<String, Long> dynamicByService = dynamicRegistry.getAllRoutes().stream()
-                .collect(Collectors.groupingBy(
-                        CachedRoute::serviceName,
+                        RouteInfo::serviceName,
                         Collectors.counting()
                 ));
 
-        // Merge and build summary
-        Set<String> allServices = new HashSet<>();
-        allServices.addAll(staticByService.keySet());
-        allServices.addAll(dynamicByService.keySet());
-
         List<Map<String, Object>> summary = new ArrayList<>();
-        for (String service : allServices) {
+        for (Map.Entry<String, Long> entry : routesByService.entrySet()) {
             Map<String, Object> serviceRoutes = new LinkedHashMap<>();
-            serviceRoutes.put("service", service);
-            serviceRoutes.put("static_routes", staticByService.getOrDefault(service, 0L));
-            serviceRoutes.put("dynamic_routes", dynamicByService.getOrDefault(service, 0L));
-            serviceRoutes.put("total", staticByService.getOrDefault(service, 0L) +
-                    dynamicByService.getOrDefault(service, 0L));
+            serviceRoutes.put("service", entry.getKey());
+            serviceRoutes.put("routes", entry.getValue());
             summary.add(serviceRoutes);
         }
 
         response.put("by_service", summary);
-        response.put("total_services", allServices.size());
+        response.put("total_services", routesByService.size());
+        response.put("total_routes", routeRegistry.getRouteCount());
 
         return ResponseEntity.ok(response);
     }

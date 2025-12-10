@@ -10,7 +10,7 @@ import com.gdn.project.waroenk.member.LogoutRequest;
 import com.gdn.project.waroenk.member.LogoutResponse;
 import com.gdn.project.waroenk.member.RefreshTokenRequest;
 import com.gdn.project.waroenk.member.RefreshTokenResponse;
-import com.gdn.project.waroenk.member.SortBy;
+import com.gdn.project.waroenk.common.SortBy;
 import com.gdn.project.waroenk.member.UserTokenResponse;
 import com.gdn.project.waroenk.member.entity.Token;
 import com.gdn.project.waroenk.member.entity.User;
@@ -689,4 +689,5 @@ class UserServiceImplTest {
     }
   }
 }
+
 

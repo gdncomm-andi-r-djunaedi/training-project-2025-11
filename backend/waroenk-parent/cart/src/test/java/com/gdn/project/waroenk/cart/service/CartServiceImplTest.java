@@ -4,7 +4,6 @@ import com.gdn.project.waroenk.cart.client.CatalogGrpcClient;
 import com.gdn.project.waroenk.cart.dto.cart.AddCartItemResult;
 import com.gdn.project.waroenk.cart.dto.cart.BulkAddCartItemsResult;
 import com.gdn.project.waroenk.cart.entity.Cart;
-import com.gdn.project.waroenk.cart.entity.CartItem;
 import com.gdn.project.waroenk.cart.exceptions.ResourceNotFoundException;
 import com.gdn.project.waroenk.cart.fixture.TestDataFactory;
 import com.gdn.project.waroenk.cart.repository.CartRepository;
@@ -21,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -275,9 +273,9 @@ class CartServiceImplTest {
       BulkAddCartItemsResult result = cartService.bulkAddItemsWithValidation(USER_ID, items);
 
       // Then
-      assertThat(result.success()).isTrue();
+      assertThat(result.allSuccess()).isTrue();
       assertThat(result.itemStatuses()).hasSize(2);
-      assertThat(result.itemStatuses().stream().filter(s -> s.success()).count()).isEqualTo(2);
+      assertThat(result.itemStatuses().stream().filter(BulkAddCartItemsResult.CartItemStatus::success).count()).isEqualTo(2);
     }
 
     @Test
@@ -464,4 +462,5 @@ class CartServiceImplTest {
         .build();
   }
 }
+
 

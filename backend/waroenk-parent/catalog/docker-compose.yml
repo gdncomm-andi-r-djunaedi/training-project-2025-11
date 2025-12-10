@@ -27,7 +27,7 @@ services:
       - "9091:9091"   # Catalog gRPC
     environment:
       HTTP_REST_PORT: 8082
-      JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx512m}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx480m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
       # MongoDB config
       MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/catalog}
@@ -42,15 +42,11 @@ services:
       TYPESENSE_HOST: ${TYPESENSE_HOST:-typesense}
       TYPESENSE_PORT: ${TYPESENSE_PORT:-8108}
       TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz123}
-      # API Gateway registration
-      GATEWAY_REGISTRATION_ENABLED: ${GATEWAY_REGISTRATION_ENABLED:-true}
-      GATEWAY_HOST: ${GATEWAY_HOST:-api-gateway}
-      GATEWAY_GRPC_PORT: ${GATEWAY_GRPC_PORT:-6565}
 
 networks:
   backend:
     name: backend
-    driver: bridge
+    external: true
   shared:
     name: shared-network
     external: true

@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -27,8 +27,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -50,10 +48,10 @@ class UserServiceIntegrationTest {
   @Autowired
   private PasswordEncoder passwordEncoder;
 
-  @MockBean
+  @MockitoBean
   private CacheUtil<User> userCacheUtil;
 
-  @MockBean
+  @MockitoBean
   private CacheUtil<String> stringCacheUtil;
 
   private User testUser;
@@ -102,11 +100,11 @@ class UserServiceIntegrationTest {
       String nonExistentId = UUID.randomUUID().toString();
 
       // When/Then
-      assertThatThrownBy(() -> userService.findUserById(nonExistentId))
-          .isInstanceOf(ResourceNotFoundException.class)
+      assertThatThrownBy(() -> userService.findUserById(nonExistentId)).isInstanceOf(ResourceNotFoundException.class)
           .hasMessageContaining("User with id: " + nonExistentId + " not found");
     }
   }
+
 
   @Nested
   @DisplayName("findUserByPhoneOrEmail Integration Tests")
@@ -134,6 +132,7 @@ class UserServiceIntegrationTest {
       assertThat(result.getPhoneNumber()).isEqualTo("+6281111111111");
     }
   }
+
 
   @Nested
   @DisplayName("registerUser Integration Tests")
@@ -165,16 +164,12 @@ class UserServiceIntegrationTest {
     @DisplayName("Should throw DuplicateResourceException for duplicate email")
     void shouldThrowExceptionForDuplicateEmail() {
       // Given
-      User duplicateUser = User.builder()
-          .fullName("Duplicate Email User")
-          .email("integration.test@example.com") // Same as testUser
-          .phoneNumber("+6283333333333")
-          .passwordHash(passwordEncoder.encode("Password123!"))
-          .build();
+      User duplicateUser =
+          User.builder().fullName("Duplicate Email User").email("integration.test@example.com") // Same as testUser
+              .phoneNumber("+6283333333333").passwordHash(passwordEncoder.encode("Password123!")).build();
 
       // When/Then
-      assertThatThrownBy(() -> userService.registerUser(duplicateUser))
-          .isInstanceOf(DuplicateResourceException.class);
+      assertThatThrownBy(() -> userService.registerUser(duplicateUser)).isInstanceOf(DuplicateResourceException.class);
     }
 
     @Test
@@ -189,10 +184,10 @@ class UserServiceIntegrationTest {
           .build();
 
       // When/Then
-      assertThatThrownBy(() -> userService.registerUser(duplicateUser))
-          .isInstanceOf(DuplicateResourceException.class);
+      assertThatThrownBy(() -> userService.registerUser(duplicateUser)).isInstanceOf(DuplicateResourceException.class);
     }
   }
+
 
   @Nested
   @DisplayName("login Integration Tests")
@@ -202,10 +197,8 @@ class UserServiceIntegrationTest {
     @DisplayName("Should login successfully with email")
     void shouldLoginSuccessfullyWithEmail() {
       // Given
-      AuthenticateRequest request = AuthenticateRequest.newBuilder()
-          .setUser("integration.test@example.com")
-          .setPassword(rawPassword)
-          .build();
+      AuthenticateRequest request =
+          AuthenticateRequest.newBuilder().setUser("integration.test@example.com").setPassword(rawPassword).build();
 
       // When
       UserTokenResponse result = userService.login(request);
@@ -221,10 +214,8 @@ class UserServiceIntegrationTest {
     @DisplayName("Should login successfully with phone number")
     void shouldLoginSuccessfullyWithPhoneNumber() {
       // Given
-      AuthenticateRequest request = AuthenticateRequest.newBuilder()
-          .setUser("+6281111111111")
-          .setPassword(rawPassword)
-          .build();
+      AuthenticateRequest request =
+          AuthenticateRequest.newBuilder().setUser("+6281111111111").setPassword(rawPassword).build();
 
       // When
       UserTokenResponse result = userService.login(request);
@@ -244,8 +235,7 @@ class UserServiceIntegrationTest {
           .build();
 
       // When/Then
-      assertThatThrownBy(() -> userService.login(request))
-          .isInstanceOf(InvalidCredentialsException.class)
+      assertThatThrownBy(() -> userService.login(request)).isInstanceOf(InvalidCredentialsException.class)
           .hasMessage("Invalid credentials");
     }
 
@@ -253,17 +243,15 @@ class UserServiceIntegrationTest {
     @DisplayName("Should throw InvalidCredentialsException for non-existent user")
     void shouldThrowExceptionForNonExistentUser() {
       // Given
-      AuthenticateRequest request = AuthenticateRequest.newBuilder()
-          .setUser("nonexistent@example.com")
-          .setPassword("Password123!")
-          .build();
+      AuthenticateRequest request =
+          AuthenticateRequest.newBuilder().setUser("nonexistent@example.com").setPassword("Password123!").build();
 
       // When/Then
-      assertThatThrownBy(() -> userService.login(request))
-          .isInstanceOf(InvalidCredentialsException.class)
+      assertThatThrownBy(() -> userService.login(request)).isInstanceOf(InvalidCredentialsException.class)
           .hasMessage("Invalid credentials");
     }
   }
+
 
   @Nested
   @DisplayName("updateUser Integration Tests")
@@ -296,10 +284,7 @@ class UserServiceIntegrationTest {
     @DisplayName("Should partially update user (only fullName)")
     void shouldPartiallyUpdateUser() {
       // Given
-      User updateRequest = User.builder()
-          .id(testUser.getId())
-          .fullName("Only Name Changed")
-          .build();
+      User updateRequest = User.builder().id(testUser.getId()).fullName("Only Name Changed").build();
 
       // When
       User result = userService.updateUser(updateRequest);
@@ -312,4 +297,5 @@ class UserServiceIntegrationTest {
     }
   }
 }
+
 

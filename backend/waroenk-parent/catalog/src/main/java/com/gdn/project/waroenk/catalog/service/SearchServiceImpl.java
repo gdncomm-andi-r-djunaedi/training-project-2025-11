@@ -996,7 +996,7 @@ public class SearchServiceImpl implements SearchService {
           variant.getSubSku(),
           variant.getTitle(),
           variant.getPrice(),
-          variant.getIsDefault() || isSelected,
+          isSelected,
           // Mark as selected
           variantMapper.structToMap(variant.getAttributes()),
           variant.getThumbnail(),

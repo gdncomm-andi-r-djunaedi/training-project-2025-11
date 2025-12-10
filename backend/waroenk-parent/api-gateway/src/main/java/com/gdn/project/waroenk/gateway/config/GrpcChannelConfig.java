@@ -1,6 +1,7 @@
 package com.gdn.project.waroenk.gateway.config;
 
-import com.gdn.project.waroenk.gateway.service.RouteResolver;
+import com.gdn.project.waroenk.gateway.service.StaticRouteRegistry;
+import com.gdn.project.waroenk.gateway.service.StaticRouteRegistry.ServiceInfo;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import jakarta.annotation.PostConstruct;
@@ -11,13 +12,18 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Configuration for managing gRPC channels to backend services.
- * Dynamically creates channels for both static (properties-based) and
- * dynamic (database-registered) services.
+ * Creates channels lazily for services defined in static configuration.
+ * 
+ * Memory optimized:
+ * - Channels are created lazily on first use
+ * - Idle timeout releases unused connections
+ * - No persistent keep-alive without active calls
  */
 @Slf4j
 @Configuration
@@ -27,20 +33,22 @@ public class GrpcChannelConfig {
     private final GatewayProperties gatewayProperties;
     private final Map<String, ManagedChannel> channels = new ConcurrentHashMap<>();
 
-    // Will be injected after RouteResolver is created
-    private RouteResolver routeResolver;
+    // Injected after StaticRouteRegistry is created to avoid circular dependency
+    private StaticRouteRegistry routeRegistry;
 
-    public void setRouteResolver(RouteResolver routeResolver) {
-        this.routeResolver = routeResolver;
+    public void setRouteRegistry(StaticRouteRegistry routeRegistry) {
+        this.routeRegistry = routeRegistry;
     }
 
     @PostConstruct
-    public void initStaticChannels() {
-        // Initialize channels for statically configured services
-        gatewayProperties.getServices().forEach((serviceName, config) -> {
-            log.info("Creating static gRPC channel for service: {} -> {}:{}",
-                    serviceName, config.getHost(), config.getPort());
-            createChannel(serviceName, config.getHost(), config.getPort(), config.isUseTls());
+    public void init() {
+        log.info("GrpcChannelConfig initialized - {} services configured", 
+                gatewayProperties.getServices().size());
+        
+        // Log configured services (channels created lazily)
+        gatewayProperties.getServices().forEach((name, config) -> {
+            log.info("  Service configured: {} -> {}:{} (TLS: {})",
+                    name, config.getHost(), config.getPort(), config.isUseTls());
         });
     }
 
@@ -67,43 +75,42 @@ public class GrpcChannelConfig {
 
     /**
      * Get the channel for a specific service.
-     * If no channel exists, tries to create one dynamically.
+     * Creates channel lazily if not exists.
      */
     public ManagedChannel getChannel(String serviceName) {
-        ManagedChannel channel = channels.get(serviceName);
-
-        if (channel == null || channel.isShutdown() || channel.isTerminated()) {
-            // Try to get service info from route resolver
-            if (routeResolver != null) {
-                Optional<RouteResolver.ServiceInfo> serviceInfo = routeResolver.getServiceInfo(serviceName);
-                if (serviceInfo.isPresent()) {
-                    RouteResolver.ServiceInfo info = serviceInfo.get();
-                    channel = createChannel(serviceName, info.host(), info.port(), info.useTls());
-                }
-            }
-        }
-
-        if (channel == null) {
-            throw new IllegalArgumentException("No channel configured for service: " + serviceName);
-        }
-
-        return channel;
+        return channels.computeIfAbsent(serviceName, this::createChannelForService);
     }
 
     /**
-     * Create or replace a channel for a service.
+     * Create a channel for a service using static configuration.
+     */
+    private ManagedChannel createChannelForService(String serviceName) {
+        // First try from gateway properties
+        GatewayProperties.ServiceConfig config = gatewayProperties.getServices().get(serviceName);
+        if (config != null) {
+            return createChannel(serviceName, config.getHost(), config.getPort(), config.isUseTls());
+        }
+
+        // Try from route registry if available
+        if (routeRegistry != null) {
+            Optional<ServiceInfo> serviceInfo = routeRegistry.getServiceInfo(serviceName);
+            if (serviceInfo.isPresent()) {
+                ServiceInfo info = serviceInfo.get();
+                return createChannel(serviceName, info.host(), info.port(), info.useTls());
+            }
+        }
+
+        throw new IllegalArgumentException("No configuration found for service: " + serviceName);
+    }
+
+    /**
+     * Create a channel for a service.
      * Optimized for stability and resource efficiency:
      * - Disable keepAliveWithoutCalls to release idle connections
      * - Add idle timeout to prevent connection buildup
      * - Limit max retry attempts
      */
-    public ManagedChannel createChannel(String serviceName, String host, int port, boolean useTls) {
-        // Shutdown existing channel if any (non-blocking)
-        ManagedChannel existing = channels.get(serviceName);
-        if (existing != null && !existing.isShutdown()) {
-            existing.shutdownNow(); // Non-blocking shutdown
-        }
-
+    private ManagedChannel createChannel(String serviceName, String host, int port, boolean useTls) {
         ManagedChannelBuilder<?> builder = ManagedChannelBuilder
                 .forAddress(host, port)
                 // Keep-alive settings (only when there ARE active calls)
@@ -121,8 +128,6 @@ public class GrpcChannelConfig {
         }
 
         ManagedChannel channel = builder.build();
-        channels.put(serviceName, channel);
-
         log.info("Created gRPC channel for service: {} -> {}:{} (TLS: {})",
                 serviceName, host, port, useTls);
 
@@ -130,22 +135,7 @@ public class GrpcChannelConfig {
     }
 
     /**
-     * Remove a channel for a service
-     */
-    public void removeChannel(String serviceName) {
-        ManagedChannel channel = channels.remove(serviceName);
-        if (channel != null) {
-            try {
-                channel.shutdown().awaitTermination(2, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            log.info("Removed gRPC channel for service: {}", serviceName);
-        }
-    }
-
-    /**
-     * Check if a channel exists for the given service
+     * Check if a channel exists and is active for the given service.
      */
     public boolean hasChannel(String serviceName) {
         ManagedChannel channel = channels.get(serviceName);
@@ -153,9 +143,16 @@ public class GrpcChannelConfig {
     }
 
     /**
-     * Get all configured service names
+     * Get all service names that have active channels.
      */
-    public java.util.Set<String> getServiceNames() {
+    public Set<String> getActiveServiceNames() {
         return channels.keySet();
+    }
+
+    /**
+     * Get all configured service names.
+     */
+    public Set<String> getConfiguredServiceNames() {
+        return gatewayProperties.getServices().keySet();
     }
 }
