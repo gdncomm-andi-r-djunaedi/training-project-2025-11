@@ -1,0 +1,53 @@
+# ================================
+# API Gateway Module docker-compose.yml
+# Lightweight static configuration - no external dependencies
+# ================================
+
+services:
+  api-gateway:
+    image: waroenk-parent-api-gateway:latest
+    container_name: api-gateway
+    deploy:
+      resources:
+        limits:
+          memory: 384M  # Increased from 256M - was at 95.99% usage
+        reservations:
+          memory: 192M
+    env_file:
+      - .env
+    networks:
+      - shared
+      - backend
+    expose:
+      - "${HTTP_REST_PORT:-8080}"
+    ports:
+      - "${HTTP_REST_PORT:-8080}:${HTTP_REST_PORT:-8080}"
+    environment:
+      # JVM optimized for container memory (Xmx ~75% of limit)
+      JAVA_OPTS: ${JAVA_OPTS:--Xms192m -Xmx288m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      JWT_SECRET: ${JWT_SECRET:-c2VjdXJlLXNlY3JldC1rZXktZm9yLWp3dC10b2tlbi1nZW5lcmF0aW9uLW1pbmltdW0tMjU2LWJpdHM=}
+      # Service endpoints (gRPC)
+      MEMBER_GRPC_HOST: ${MEMBER_GRPC_HOST:-member}
+      MEMBER_GRPC_PORT: ${MEMBER_GRPC_PORT:-9090}
+      MEMBER_HTTP_PORT: ${MEMBER_HTTP_PORT:-8081}
+      CATALOG_GRPC_HOST: ${CATALOG_GRPC_HOST:-catalog}
+      CATALOG_GRPC_PORT: ${CATALOG_GRPC_PORT:-9091}
+      CATALOG_HTTP_PORT: ${CATALOG_HTTP_PORT:-8082}
+      CART_GRPC_HOST: ${CART_GRPC_HOST:-cart}
+      CART_GRPC_PORT: ${CART_GRPC_PORT:-9092}
+      CART_HTTP_PORT: ${CART_HTTP_PORT:-8083}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${HTTP_REST_PORT:-8080}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  backend:
+    name: backend
+    external: true
+  shared:
+    name: shared-network
+    external: true

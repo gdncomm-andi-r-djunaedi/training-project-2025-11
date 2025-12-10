@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package common;
+
+import "google/api/annotations.proto";
+import "common/base.proto";
+
+option java_multiple_files = true;
+option java_package = "com.gdn.project.waroenk.common";
+option java_outer_classname = "HealthServiceProto";
+
+// Health and metrics service for monitoring
+// Implemented by all backend services for centralized monitoring
+service HealthService {
+  // Get service health status
+  rpc GetHealth (common.Empty) returns (HealthResponse) {
+    option (google.api.http) = {
+      get: "/grpc/health"
+    };
+  }
+
+  // Get service metrics (JVM, memory, threads, etc.)
+  rpc GetMetrics (common.Empty) returns (MetricsResponse) {
+    option (google.api.http) = {
+      get: "/grpc/metrics"
+    };
+  }
+
+  // Get service info (version, build time, etc.)
+  rpc GetInfo (common.Empty) returns (InfoResponse) {
+    option (google.api.http) = {
+      get: "/grpc/info"
+    };
+  }
+}
+
+// Health status
+enum HealthStatus {
+  UNKNOWN = 0;
+  UP = 1;
+  DOWN = 2;
+  DEGRADED = 3;
+}
+
+// Health response
+message HealthResponse {
+  HealthStatus status = 1;
+  string service_name = 2;
+  int64 timestamp = 3; // Unix millis
+  map<string, ComponentHealth> components = 4;
+  string error_message = 5;
+}
+
+// Component health (db, redis, etc.)
+message ComponentHealth {
+  HealthStatus status = 1;
+  map<string, string> details = 2;
+}
+
+// Metrics response
+message MetricsResponse {
+  string service_name = 1;
+  int64 timestamp = 2; // Unix millis
+  MemoryMetrics memory = 3;
+  JvmMetrics jvm = 4;
+  SystemMetrics system = 5;
+  map<string, double> custom_metrics = 6;
+}
+
+// Memory metrics
+message MemoryMetrics {
+  int64 heap_used = 1;
+  int64 heap_max = 2;
+  int64 heap_committed = 3;
+  int64 non_heap_used = 4;
+  int64 non_heap_committed = 5;
+  double heap_used_percentage = 6;
+}
+
+// JVM metrics
+message JvmMetrics {
+  int32 thread_count = 1;
+  int32 thread_peak_count = 2;
+  int32 thread_daemon_count = 3;
+  int64 classes_loaded = 4;
+  double cpu_usage = 5; // Process CPU usage percentage
+  int64 uptime_seconds = 6;
+  int64 gc_count = 7;
+  int64 gc_time_millis = 8;
+}
+
+// System metrics
+message SystemMetrics {
+  double system_cpu_usage = 1; // System-wide CPU percentage
+  int32 available_processors = 2;
+  int64 total_memory = 3;
+  int64 free_memory = 4;
+}
+
+// Info response
+message InfoResponse {
+  string service_name = 1;
+  string version = 2;
+  string java_version = 3;
+  string spring_boot_version = 4;
+  int64 build_timestamp = 5;
+  GitInfo git = 6;
+  map<string, string> additional_info = 7;
+}
+
+// Git info
+message GitInfo {
+  string branch = 1;
+  string commit_id = 2;
+  string commit_message = 3;
+  int64 commit_time = 4;
+}
+
+
