@@ -1,0 +1,8 @@
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\gateway\ApiGatewayApplication.java
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\apigateway\ApiGatewayApplication.java
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\apigateway\controller\AuthController.java
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\apigateway\security\JwtUtil.java
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\gateway\util\JwtUtil.java
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\apigateway\filter\AuthenticationFilter.java
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\apigateway\config\SecurityConfig.java
+C:\Users\steffani.maria\IdeaProjects\Exercise\training-project-2025-11\api-gateway\src\main\java\com\gdn\training\gateway\filter\AuthenticationFilter.java
