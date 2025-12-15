@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "get_product_detail_request.proto";
+import "get_product_detail_response.proto";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.product.service";
+
+service ProductService{
+  rpc GetProductDetail(GetProductDetailRequest) returns (GetProductDetailResponse);
+}

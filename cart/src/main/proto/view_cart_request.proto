@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.training.marketplace.cart.modal.request";
+
+// Request message for viewing the cart.
+message ViewCartRequest {
+  string user_id = 1;
+}
