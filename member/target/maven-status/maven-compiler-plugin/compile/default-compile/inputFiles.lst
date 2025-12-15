@@ -1,0 +1,13 @@
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\config\OpenApiConfig.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\config\SecurityConfig.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\controller\MemberController.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\entity\Member.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\MemberApplication.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\model\AuthResponse.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\model\LoginRequest.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\model\RegisterRequest.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\repositories\MemberRepository.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\repositories\RevokedTokenRepository.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\security\JwtService.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\security\RevokedToken.java
+D:\Kerjaan\Code\ULP\developer-learning\training-project-2025-11\member\src\main\java\com\project\member\service\AuthService.java
