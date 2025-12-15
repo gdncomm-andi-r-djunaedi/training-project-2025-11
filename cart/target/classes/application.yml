@@ -1,0 +1,9 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: cart-service
+  data:
+    mongodb:
+      uri: mongodb://admin:password@localhost:27017/cart_db?authSource=admin

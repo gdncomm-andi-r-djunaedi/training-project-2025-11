@@ -1,0 +1,69 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.gdn.marketplace:cart >----------------------
+[INFO] Building cart 1.0.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ cart ---
+[INFO] Deleting C:\Users\elvin.nasution\IdeaProjects\training-project-2025-11\cart\target
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ cart ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 1 resource
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.11.0:compile (default-compile) @ cart ---
+[INFO] Changes detected - recompiling the module! :source
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 7 source files with javac [debug target 17] to target\classes
+[INFO] Annotation processing is enabled because one or more processors were found
+  on the class path. A future release of javac may disable annotation processing
+  unless at least one processor is specified by name (-processor), or a search
+  path is specified (--processor-path, --processor-module-path), or annotation
+  processing is enabled explicitly (-proc:only, -proc:full).
+  Use -Xlint:-options to suppress this message.
+  Use -proc:none to disable annotation processing.
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] system modules path not set in conjunction with -source 17
+[INFO] 1 warning
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[3,23] package io.jsonwebtoken does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[4,23] package io.jsonwebtoken does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[5,26] package io.jsonwebtoken.io does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[6,32] package io.jsonwebtoken.security does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[22,54] cannot find symbol
+  symbol:   class Claims
+  location: class com.gdn.marketplace.cart.util.JwtUtil
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[27,13] cannot find symbol
+  symbol:   class Claims
+  location: class com.gdn.marketplace.cart.util.JwtUtil
+[INFO] 6 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  11.267 s
+[INFO] Finished at: 2025-12-03T14:51:37+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project cart: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[3,23] package io.jsonwebtoken does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[4,23] package io.jsonwebtoken does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[5,26] package io.jsonwebtoken.io does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[6,32] package io.jsonwebtoken.security does not exist
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[22,54] cannot find symbol
+[ERROR]   symbol:   class Claims
+[ERROR]   location: class com.gdn.marketplace.cart.util.JwtUtil
+[ERROR] /C:/Users/elvin.nasution/IdeaProjects/training-project-2025-11/cart/src/main/java/com/gdn/marketplace/cart/util/JwtUtil.java:[27,13] cannot find symbol
+[ERROR]   symbol:   class Claims
+[ERROR]   location: class com.gdn.marketplace.cart.util.JwtUtil
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
