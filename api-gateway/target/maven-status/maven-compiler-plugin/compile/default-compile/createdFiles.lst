@@ -1,0 +1,5 @@
+com\example\gateway\command\ProxyDeleteCommand.class
+com\example\gateway\command\ProxyGetCommand.class
+com\example\gateway\GatewayApplication.class
+com\example\gateway\command\ProxyPostCommand.class
+com\example\gateway\controller\ProxyController.class
