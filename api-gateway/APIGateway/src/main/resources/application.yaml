@@ -1,0 +1,43 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: APIGateway
+
+  cloud:
+    gateway:
+      default-filters:
+        - PreserveHostHeader
+
+      routes:
+        # Member Service
+        - id: member-service
+          uri: http://localhost:8080
+          predicates:
+            - Path=/members/**
+          filters:
+            - JWTAuthenticationFilter
+            - PreserveHostHeader
+
+        # Product Service
+        - id: product-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/products/**
+
+        # Cart Service
+        - id: cart-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/cart/**
+          filters:
+            - JWTAuthenticationFilter
+            - PreserveHostHeader
+
+jwt:
+  secret: "thisois2aweeryestrongesecretekeyeforehmac256ealgorithm"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
